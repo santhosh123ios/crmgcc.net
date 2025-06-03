@@ -1,0 +1,65 @@
+import { executeQuery } from "../../utils/run_query.js";
+
+export const createComplaint = (req, res) => {
+
+    try {
+        const { vendor_id, subject, message, attachment } = req.body;
+        const user_id = req.user?.id;
+        const query = "INSERT INTO complaints (vendor_id,user_id, subject, message, attachment) VALUES (?, ?, ?, ?, ?)";
+        executeQuery({
+            query,
+            data: [vendor_id,user_id, subject, message, attachment],
+            callback: (err, userData) => 
+            {
+                if (err)
+                        return res
+                        .status(500)
+                        .json({ error: [{ message: err }], result: {} });
+
+                    const result = {
+                            message: "complaint created successfuly",
+                            title: "",
+                            status: 1,
+                        };
+                return res.status(200).json({ error: [], result });
+            }
+        })
+    } 
+    catch (err) {
+        console.error("Upload error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+}
+
+export const getComplaints = (req, res) => {
+
+    try {
+        const user_id = req.user?.id;
+        const query =  "SELECT complaints.*, users.name AS vendor_name, users.email AS vendor_email, users.profile_img AS vendor_image FROM  complaints LEFT JOIN  users  ON  complaints.vendor_id = users.id WHERE complaints.user_id = ?";
+        
+        executeQuery({
+            query,
+            data: [user_id],
+            callback: (err, userData) => 
+            {
+                if (err)
+                        return res
+                        .status(500)
+                        .json({ error: [{ message: err }], result: {} });
+
+                   const result = {
+                            message: "get all complaints",
+                            status: 1,
+                            // data: userData
+                            data: userData,
+                    };
+        
+                    return res.status(200).json({ error: [], result });
+            }
+        })
+    } 
+    catch (err) {
+        console.error("Upload error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+}

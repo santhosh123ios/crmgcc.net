@@ -1,0 +1,64 @@
+import express from "express"
+import adminAuth from "../middleware/admin/authMiddleware.js";
+import { sendEmailVerification, register ,login, emailVerification, addCard } from "../controllers/main/Auth.js";
+import FileUpload from "../services/FileUpload.js";
+import { createCard, getCardDetails } from "../controllers/admin/Card.js";
+import { addTransaction, getAllRedeem, getAllTransaction, redeemStatusUpdate } from "../controllers/admin/Transaction.js";
+import { getLeads, leadStatusUpdate } from "../controllers/admin/Leads.js";
+import { getProfile, memberList, updateProfile, updateProfileImage, vendorList } from "../controllers/admin/Profile.js";
+import { complaintsStatusUpdate, getComplaints } from "../controllers/admin/Complaints.js";
+import { getDashboard } from "../controllers/admin/Reports.js";
+
+const router = express.Router()
+
+router.post("/register",register)
+router.post("/login", login)
+router.post("/send-email-verification", sendEmailVerification)
+router.post("/email-verification", emailVerification)
+router.post("/createcard", adminAuth, createCard)
+router.get("/get_card_details", adminAuth, getCardDetails)
+router.post("/add_card", adminAuth, addCard)
+router.get("/get_all_transaction", adminAuth, getAllTransaction)
+router.get("/get_all_redeem", adminAuth, getAllRedeem)
+router.post("/add_transaction", adminAuth, addTransaction)
+router.post("/redeem-status-update", adminAuth, redeemStatusUpdate)
+router.get("/get_leads", adminAuth, getLeads)
+router.post("/lead_status_update", adminAuth, leadStatusUpdate)
+router.get("/member_list", adminAuth, memberList)
+router.get("/vendor_list", adminAuth, vendorList)
+router.get("/get_complaints", adminAuth, getComplaints)
+router.post("/complaints_status_update", adminAuth, complaintsStatusUpdate)
+router.get("/get_profile", adminAuth, getProfile)
+router.post("/update_profile_image", adminAuth, updateProfileImage)
+router.post("/update_profile", adminAuth, updateProfile)
+router.get("/get_dashboard", adminAuth, getDashboard)
+
+
+
+
+router.post("/upload", adminAuth, FileUpload.single('file'), (req, res) => {
+  if (!req.file) return res.json({
+  success: false,
+  message: "error",
+  
+});
+  //res.send(`File uploaded successfully: ${req.file.filename}`);
+  res.json({
+  success: true,
+  message: "Lead created successfully",
+  file: req.file?.filename,
+  data: req.body,
+});
+});
+
+
+
+
+//router.get("/memberlist", memberAuth, memberList)
+// router.post("/upload", adminAuth, FileUpload.single('file'), (req, res) => {
+//   if (!req.file) return res.send('No file uploaded.');
+//   res.send(`File uploaded successfully: ${req.file.filename}`);
+// });
+
+
+export default router;
