@@ -1,38 +1,51 @@
 import React from 'react'
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import '/src/App.css'
 import LoginForm from '../../componants/Admin/LoginForm'
 import RegisterForm from '../../componants/Admin/RegisterForm'
+import ForgotPassword from '../../componants/Admin/ForgotPassword'
+import ResetPassword from '../../componants/Admin/ResetPassword';
+import { useLocation } from "react-router-dom";
 
 
 export default function LoginLayoutAdmin() {
 
-  //const [selected, setSelected] = useState('register');
+  const location = useLocation();
 
-   const [showLogin, setShowLogin] = useState(true);
-   const toggleForm = () => {
-    setShowLogin(!showLogin);
-   };
+  const [showLogin, setShowLogin] = useState(0);
+  const [email, setEmail] = useState("");
 
-  // const renderContent = () => {
-  //   switch (selected) {
-  //     case 'login':
-  //       return <LoginForm selected={selected} setSelected={setSelected} />;
-  //     case 'register':
-  //       return <RegisterForm selected={selected} setSelected={setSelected} />;
-  //     default:
-  //       return <LoginForm selected={selected} setSelected={setSelected} />;
-  //   }
-  // };
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get("exp");
+    const type = parseInt(params.get("type"), 10);
+    localStorage.setItem("authToken", token);
+    console.log("SANTHOSH TYPE IS : "+type)
+    setShowLogin(type);
+
+
+}, [location]);
+
+  const renderComponent = () => {
+    switch (showLogin) {
+      case 0:
+        return <LoginForm onSwitchForm={setShowLogin} setEmailId={setEmail} />;
+      case 1:
+        return <RegisterForm onSwitchForm={setShowLogin} />;
+      case 2:
+        return <ForgotPassword onSwitchForm={setShowLogin} email={email} />;
+      case 3:
+        return <ResetPassword onSwitchForm={setShowLogin} email={email} />;
+      default:
+        return <LoginForm onSwitchForm={setShowLogin} setEmailId={setEmail} />;
+    }
+  };
 
   return (
     <div className='img-bg'>
      <div className='img-bg-part-a'>
-        {showLogin ? (
-        <LoginForm onSwitchForm={toggleForm} />
-      ) : (
-        <RegisterForm onSwitchForm={toggleForm} />
-      )}
+      {/* <ForgotPassword onSwitchForm={setShowLogin} /> */}
+      {renderComponent()}
      </div>
 
      <div className='img-bg-part-b'>

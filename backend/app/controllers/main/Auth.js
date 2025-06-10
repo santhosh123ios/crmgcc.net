@@ -112,7 +112,7 @@ console.log(password);
 }
           
   
-	console.log("santhosh A");
+	
       const query = "SELECT * FROM users WHERE email = ? AND password = ?";
   
       executeQuery({
@@ -332,7 +332,7 @@ export const sendEmailVerification = async (req, res) => {
       process.env.EMAIL_SECRET_KEY,
       { expiresIn: "24h" }
     );
-    const verificationLink = `http://localhost:5173/verify-email?exp=${token}`;
+    const verificationLink = `${process.env.WEB_BASE_URL}verify-email?exp=${token}`;
 
     await sendVerificationEmail(email, verificationLink);
 
@@ -356,8 +356,6 @@ export const sendEmailVerification = async (req, res) => {
 };
 
 export const emailVerification = async (req, res) => {
-
-  console.log("SANTHOSH DATA : ",req.body)
 
   try {
 
@@ -436,41 +434,6 @@ function generateCardNumber() {
 
   return cardNumber;
 }
-
-
-// export const demo = (req, res) => {
-//     try {
-//       console.log(req.body);
-//       const user_id = req.user?.id;
-//       const authHeader = req.headers['authorization'];
-//       const token = authHeader && authHeader.split(' ')[1]; // Extract token after "Bearer "
-//       console.log(token)
-//       const { password, email } = req.body;
-
-//       if (!user_id)
-//         return res
-//           .status(404)
-//           .json({ error: [{ message: "Input data missing" }], result: {} });
-
-//       const query = "SELECT * FROM users WHERE email = ? AND password = ?";
-//       executeQuery({
-//         query,
-//         data: [email, password],
-//         callback: (err, userData) => {
-//             // if (err) return res.status(500).json(err)
-//             console.log(userData)
-
-//           }});
-
-//     } 
-//     catch (error) {
-//       console.log(error.message);
-//       return res
-//         .status(500)
-//         .json({ error: [{ message: "Internal server error" }], result: {} });
-//     }
-// }
-
 
 export const addCard = (req, res) => { 
     try {
@@ -573,3 +536,191 @@ export const addCard = (req, res) => {
       
     }
 }
+
+export const sendEmailResetPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const query = "SELECT * FROM users WHERE email = ?";
+    executeQuery({
+      query,
+      data: [email],
+      callback: async (err, userData) => {
+        if (err) {
+          console.error("DB Error:", err);
+          return res.status(500).json({
+            error: [{ message: "Database error" }],
+            result: {},
+          });
+        }
+
+        if (!userData[0]) {
+          return res.status(400).json({
+            error: [{ message: "This user does not exist" }],
+            result: {},
+          });
+        }
+
+        const user_id = userData[0].id;
+        const user_type = userData[0].user_type;
+
+        const token = Jwt.sign(
+          { user_id, user_type },
+          process.env.EMAIL_RESET_KEY,
+          { expiresIn: "30m" }
+        );
+
+        const verificationLink = `${process.env.WEB_BASE_URL}login?exp=${token}&type=3`;
+
+        try {
+          await sendVerificationEmail(email, verificationLink);
+          return res.status(200).json({
+            error: [],
+            result: {
+              message: "Verification email sent",
+              status: 1,
+            },
+          });
+        } catch (emailErr) {
+          console.error("Email send error:", emailErr);
+          return res.status(500).json({
+            error: [{ message: "Email sending failed" }],
+            result: {},
+          });
+        }
+      },
+    });
+  } catch (error) {
+    console.error("Unhandled error:", error);
+    return res.status(500).json({
+      error: [{ message: "Unexpected server error" }],
+      result: {},
+    });
+  }
+};
+
+
+export const sendEmailResetPasswords = async (req, res) => {
+
+  console.log(process.env.EMAIL_USER);
+
+  try {
+    const { email } = req.body;
+
+    let user_id = 0;
+    let user_type = 0;
+
+    const query = "SELECT * FROM users WHERE email = ?";
+    executeQuery({
+        query,
+        data: [email],
+        callback: (err, userData) => 
+        {
+
+          if (!userData[0])
+            return res
+              .status(400)
+              .json({
+                error: [{ message: "this user not exists" }],
+                result: {},
+              });
+
+              user_id = userData[0].id
+              user_type = userData[0].user_type
+              console.log("SANTHOSH USER DATA IS : "+user_id+ " "+user_type);
+        }
+    })
+
+    console.log("SANTHOSH USER DATA IS TOKEN GEN : "+user_id+ " "+user_type);
+    const token = Jwt.sign(
+      { user_id: user_id, user_type: user_type },
+      process.env.EMAIL_RESET_KEY,
+      { expiresIn: "30m" }
+    );
+    console.log("SANTHOSH USER DATA IS TOKEN GEN TESTING : "+user_id+ " "+user_type);
+    const verificationLink = `${process.env.WEB_BASE_URL}login?exp=${token}&type=3`;
+    await sendVerificationEmail(email, verificationLink);
+    return res.status(200).json({
+      error: [],
+      result: {
+        message: "Verification email sent",
+        status: 1,
+      },
+    });
+
+  } catch (error) {
+    console.error('Email error:', error);
+    // res.status(500).json({ success: false, message: 'Email sending failed' });
+    return res
+              .status(500)
+              .json({
+                error: [{ message: "Email sending failed" }],
+                result: {},
+              });
+  }
+
+};
+
+export const resetPassword = async (req, res) => {
+
+  try {
+    const { password } = req.body;
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res
+          .status(500)
+          .json({ error: [{ message: "Token missing or invalid" }], result: {} });
+    }
+    const token = authHeader.split(" ")[1];
+    const decoded = await verifyToken(token, process.env.EMAIL_RESET_KEY);
+    console.log("Decoded JWT:", decoded);
+
+    if (!decoded.user_id| !decoded.user_type || !password) {
+      return res
+          .status(400)
+          .json({ error: [{ message: "TYPE and ID and TOKEN are required" }], result: {} });
+    }
+
+    const query = "SELECT * FROM users WHERE id = ? AND user_type = ?";
+    executeQuery({
+        query,
+        data: [decoded.user_id,decoded.user_type],
+        callback: (err, userData) => 
+        {
+            if (!userData[0])
+                return res
+                  .status(400)
+                  .json({
+                    error: [{ message: "this user not exists" }],
+                    result: {},
+                  });
+                  const query = "UPDATE users SET password = ? WHERE id = ? AND user_type = ?";
+                  executeQuery({
+                      query,
+                      data: [password,decoded.user_id,decoded.user_type],
+                      callback: (err, userData) => 
+                      {
+                        if (err)
+                        return res
+                        .status(500)
+                        .json({ error: [{ message: err }], result: {} });
+
+                        const result = {
+                          message: "Reset password successfully",
+                          status: 1,
+                        };
+                        return res.status(200).json({ error: [], result });
+ 
+                      }
+                  })
+
+
+        }
+    })
+
+  } catch (error) {
+    console.error("Email verification error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

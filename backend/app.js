@@ -22,7 +22,7 @@ const __dirname = path.dirname(__filename);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(cors({
-  origin: ["https://crmgcc.net", "https://www.crmgcc.net"],
+  origin: ["https://crmgcc.net", "https://www.crmgcc.net","http://localhost:5173"],
   credentials: true
 }));
 

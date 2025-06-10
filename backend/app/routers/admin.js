@@ -1,6 +1,6 @@
 import express from "express"
 import adminAuth from "../middleware/admin/authMiddleware.js";
-import { sendEmailVerification, register ,login, emailVerification, addCard } from "../controllers/main/Auth.js";
+import { sendEmailVerification, register ,login, emailVerification, addCard, sendEmailResetPassword, resetPassword } from "../controllers/main/Auth.js";
 import FileUpload from "../services/FileUpload.js";
 import { createCard, getCardDetails } from "../controllers/admin/Card.js";
 import { addTransaction, getAllRedeem, getAllTransaction, redeemStatusUpdate } from "../controllers/admin/Transaction.js";
@@ -15,6 +15,10 @@ router.post("/register",register)
 router.post("/login", login)
 router.post("/send-email-verification", sendEmailVerification)
 router.post("/email-verification", emailVerification)
+router.post("/send_email_reset_password", sendEmailResetPassword)
+router.post("/reset_password", resetPassword)
+
+
 router.post("/createcard", adminAuth, createCard)
 router.get("/get_card_details", adminAuth, getCardDetails)
 router.post("/add_card", adminAuth, addCard)
