@@ -5,6 +5,7 @@ import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import { clearData } from '../../utils/clearData';
+import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 
 function HeaderAdmin({ selected, setSelected }) {
   
@@ -62,16 +63,24 @@ function HeaderAdmin({ selected, setSelected }) {
             </div>
             
             <div className='div-setings'>
-                          <div className={selected === 'logout' ? 'div-setings-selected' : 'div-setings-non'}
-                        onClick={() => clearData()}>
-                            <FontAwesomeIcon icon={faGear} style={{ color: "black" }} />
-                            <span style={{ color: "black", marginLeft: 4, fontWeight: "bold" }} >Logout</span>
-                          </div>
-                          </div>
+                <div className={selected === 'settings' ? 'div-setings-selected' : 'div-setings-non'}
+                onClick={() => setSelected('settings')}>
+                  <FontAwesomeIcon icon={faGear} style={{ color: "black" }} />
+                  <span style={{ color: "black", marginLeft: 4, fontWeight: "bold" }} >Settings</span>
+                </div>
+            </div>
+
+            <div className='div-profile'>
+              <div className={selected === 'logout' ? 'div-profile-selected' : ''}
+           
+              onClick={() => clearData()}>
+                <FontAwesomeIcon icon={faRightFromBracket} style={{ color: "black" }} />
+              </div>
+            </div>
     
             <div className='div-profile'>
             <div className={selected === 'notification' ? 'div-profile-selected' : ''}
-          onClick={() => setSelected('notification')}>
+              onClick={() => setSelected('notification')}>
               <FontAwesomeIcon icon={faBell} style={{ color: "black" }} />
               </div>
             </div>
