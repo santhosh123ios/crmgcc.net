@@ -8,6 +8,7 @@ import { getLeads, leadStatusUpdate } from "../controllers/admin/Leads.js";
 import { getProfile, memberList, updateProfile, updateProfileImage, vendorList } from "../controllers/admin/Profile.js";
 import { complaintsStatusUpdate, getComplaints } from "../controllers/admin/Complaints.js";
 import { getDashboard } from "../controllers/admin/Reports.js";
+import { createCategory, editCategory, getCategorys, updateCategory } from "../controllers/admin/category.js";
 
 const router = express.Router()
 
@@ -36,6 +37,10 @@ router.get("/get_profile", adminAuth, getProfile)
 router.post("/update_profile_image", adminAuth, updateProfileImage)
 router.post("/update_profile", adminAuth, updateProfile)
 router.get("/get_dashboard", adminAuth, getDashboard)
+router.post("/create_category", adminAuth, createCategory)
+router.get("/get_categorys", adminAuth,getCategorys)
+router.post("/update_category", adminAuth,updateCategory)
+router.post("/edit_category", adminAuth,editCategory)
 
 
 

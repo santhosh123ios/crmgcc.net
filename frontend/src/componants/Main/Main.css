@@ -39,6 +39,24 @@
   margin: 0px;
 }
 
+.circle-btns-shadow {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: var(--text-primary);
+  font-size: 16px;
+  padding: 0px;
+  margin: 0px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+}
+
+.circle-btns-shadow:hover 
+{
+  background-color: var(--highlight-color);
+  border-color: var(--highlight-color);
+}
+
 .circle-btns:hover {
   background-color: var(--highlight-color);
   border-color: var(--highlight-color);

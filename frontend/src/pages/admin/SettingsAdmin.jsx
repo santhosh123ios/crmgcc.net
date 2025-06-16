@@ -2,11 +2,28 @@ import React,{useState} from 'react'
 import DashboardBox from '../../componants/Main/DashboardBox'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear,faStore} from "@fortawesome/free-solid-svg-icons";
+import SettingsGeneral from './SettingsGeneral';
+import SettingsMember from './SettingsMember';
+import SettingsBrand from './SettingsBrand';
 
 function SettingsAdmin() {
 
-const [selected, setSelected] = useState("dashboard");
+const [selected, setSelected] = useState("general");
 const [tabStatus, setTabStatus] = useState(false);
+
+const renderContent = () => {
+    switch (selected) {
+      case 'general':
+        return <SettingsGeneral/>;
+      case 'brand':
+        return <SettingsBrand/>;
+      case 'member':
+        return <SettingsMember/>;
+
+      default:
+        return <SettingsGeneral />;
+    }
+  };
 
   return (
     <div  className='content-view'>
@@ -15,7 +32,7 @@ const [tabStatus, setTabStatus] = useState(false);
               width: '100%',
               height: '100%',
               display: 'flex',
-              flexDirection: 'row'
+              flexDirection: 'row',
             }}>
                 {/* Memu bar */}
                 <div style={{
@@ -23,7 +40,7 @@ const [tabStatus, setTabStatus] = useState(false);
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  padding: '2px',
+                  padding: '0px',
                   transition: 'width 0.3s ease, transform 0.3s ease',
                 }}
                 onMouseEnter={() => setTabStatus(true)}
@@ -54,13 +71,24 @@ const [tabStatus, setTabStatus] = useState(false);
                                         </div>
                                     </div>
                                     
-                                   <div className='div-tab-menu-new'>
+                                    <div className='div-tab-menu-new'>
                                         <div className={selected === 'brand' ? 'div-tab-menu-selected' : 'div-tab-menu'}
                                         onClick={() => setSelected('brand')}>
                                             <FontAwesomeIcon icon={faStore} style={{ color: selected ==='brand' ? "white": "black" }} />
                                             {tabStatus && (
                                                <span className={selected === 'brand' ? 'span-tab-menu-selected':'span-tab-menu'}>Brand</span>
                                             )}
+                                        </div>
+                                    </div>
+
+                                    <div className='div-tab-menu-new'>
+                                        <div className={tabStatus? selected === 'member' ? 'div-tab-menu-selected' : 'div-tab-menu': selected === 'member' ? 'div-tab-menu-selected-icon' : 'div-tab-menu-icon'}
+                                            onClick={() => setSelected('member')}>
+                                            <FontAwesomeIcon icon={faGear} style={{ color: selected ==='member' ? "white": "black"  }} />
+                                            {tabStatus && (
+                                               <span className={selected === 'member' ? 'span-tab-menu-selected':'span-tab-menu'} >Member</span>
+                                            )}
+                                            
                                         </div>
                                     </div>
                                     
@@ -70,7 +98,7 @@ const [tabStatus, setTabStatus] = useState(false);
                     </DashboardBox>
                 </div>
 
-                 <div style={{
+                <div style={{
                   width: '1%',
                   height: '100%',
                   display: 'flex',
@@ -78,23 +106,14 @@ const [tabStatus, setTabStatus] = useState(false);
                 }}></div>
 
                 <div style={{
-                  width: '30%',
+                  width: '100%',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  padding: '2px'
+                  padding: '0px',
+                  boxSizing:'border-box'
                 }}>
-                    <DashboardBox>
-                        {/* Search bar and add button */}
-                        <div style={{
-                            width: '100%',
-                            height: '60px',
-                            display: 'flex',
-                            flexDirection: 'row',
-                            padding: '2px',
-                            borderBlock:'boxSizing'}}>
-                         </div>
-                    </DashboardBox>
+                   {renderContent()}
                 </div>
             
             </div>
