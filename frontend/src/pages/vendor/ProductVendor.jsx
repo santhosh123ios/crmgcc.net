@@ -11,31 +11,23 @@ import RoundButtonText from '../../componants/Main/RoundButtonText';
 import ImageUploadPopupCommon from '../../componants/Main/ImageUploadPopupCommon';
 import CommonButton from '../../componants/Main/CommonButton';
 import LoadingButton from '../../componants/Main/LoadingButton';
-import CommonDatePicker from '../../componants/Main/CommonDatePicker';
-import { dateConvert } from '../../utils/dateConvert';
 
 const baseUrl = import.meta.env.VITE_API_BASE_IMG_URL;
 
+function ProductVendor() {
 
-function OffersVendor() {
 
-  const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
     const [detailPage, setDetailPage] = useState(false);
-    const [selectedPosOffer, setselectedPosOffer] = useState();
-    const [selectedOffer, setSelectedOffer] = useState({});
-    const [offers, setOffers] = useState([]);
+    const [selectedPosProd, setselectedPosProd] = useState();
+    const [selectedProd, setSelectedProd] = useState({});
+    const [products, setProducts] = useState([]);
     const [showPopup, setShowPopup] = useState(false);
     const [showImagePopup, setShowImagePopup] = useState(false);
     const [imageUploadType, setImageUploadType] = useState(0);
     const [submitButFlag, setSubmitButFlag] = useState(false);
     const [imageUploadStatus, setImageUploadStatus] = useState("Product Image");
     const [productImage, setProductImage] = useState("");
-
-    const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date());
-
-    const [startDateSelected, setStartDateSelected] = useState(new Date());
-    const [endDateSelected, setEndDateSelected] = useState(new Date());
     
 
     
@@ -44,33 +36,31 @@ function OffersVendor() {
 
         title: "",
         description: "",
-        discount: "",
-        discount_code: "",
+        price: "",
+        offer_price: "",
     });
 
     const [formDataEdit, setFormDataEdit] = useState({
         title: "",
         description: "",
-        discount: "",
-        discount_code: "",
+        price: "",
+        offer_price: "",
     });
 
 
     const handleProductListClick = (index) => {
 
       console.log("Clicked index:", index);
-      if (selectedPosOffer == index )
+      if (selectedPosProd == index )
       {
         setDetailPage(false)
-        setselectedPosOffer()
+        setselectedPosProd()
       }
       else
       {
-        setFormDataEdit(offers[index]);
-        setselectedPosOffer(index)
-        setSelectedOffer(offers[index])
-        setStartDateSelected(offers[index].start_date)
-        setEndDateSelected(offers[index].end_date)
+        setFormDataEdit(products[index]);
+        setselectedPosProd(index)
+        setSelectedProd(products[index])
         setDetailPage(true)
       }
     };
@@ -82,7 +72,7 @@ function OffersVendor() {
     };
 
     const handleSubmitEdit = () => {
-        updateOfferDetails()
+        updateProductDetails()
     };
 
     const handleimageChange = () => {
@@ -97,14 +87,14 @@ function OffersVendor() {
 
     const handleChangeProdStatus = () => {
         console.log("SAVE BUTTON ACTION")
-        console.log(selectedOffer?.status)
-        if(selectedOffer?.status == 1)
+        console.log(selectedProd?.status)
+        if(selectedProd?.status == 1)
         {
-            updateOfferStatus(0)
+            updateProductStatus(0)
         }
         else
         {
-            updateOfferStatus(1)
+            updateProductStatus(1)
         }  
     };
 
@@ -119,18 +109,18 @@ function OffersVendor() {
         }
         else
         {
-            updateOfferImage(data)
+            updateProductImage(data)
             setShowImagePopup(false)
         }
     };
 
     const onDeleteProduct = () => {
         console.log("SAVE BUTTON ACTION")
-        deleteOffer()
+        deleteProduct()
     };
 
     useEffect(() => {
-        fetchOffers();
+        fetchProducts();
     },[]);
 
     const handleChange = (e) => {
@@ -150,18 +140,18 @@ function OffersVendor() {
     };
 
      ///API CALLING
-    const fetchOffers = async () => {
+    const fetchProducts = async () => {
         setLoading(true);
         try {
-        const response = await apiClient.get("/vendor/get_offers");
+        const response = await apiClient.get("/vendor/get_product");
         if (response?.result?.status === 1) 
         {
-            console.warn("Get Offer successfully");
-            setOffers(response.result.data);
+            console.warn("Get Transaction successfully");
+            setProducts(response.result.data);
             if(detailPage)
             {
-                setFormDataEdit(response.result.data[selectedPosOffer]);
-                setSelectedOffer(response.result.data[selectedPosOffer])
+                setFormDataEdit(response.result.data[selectedPosProd]);
+                setSelectedProd(response.result.data[selectedPosProd])
             }
         } 
         else {
@@ -174,9 +164,7 @@ function OffersVendor() {
         }
     };
 
-    const addOffer = async () => {
-
-      console.log(dateConvert(startDate))
+    const addProduct = async () => {
 
         //setisLoading(true); // Show loader
         try {
@@ -184,21 +172,19 @@ function OffersVendor() {
             const payload = {
             title: formData.title,
             description: formData.description,
-            discount: formData.discount,
-            discount_code: formData.discount_code,
-            image: productImage,
-            start_date: dateConvert(startDate),
-            end_date: dateConvert(endDate) 
+            price: formData.price,
+            offer_price: formData.offer_price,
+            image: productImage 
             };
 
             console.log("SANTHOSH Vendor ID:", payload);
-            const data = await apiClient.post("/vendor/add_offers", payload);
+            const data = await apiClient.post("/vendor/add_product", payload);
 
             //if (data && data.result?.data.status === 1) {
             if (data?.result?.status === 1) {
                 //setVendors(data.result.data);
                 setShowPopup(false)
-                fetchOffers();
+                fetchProducts();
             }
 
         } catch (err) {
@@ -210,23 +196,23 @@ function OffersVendor() {
     };
 
 
-    const updateOfferStatus = async (status) => {
+    const updateProductStatus = async (status) => {
         //setisLoading(true); // Show loader
         console.log(status)
         try {
 
             const payload = {
-                id: selectedOffer?.id,
+                id: selectedProd?.id,
                 status: status
             };
             console.log(payload)
-            const data = await apiClient.post("/vendor/update_offer_status", payload);
+            const data = await apiClient.post("/vendor/update_product_status", payload);
 
             //if (data && data.result?.data.status === 1) {
             if (data?.result?.status === 1) {
                 //setVendors(data.result.data);
                 ///setShowPopup(false)
-                fetchOffers();
+                fetchProducts();
             }
 
         } catch (err) {
@@ -237,18 +223,18 @@ function OffersVendor() {
         }
     };
 
-    const updateOfferImage = async (image) => {
+    const updateProductImage = async (image) => {
         //setisLoading(true); // Show loader
         try {
             const payload = {
-                id: selectedOffer?.id,
+                id: selectedProd?.id,
                 image: image
             };
             console.log(payload)
-            const data = await apiClient.post("/vendor/update_offer_image", payload);
+            const data = await apiClient.post("/vendor/update_product_image", payload);
 
             if (data?.result?.status === 1) {
-                fetchOffers();
+                fetchProducts();
             }
 
         } catch (err) {
@@ -259,17 +245,17 @@ function OffersVendor() {
         }
     };
 
-    const deleteOffer = async () => {
+    const deleteProduct = async () => {
         //setisLoading(true); // Show loader
         try {
             const payload = {
-                id: selectedOffer?.id
+                id: selectedProd?.id
             };
             console.log(payload)
-            const data = await apiClient.post("/vendor/delete_offer", payload);
+            const data = await apiClient.post("/vendor/delete_product", payload);
 
             if (data?.result?.status === 1) {
-                fetchOffers();
+                fetchProducts();
             }
 
         } catch (err) {
@@ -281,23 +267,21 @@ function OffersVendor() {
     };
 
 
-    const updateOfferDetails = async () => {
+    const updateProductDetails = async () => {
         setSubmitButFlag(true); // Show loader
         try {
             const payload = {
-                id: selectedOffer?.id,
+                id: selectedProd?.id,
                 title: formDataEdit.title,
                 description: formDataEdit.description,
-                discount: formDataEdit.discount,
-                discount_code: formDataEdit.discount_code,
-                start_date: dateConvert(startDateSelected),
-                end_date: dateConvert(endDateSelected),
+                price: formDataEdit.price,
+                offer_price: formDataEdit.offer_price,
             };
             console.log(payload)
-            const data = await apiClient.post("/vendor/update_offer_details", payload);
+            const data = await apiClient.post("/vendor/update_product_details", payload);
 
             if (data?.result?.status === 1) {
-                fetchOffers();
+                fetchProducts();
             }
 
         } catch (err) {
@@ -322,7 +306,7 @@ function OffersVendor() {
                 width:'100%'
                 }}>
                 <div>
-                    <TitleView text={"Offers"} />
+                    <TitleView text={"Products"} />
                 </div>
                  <div style={{margin:'5px'}}/>
                 <div style={{width:'80px'}}>
@@ -350,12 +334,12 @@ function OffersVendor() {
                                     <div className="spinner" />
                                 </div>
                                 ) : (
-                                    offers.map((proItems, index) => (
+                                    products.map((proItems, index) => (
                                         <div className="user-list-item-product" key={index}>
                                             <DashboardBox>
-                                                    <div className= {selectedPosOffer == index ? "user-list-item-product-inside-selected":"user-list-item-product-inside"} onClick={() => handleProductListClick(index)}>
+                                                    <div className= {selectedPosProd == index ? "user-list-item-product-inside-selected":"user-list-item-product-inside"} onClick={() => handleProductListClick(index)}>
                                                     
-                                                        <img className="prod-image" src={proItems?.image ? baseUrl+proItems?.image : "/public/dummy.jpg"} alt={proItems?.image} />
+                                                        <img className="prod-image" src={proItems?.image ? baseUrl+proItems.image : "/public/dummy.jpg"} alt={proItems.lead_name} />
                                                         {/* <img className="prod-image" src={prodImg ? prodImg : "/public/dummy.jpg"} alt={proItems.lead_name} /> */}
                                                         <div style={{margin:'5px'}}/>
                                                         <div className="user-info-leads">
@@ -363,8 +347,9 @@ function OffersVendor() {
                                                             <TextView type='dark' text={proItems?.description} overflow ={true}/>
                                                             
                                                             <div style={{ display: 'flex', justifyContent: 'start', alignItems: 'center', padding: '0px', margin: '0px'}}>
-                                                                <TextView type='dark' text={"Discount : "+proItems?.discount+"%"}/>
-                                                                
+                                                                <TextView type='dark' text={"Price : "+proItems?.offer_price}/>
+                                                                <div style={{margin:'5px'}}/>
+                                                                <TextView type='dark' text={proItems?.price} strike={true}/>
                                                             </div>
                                                         </div>
                                                         
@@ -404,34 +389,29 @@ function OffersVendor() {
                             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height:'100%',width:'100%' }}>
                                 <div className="product-details-inside" >
                                     <div style={{position: 'relative', width:'100%', maxWidth:'500px',justifyContent:'center', alignItems:'center'}}>
-                                        <img className="offer-image" src={selectedOffer?.image ? baseUrl+selectedOffer.image : "/public/dummy.jpg"} alt={selectedOffer.image} />
+                                        <img className="prod-image" src={selectedProd?.image ? baseUrl+selectedProd.image : "/public/dummy.jpg"} alt={selectedProd.image} />
 
                                         <div style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'row',justifyContent: 'center', alignItems: 'center', zIndex: 1}}>
                                             <RoundButton icon={faPen} onClick={() => handleEditProdImage()} shadow={true} />
                                             <div style={{margin:'5px'}}/>
-                                            <RoundButton icon={selectedOffer?.status===1?faToggleOn:faToggleOff} iconColor= "white" onClick={() => handleChangeProdStatus()} shadow={true} style={{backgroundColor: selectedOffer?.status===1? '#4CAF50' : '#f54b4b' }}/>
+                                            <RoundButton icon={selectedProd?.status===1?faToggleOn:faToggleOff} iconColor= "white" onClick={() => handleChangeProdStatus()} shadow={true} style={{backgroundColor: selectedProd?.status===1? '#4CAF50' : '#f54b4b' }}/>
                                         </div>
                                     </div>
 
                                     <InputText placeholder={"Title"} name={"title"} value={formDataEdit.title} onChange={handleChangeEdit}></InputText>
                                     <InputText placeholder={"Description"} name={"description"} value={formDataEdit.description} onChange={handleChangeEdit}></InputText>
 
-                                    <InputText placeholder={"Discount (%)"} name={"discount"} value={formDataEdit.discount} onChange={handleChangeEdit}></InputText>
-                                    <InputText placeholder={"Discount Code"} name={"discount_code"} value={formDataEdit.discount_code} onChange={handleChangeEdit}></InputText>
-                                    
-                                    <CommonDatePicker
-                                        label="Start Date"
-                                        selectedDate={startDateSelected}
-                                        onChange={date => setStartDateSelected(date)}
-                                    />
+                                    <div style={{display:'flex', flexDirection:'row'}}>
+                                        <div style={{width:'48%'}}>
+                                            <InputText placeholder={"Price"} name={"price"} value={formDataEdit.price} onChange={handleChangeEdit}></InputText>
+                                        </div>
+                                        <div style={{width:'4%'}}>
+                                        </div>
 
-
-                                    <CommonDatePicker
-                                        label="End Date"
-                                        selectedDate={endDateSelected}
-                                        onChange={date => setEndDateSelected(date)}
-                                    />
-                                    
+                                        <div style={{width:'48%'}}>
+                                            <InputText placeholder={"Offer Price"} name={"offer_price"} value={formDataEdit.offer_price} onChange={handleChangeEdit}></InputText>
+                                        </div>
+                                    </div>
                                     <div style={{margin:'1px'}}></div>
                                     <LoadingButton onClick={handleSubmitEdit} isLoading={submitButFlag} text={"Save"} />
                                     <CommonButton text="Delete" color="var(--red)" onClick={onDeleteProduct} />
@@ -447,30 +427,27 @@ function OffersVendor() {
 
             <RightSidePopup isOpen={showPopup} onClose={() => setShowPopup(false)} 
                 onSubmit={() => {
-                addOffer();
+                //setShowPopup(false);
+                addProduct();
                 }}
                 >
-                <TextView type="darkBold" text={"Create your Offer"}/>
+                <TextView type="darkBold" text={"Create your Product"}/>
                 <div style={{marginTop:'20px'}}></div>
 
                 <InputText placeholder={"Title"} name={"title"} onChange={handleChange}></InputText>
                 <InputText placeholder={"Description"} name={"description"} onChange={handleChange}></InputText>
 
-                <InputText placeholder={"Discount (%)"} name={"discount"} onChange={handleChange}></InputText>
-                <InputText placeholder={"Discount Code"} name={"discount_code"} onChange={handleChange}></InputText>
-                
-                 <CommonDatePicker
-                    label="Start Date"
-                    selectedDate={startDate}
-                    onChange={date => setStartDate(date)}
-                 />
+                <div style={{display:'flex', flexDirection:'row'}}>
+                    <div style={{width:'48%'}}>
+                        <InputText placeholder={"Price"} name={"price"} onChange={handleChange}></InputText>
+                    </div>
+                    <div style={{width:'4%'}}>
+                    </div>
 
-
-                 <CommonDatePicker
-                    label="End Date"
-                    selectedDate={endDate}
-                    onChange={date => setEndDate(date)}
-                 />
+                    <div style={{width:'48%'}}>
+                        <InputText placeholder={"Offer Price"} name={"offer_price"} onChange={handleChange}></InputText>
+                    </div>
+                </div>
 
                 <RoundButtonText icon={faPaperclip} text={imageUploadStatus} onClick={handleImageButton}/>
 
@@ -484,4 +461,4 @@ function OffersVendor() {
     )
 }
 
-export default OffersVendor
+export default ProductVendor

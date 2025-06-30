@@ -21,7 +21,7 @@ function CardAdmin() {
               card_type_w_point:"",
               card_type_e_point:"",
               card_profit_margin:""
-      });
+    });
 
   const handleChange = (e) => {
       const { name, value } = e.target;
@@ -88,15 +88,11 @@ function CardAdmin() {
     };
 
 
-     useEffect(() => {
-
+    useEffect(() => {
         fetchCardDetails();
-
         setFormData((prev) => ({
         ...prev,
         }));
-
-        
     },[]);
 
   return (

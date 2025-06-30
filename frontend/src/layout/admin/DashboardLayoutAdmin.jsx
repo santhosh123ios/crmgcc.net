@@ -11,6 +11,7 @@ import ComplaintsAdmin from '../../pages/admin/ComplaintsAdmin';
 import AdminProfile from '../../pages/admin/AdminProfile';
 import Offers from '../../pages/admin/Offers';
 import Notification from '../../pages/admin/Notification';
+import SettingsAdmin from '../../pages/admin/SettingsAdmin';
 
 const DashboardLayoutAdmin = () => {
 
@@ -39,6 +40,8 @@ const DashboardLayoutAdmin = () => {
         return <Offers/>;
       case 'notification':
           return <Notification/>;
+      case 'settings':
+          return <SettingsAdmin/>;
       default:
         return <DashboardAdmin />;
     }

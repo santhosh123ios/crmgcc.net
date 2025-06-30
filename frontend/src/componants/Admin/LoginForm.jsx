@@ -119,6 +119,8 @@ export default function LoginForm({ onSwitchForm, setEmailId }) {
             {show ? <LuEyeClosed /> : <LuEye />}
           </span>
             </div>
+
+            <div style={{margin:'10px'}}></div>
     
             <LoadingButton onClick={handleSubmit} isLoading={submitButFlag} text={"Submit"} />
     

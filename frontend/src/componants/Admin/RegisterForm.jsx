@@ -226,7 +226,7 @@ function RegisterForm({ onSwitchForm }) {
         {show ? <LuEyeClosed /> : <LuEye />}
       </span>
         </div>
-
+        <div style={{margin:'10px'}}></div>
         <LoadingButton onClick={handleSubmit} isLoading={submitButFlag} text={"Submit"} />
 
         <button className='button-reg-click-title' onClick={() => onSwitchForm(0)}>Have any account? Sign In</button>

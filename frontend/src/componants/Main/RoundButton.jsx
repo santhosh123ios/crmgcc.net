@@ -3,10 +3,10 @@ import './Main.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 
-function RoundButton({ icon, onClick }) {
+function RoundButton({ icon, onClick ,style,shadow=false,iconColor='black'}) {
   return (
-    <button className="circle-btns" onClick={onClick} >
-        <FontAwesomeIcon icon={icon} />
+    <button className={shadow? "circle-btns-shadow" : "circle-btns" } onClick={onClick}  style={style} >
+        <FontAwesomeIcon icon={icon} style={{color:iconColor}}/>
     </button>
   )
 }

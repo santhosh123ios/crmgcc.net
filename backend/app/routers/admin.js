@@ -8,6 +8,7 @@ import { getLeads, leadStatusUpdate } from "../controllers/admin/Leads.js";
 import { getProfile, memberList, updateProfile, updateProfileImage, vendorList } from "../controllers/admin/Profile.js";
 import { complaintsStatusUpdate, getComplaints } from "../controllers/admin/Complaints.js";
 import { getDashboard } from "../controllers/admin/Reports.js";
+import { createCategory, editCategory, getCategorys, updateCategory } from "../controllers/admin/category.js";
 
 const router = express.Router()
 
@@ -36,23 +37,32 @@ router.get("/get_profile", adminAuth, getProfile)
 router.post("/update_profile_image", adminAuth, updateProfileImage)
 router.post("/update_profile", adminAuth, updateProfile)
 router.get("/get_dashboard", adminAuth, getDashboard)
+router.post("/create_category", adminAuth, createCategory)
+router.get("/get_categorys", adminAuth,getCategorys)
+router.post("/update_category", adminAuth,updateCategory)
+router.post("/edit_category", adminAuth,editCategory)
 
 
+router.post('/upload', adminAuth, FileUpload.single('file'), (req, res) => {
+  try {
+    console.log("Upload request received");
+    console.log("File: ", req.file); // important!
+    console.log("Body: ", req.body);
 
+    if (!req.file) {
+      console.log("No file found");
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
 
-router.post("/upload", adminAuth, FileUpload.single('file'), (req, res) => {
-  if (!req.file) return res.json({
-  success: false,
-  message: "error",
-  
-});
-  //res.send(`File uploaded successfully: ${req.file.filename}`);
-  res.json({
-  success: true,
-  message: "Lead created successfully",
-  file: req.file?.filename,
-  data: req.body,
-});
+    res.status(200).json({
+      success: true,
+      message: 'Upload successful',
+      filename: req.file.filename,
+    });
+  } catch (err) {
+    console.error('Upload error:', err.message);
+    return res.status(500).json({ success: false, message: 'error' });
+  }
 });
 
 

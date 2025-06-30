@@ -9,6 +9,7 @@ import VendorProfile from '../../pages/vendor/VendorProfile';
 import OffersVendor from '../../pages/vendor/OffersVendor';
 import ReportVendor from '../../pages/vendor/ReportVendor';
 import Notification from '../../pages/vendor/Notification';
+import ProductVendor from '../../pages/vendor/ProductVendor';
 
 function VendorDashboardLayout() {
     const [selected, setSelected] = useState('dashboard');
@@ -27,6 +28,8 @@ function VendorDashboardLayout() {
           return <ComplaintsVendor/>;
         case 'profile':
           return <VendorProfile/>;
+        case 'product':
+          return <ProductVendor/>;
         case 'offers':
           return <OffersVendor/>;
         case 'report':
