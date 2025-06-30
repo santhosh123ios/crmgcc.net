@@ -15,12 +15,15 @@ const styleClasses = {
   light: 'light',
 };
 
-function TextView({ type = 'dark', text, className = '', ...props }) {
+function TextView({ strike = false, overflow = false, type = 'dark', text, className = '', ...props }) {
 
   const buttonClass = classNames(
     'px-4 py-2 rounded font-medium transition-colors duration-300',
+    strike? 'text-strike': '',
+    overflow? 'text-overflow-ellipsis': '',
     styleClasses[type], // Dynamic type-based style
-    className // Any extra classes
+    className, // Any extra classes
+
   );
 
   return (

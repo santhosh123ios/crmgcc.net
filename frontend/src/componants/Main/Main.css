@@ -460,7 +460,6 @@
   height: 46px;
   border-radius: 23px;
   background-color: var(--highlight-color);
-  margin-top: 25px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -479,7 +478,6 @@
   height: 46px;
   border-radius: 23px;
   background-color: var(--highlight-color);
-  margin-top: 25px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -504,4 +502,60 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.text-strike {
+  text-decoration: line-through;
+}
+
+.text-overflow-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.common-btn {
+  background-color: var(--highlight-color);
+  font-weight: bold;
+  border-radius: 20px;
+  padding-left: 50px;
+  padding-right: 50px;
+  color: var(--text-primary-select);
+  font-size: 14px;
+  margin-top: 0px;
+}
+
+.common-btn:hover {
+  background-color: var(--highlight-color);
+  border-color: var(--highlight-color);
+}
+
+
+.circle-btns-date {
+  /* max-width: 100px; */
+  height: 40px;
+  border-radius: 40px;
+  background-color: var(--primary-color);
+  color: var(--text-primary);
+  font-size: 16px;
+  margin: 0px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.circle-btns-date:hover {
+  background-color: var(--highlight-color);
+  border-color: var(--highlight-color);
+}
+
+.date-picker-input {
+  padding-right: 0 !important;
+  margin: 0;
+  box-sizing: border-box;
+  min-width: unset;
+  width: fit-content;
+  text-align: right;
+  margin-right: 10px;
 }

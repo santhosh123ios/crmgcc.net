@@ -42,6 +42,11 @@ function HeaderVendor({ selected, setSelected }) {
                     Complaints
                 </div>
 
+                <div className={selected === 'product' ? 'div-tab-selected' : 'div-tab'}
+                    onClick={() => setSelected('product')}>
+                    Products
+                </div>
+
                 <div className={selected === 'offers' ? 'div-tab-selected' : 'div-tab'}
                     onClick={() => setSelected('offers')}>
                     Offers

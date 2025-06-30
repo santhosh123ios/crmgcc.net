@@ -71,7 +71,7 @@ export const getCardDetails = (req, res) => {
                 return res
                 .status(200)
                 .json({
-                    error: [{ message: "Cards not font" }],
+                    error: [{ message: "Cards not found" }],
                     result: {},
                 });
             }

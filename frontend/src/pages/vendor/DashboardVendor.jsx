@@ -4,11 +4,17 @@ import DashboardBox from '../../componants/Main/DashboardBox';
 import apiClient from '../../utils/ApiClient';
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
+import CommonPopup from '../../componants/Main/CommonPopup';
+import TextView from '../../componants/Main/TextView';
+import ImportantPopup from '../../componants/Main/ImportantPopup';
 
 function DashboardVendor() {
   const [dashboard, setDashboard] = useState({});
   const [trReport, setTrReport] = useState([]);
   const [leadReport, setLeadReport] = useState([]);
+  const [cat, setCat] = useState([]);
+  const [catPopup, setCatPopup] = useState(false);
+  const [loadingCat, setLoadingCat] = useState(false);
   
 
   const optionsBrand = {
@@ -156,10 +162,15 @@ function DashboardVendor() {
         fetchDashboard();
     },[]);
 
+    
+    const handleCatListClick = (index) => {
+      addCategory(cat[index].id)
+    };
+
 
     ///API CALLING
     const fetchDashboard = async () => {
-      //setLoadingWallet(true);
+      setLoadingCat(true);
       try {
       const response = await apiClient.get("/vendor/get_dashboard");
       if (response?.result?.status === 1) {
@@ -167,6 +178,15 @@ function DashboardVendor() {
           setDashboard(response.result);
           setTrReport(response.result.transaction_report);
           setLeadReport(response.result.transaction_report);
+          setCat(response.result.categorys);
+          if(response.result.catData.length == 0)
+          {
+            setCatPopup(true)
+          }
+          else
+          {
+            setCatPopup(false)
+          }
 
       } else {
           console.warn("No Transaction found or status != 1");
@@ -174,9 +194,38 @@ function DashboardVendor() {
       } catch (error) {
       console.error("Failed to fetch Transaction:", error);
       } finally {
-      //setLoadingWallet(false);
+      setLoadingCat(false);
       }
     };
+
+    const addCategory = async (id) => {
+      setLoadingCat(true)
+      try {
+
+          const payload = {
+              id: id
+          };
+
+          console.log("SANTHOSH payload: "+payload)
+          
+          //console.log("SANTHOSH Vendor ID:", payload);
+          const data = await apiClient.post("/vendor/add_vendor_category", payload);
+
+          //if (data && data.result?.data.status === 1) {
+          if (data?.result?.status === 1) {
+                //getCategory();
+                
+          }
+      } catch (err) {
+          console.error("Something went wrong fetching vendors", err);
+      }
+      finally {
+        setLoadingCat(false); // Hide loader
+        setCatPopup(false)
+      }
+  };
+
+
 
   return (
     <div className='content-view'>
@@ -325,7 +374,42 @@ function DashboardVendor() {
                   </div>
               </div>
       </div>
-
+      {catPopup && (
+        <ImportantPopup>
+          <TextView type="darkBold" text={"Select your brand type"}/>
+          <div style={{margin:'15px'}}/>
+          <div className="user-list-scroll-container">
+                {loadingCat ? (
+                <div className="loader-container">
+                    <div className="spinner" />
+                </div>
+                ) : (
+                  
+                cat.map((catItems, index) => (
+                    <div style={{paddingLeft:'10px', paddingRight:'10px', paddingTop:'5px'}}  key={index}>
+                      <DashboardBox>
+                        <div className={"user-list-item-cat-inside"} onClick={() => handleCatListClick(index)}>
+                          <div className="user-info-leads">
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px', margin: '0px'}}>
+                                  <TextView type="darkBold" text={catItems?.name}/>
+                                  <div style={{display:'flex',flexDirection:'row'}}>
+                                      
+                                      <div style={{margin:'5px'}}/>
+                                      
+                                  </div>
+                              </div>
+                          </div>
+                        </div>
+                      </DashboardBox>
+                    </div>
+                ))
+                
+                )}
+          </div>
+          
+          
+        </ImportantPopup>
+      )}
     </div>
   )
 }

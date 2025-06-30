@@ -119,7 +119,7 @@ console.log(password);
         query,
         data: [email, password],
         callback: (err, userData) => {
-console.log("santhosh C");
+          console.log("santhosh C");
             // if (err) return res.status(500).json(err)
             console.log(userData[0])
             if (userData[0]) {
