@@ -1,6 +1,7 @@
 import React, {useState,useEffect} from 'react'
 import DashboardBox from '../../componants/Main/DashboardBox'
 import apiClient from '../../utils/ApiClient';
+import { getUserId } from '../../utils/auth';
 
 import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
 import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
@@ -31,6 +32,10 @@ function LeadsVendor() {
                 search: "",
                 message: ""
         });
+    const [messages, setMessages] = useState([]);
+    const [loadingMessages, setLoadingMessages] = useState(false);
+    const [sendingMessage, setSendingMessage] = useState(false);
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     const statusArray =[
         {
@@ -57,11 +62,32 @@ function LeadsVendor() {
 
     useEffect(() => {
         fetchLeads();
+        // Set current user ID
+        const userId = getUserId();
+        if (userId) {
+            setCurrentUserId(parseInt(userId));
+        }
         // setFormData((prev) => ({
         // ...prev,
         // }));
 
     },[]);
+
+    useEffect(() => {
+        if (selectedLead?.id) {
+            fetchMessages(selectedLead.id);
+        }
+    }, [selectedLead]);
+
+    useEffect(() => {
+        // Scroll to bottom when messages are loaded
+        const messagesContainer = document.querySelector('.messages-container');
+        if (messagesContainer && messages.length > 0) {
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+        }
+    }, [messages]);
 
 
     ///API CALLING
@@ -80,6 +106,71 @@ function LeadsVendor() {
         console.error("Failed to fetch leads:", error);
         } finally {
         setLoading(false);
+        }
+    };
+
+    const fetchMessages = async (leadId) => {
+        if (!leadId) return;
+        
+        setLoadingMessages(true);
+        try {
+            const payload = {
+                lead_id: leadId
+            };
+            const response = await apiClient.post(`/vendor/get_lead_message`,payload);
+            if (response?.result?.status === 1) {
+                setMessages(response.result.data || []);
+            } else {
+                console.warn("No messages found or status != 1");
+                setMessages([]);
+            }
+        } catch (error) {
+            console.error("Failed to fetch messages:", error);
+            setMessages([]);
+        } finally {
+            setLoadingMessages(false);
+        }
+    };
+
+    const sendMessage = async (text, leadId) => {
+        if (!text.trim() || !leadId || !currentUserId) return;
+        
+        setSendingMessage(true);
+        try {
+            const payload = {
+                text: text,
+                lead_id: leadId
+            };
+            
+            const response = await apiClient.post("/vendor/create_lead_message", payload);
+            if (response?.result?.status === 1) {
+                // Add the new message to the messages list
+                const newMessage = {
+                    id: response.result.data?.id || Date.now(), // Use the ID from response if available
+                    text: text,
+                    lead_id: leadId,
+                    sender: currentUserId,
+                    create_at: new Date().toISOString(),
+                    read_status: 0
+                };
+                setMessages(prev => [...prev, newMessage]);
+                // Clear the input
+                setFormData(prev => ({ ...prev, message: "" }));
+                
+                // Scroll to bottom after a short delay to ensure the new message is rendered
+                setTimeout(() => {
+                    const messagesContainer = document.querySelector('.messages-container');
+                    if (messagesContainer) {
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }
+                }, 100);
+            } else {
+                console.error("Failed to send message");
+            }
+        } catch (error) {
+            console.error("Failed to send message:", error);
+        } finally {
+            setSendingMessage(false);
         }
     };
 
@@ -139,7 +230,9 @@ function LeadsVendor() {
 
     ///CLICKS FUNCTION
     const handlePhoneClick = () => {
-        console.log('Phone button clicked!');
+        if (formData.message.trim() && selectedLead?.id && currentUserId) {
+            sendMessage(formData.message, selectedLead.id);
+        }
     };
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -354,7 +447,7 @@ function LeadsVendor() {
 
                     <div style={{
                     width: '100%',
-                    height: '250px',
+                    height: '150px',
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '2px'
@@ -414,59 +507,137 @@ function LeadsVendor() {
                             </div>
                          </DashboardBox>
                     </div>
-
+                    
+                    {/* Message section */}
                     <div style={{
                     width: '100%',
-                    height: '100%',
+                    height: 'calc(100vh - 272px)',
                     display: 'flex',
                     flexDirection: 'column',
-                    padding: '2px'
+                    padding: '2px',
                     }}>
                         <DashboardBox>
-                            <div style={{boxSizing:'border-box',display: 'flex',height:'100%',flexDirection:'column', justifyContent: 'start', padding: '10px'}}>
+                            <div style={{boxSizing:'border-box',display: 'flex',height:'100%',flexDirection:'column', justifyContent: 'start', padding: '10px', minHeight: '400px'}}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px', margin: '0px',height:'30px'}}>
-                                    <p className="title-text-dark">{"Chatbot"}</p>
+                                    <p className="title-text-dark">
+                                        {selectedLead?.member_name ? `Chat with ${selectedLead.member_name}` : "Chat with the member"}
+                                    </p>
                                 </div>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',height:'100%'}}>
-                                    {/* <p className="title-text-dark-bold">{"Status"}</p> */}
+                                {/* Messages Container */}
+                                <div 
+                                    className="messages-container"
+                                    style={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        overflowY: 'auto',
+                                        padding: '10px',
+                                        gap: '10px',
+                                        maxHeight: 'calc(100vh - 300px)',
+                                        minHeight: '200px'
+                                    }}
+                                >
+                                    {loadingMessages ? (
+                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px' }}>
+                                            <div className="spinner" />
+                                        </div>
+                                    ) : messages.length === 0 ? (
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'center', 
+                                            alignItems: 'center', 
+                                            height: '100px',
+                                            color: '#666',
+                                            fontSize: '14px'
+                                        }}>
+                                            No messages yet. Start a conversation!
+                                        </div>
+                                    ) : (
+                                        messages.map((message, index) => {
+                                            const isSentByMe = message.sender === currentUserId;
+                                            return (
+                                                <div key={message.id || index} style={{
+                                                    display: 'flex',
+                                                    justifyContent: isSentByMe ? 'flex-end' : 'flex-start',
+                                                    marginBottom: '8px'
+                                                }}>
+                                                                                                    <div style={{
+                                                    maxWidth: '70%',
+                                                    padding: '10px 15px',
+                                                    borderRadius: '18px',
+                                                    backgroundColor: isSentByMe ? '#0084ff' : '#f0f0f0',
+                                                    color: isSentByMe ? 'white' : 'black',
+                                                    wordWrap: 'break-word',
+                                                    wordBreak: 'break-word',
+                                                    fontSize: '14px',
+                                                    lineHeight: '1.4',
+                                                    overflowWrap: 'break-word'
+                                                }}>
+                                                        {message.text}
+                                                        <div style={{
+                                                            fontSize: '11px',
+                                                            opacity: 0.7,
+                                                            marginTop: '4px',
+                                                            textAlign: isSentByMe ? 'right' : 'left'
+                                                        }}>
+                                                            {new Date(message.create_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
                                 </div>
 
+                                {/* Input Section */}
                                 <div style={{
                                     width: '100%',
                                     height: '40px',
                                     display: 'flex',
                                     flexDirection: 'row',
-                                    padding: '0px',
-                                    borderBlock:'boxSizing'}}>
+                                    borderTop: '1px solid #e0e0e0',
+                                    paddingTop: '10px'
+                                }}>
 
-                                        <div style={{width: '100%',
+                                    <div style={{
+                                        flex: 1,
                                         height: '40px',
                                         display: 'flex',
                                         flexDirection: 'column',
                                         justifyContent:'center',
                                         justifyItems: 'center',
-                                        }}> 
 
-                                        <InputText 
-                                                type="name"
-                                                placeholder="Message"
-                                                name="message"
-                                                value={formData.message}
-                                                onChange={handleChange}
-                                            />
+                                    }}> 
 
-                                        </div>
+                                    <InputText 
+                                            type="name"
+                                            placeholder="Type a message..."
+                                            name="message"
+                                            value={formData.message}
+                                            onChange={handleChange}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    handlePhoneClick();
+                                                }
+                                            }}
+                                        />
 
-                                        <div style={{
-                                        width: '55px',
-                                        height: '40px',
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center'}}> 
-                                            <RoundButton icon={faPaperPlane} onClick={handlePhoneClick} />
-                                        </div>      
-                                        
+                                    </div>
+
+                                    <div style={{
+                                    width: '55px',
+                                    height: '40px',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'}}> 
+                                        <RoundButton 
+                                            icon={faPaperPlane} 
+                                            onClick={handlePhoneClick}
+                                            
+                                        />
+                                    </div>      
+                                    
                                 </div>
                             </div>
                         </DashboardBox>

@@ -43,7 +43,7 @@ router.post("/update_category", adminAuth, updateCategory)
 router.post("/edit_category", adminAuth, editCategory)
 
 router.post("/create_lead_message", adminAuth, createLeadMessage)
-router.get("/get_lead_message", adminAuth, getLeadMessage)
+router.post("/get_lead_message", adminAuth, getLeadMessage)
 
 router.post("/create_complaint_message", adminAuth, createComplaintMessage)
 router.post("/get_complaint_message", adminAuth, getComplaintMessage)

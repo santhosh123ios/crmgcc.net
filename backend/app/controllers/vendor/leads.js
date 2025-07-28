@@ -74,6 +74,7 @@ export const getLeadMessage = (req, res) => {
 
     try {
         const {lead_id} = req.body;
+        console.log(lead_id);
         const query = "SELECT * FROM lead_message WHERE lead_id = ?";
         
         executeQuery({
@@ -108,6 +109,11 @@ export const createLeadMessage = (req, res) => {
     try {
         const { text, lead_id } = req.body;
         const user_id = req.user?.id;
+
+        console.log(lead_id);
+        console.log(text);
+        console.log(user_id);
+        
         
         const query = "INSERT INTO lead_message (text, sender, lead_id) VALUES (?, ?, ?)";
         executeQuery({

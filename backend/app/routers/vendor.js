@@ -45,7 +45,7 @@ router.post("/update_offer_details", vendorAuth, updateOfferDetails)
 router.post("/delete_offer", vendorAuth, deleteOffer)
 
 router.post("/create_lead_message", vendorAuth, createLeadMessage)
-router.get("/get_lead_message", vendorAuth, getLeadMessage)
+router.post("/get_lead_message", vendorAuth, getLeadMessage)
 
 router.post("/create_complaint_message", vendorAuth, createComplaintMessage)
 router.post("/get_complaint_message", vendorAuth, getComplaintMessage)
