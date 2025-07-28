@@ -1,18 +1,18 @@
 import express from "express"
 import adminAuth from "../middleware/admin/authMiddleware.js";
-import { sendEmailVerification, register ,login, emailVerification, addCard, sendEmailResetPassword, resetPassword } from "../controllers/main/Auth.js";
+import { sendEmailVerification, register, login, emailVerification, addCard, sendEmailResetPassword, resetPassword } from "../controllers/main/Auth.js";
 import FileUpload from "../services/FileUpload.js";
 import { createCard, getCardDetails } from "../controllers/admin/Card.js";
 import { addTransaction, getAllRedeem, getAllTransaction, redeemStatusUpdate } from "../controllers/admin/Transaction.js";
-import { getLeads, leadStatusUpdate } from "../controllers/admin/Leads.js";
+import { getLeads, leadStatusUpdate, createLeadMessage, getLeadMessage } from "../controllers/admin/Leads.js";
 import { getProfile, memberList, updateProfile, updateProfileImage, vendorList } from "../controllers/admin/Profile.js";
-import { complaintsStatusUpdate, getComplaints } from "../controllers/admin/Complaints.js";
+import { complaintsStatusUpdate, createComplaintMessage, getComplaintMessage, getComplaints } from "../controllers/admin/Complaints.js";
 import { getDashboard } from "../controllers/admin/Reports.js";
 import { createCategory, editCategory, getCategorys, updateCategory } from "../controllers/admin/category.js";
 
 const router = express.Router()
 
-router.post("/register",register)
+router.post("/register", register)
 router.post("/login", login)
 router.post("/send-email-verification", sendEmailVerification)
 router.post("/email-verification", emailVerification)
@@ -38,9 +38,15 @@ router.post("/update_profile_image", adminAuth, updateProfileImage)
 router.post("/update_profile", adminAuth, updateProfile)
 router.get("/get_dashboard", adminAuth, getDashboard)
 router.post("/create_category", adminAuth, createCategory)
-router.get("/get_categorys", adminAuth,getCategorys)
-router.post("/update_category", adminAuth,updateCategory)
-router.post("/edit_category", adminAuth,editCategory)
+router.get("/get_categorys", adminAuth, getCategorys)
+router.post("/update_category", adminAuth, updateCategory)
+router.post("/edit_category", adminAuth, editCategory)
+
+router.post("/create_lead_message", adminAuth, createLeadMessage)
+router.get("/get_lead_message", adminAuth, getLeadMessage)
+
+router.post("/create_complaint_message", adminAuth, createComplaintMessage)
+router.post("/get_complaint_message", adminAuth, getComplaintMessage)
 
 
 router.post('/upload', adminAuth, FileUpload.single('file'), (req, res) => {

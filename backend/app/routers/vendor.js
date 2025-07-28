@@ -1,9 +1,9 @@
 import express from "express"
 import vendorAuth from "../middleware/vendor/authMiddlewareVendor.js";
-import { getLeads, leadStatusUpdate } from "../controllers/vendor/leads.js";
+import { getLeads, leadStatusUpdate, createLeadMessage, getLeadMessage } from "../controllers/vendor/leads.js";
 import { getTransaction, addTransaction } from "../controllers/vendor/Transaction.js";
 import { adminList, getProfile, memberList, updateProfile, updateProfileImage } from "../controllers/vendor/Profile.js";
-import { complaintsStatusUpdate, createComplaint, getComplaints } from "../controllers/vendor/Complaints.js";
+import { complaintsStatusUpdate, createComplaint, createComplaintMessage, getComplaintMessage, getComplaints } from "../controllers/vendor/Complaints.js";
 import FileUpload from "../services/FileUpload.js";
 import { getDashboard } from "../controllers/vendor/Reports.js";
 import { addVendorCategory } from "../controllers/vendor/Brand.js";
@@ -43,6 +43,12 @@ router.post("/update_offer_status", vendorAuth, updateOfferStatus)
 router.post("/update_offer_image", vendorAuth, updateOfferImage)
 router.post("/update_offer_details", vendorAuth, updateOfferDetails)
 router.post("/delete_offer", vendorAuth, deleteOffer)
+
+router.post("/create_lead_message", vendorAuth, createLeadMessage)
+router.get("/get_lead_message", vendorAuth, getLeadMessage)
+
+router.post("/create_complaint_message", vendorAuth, createComplaintMessage)
+router.post("/get_complaint_message", vendorAuth, getComplaintMessage)
 
 
 router.post('/upload', vendorAuth, FileUpload.single('file'), (req, res) => {

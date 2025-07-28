@@ -1,10 +1,12 @@
 import express from "express"
 import memberAuth from "../middleware/member/authMiddlewareMember.js";
-import {createLeads, getLeads, vendorList} from '../controllers/member/leads.js';
+import { createLeads, getLeads, vendorList, createLeadMessage, getLeadMessage } from '../controllers/member/leads.js';
 import FileUpload from "../services/FileUpload.js";
 import { addRedeem, getRedeem, getTransaction, getWalletDetails } from "../controllers/member/Transaction.js";
-import { createComplaint, getComplaints } from "../controllers/member/Complaints.js";
+import { createComplaint, createComplaintMessage, getComplaintMessage, getComplaints } from "../controllers/member/Complaints.js";
 import { getProfile, updateProfile, updateProfileImage } from "../controllers/member/Profile.js";
+import { getAllOffers } from "../controllers/member/offers.js";
+import { getAllProduct } from "../controllers/member/product.js";
 
 
 const router = express.Router()
@@ -27,6 +29,16 @@ router.get("/get_complaints", memberAuth, getComplaints)
 router.post("/update_profile_image", memberAuth, updateProfileImage)
 router.get("/get_profile", memberAuth, getProfile)
 router.post("/update_profile", memberAuth, updateProfile)
+router.get("/get_all_offers", memberAuth, getAllOffers)
+router.get("/get_all_product", memberAuth, getAllProduct)
+
+router.post("/create_lead_message", memberAuth, createLeadMessage)
+router.post("/get_lead_message", memberAuth, getLeadMessage)
+
+router.post("/create_complaint_message", memberAuth, createComplaintMessage)
+router.post("/get_complaint_message", memberAuth, getComplaintMessage)
+
+
 
 router.post('/upload', memberAuth, FileUpload.single('file'), (req, res) => {
   try {
@@ -35,8 +47,9 @@ router.post('/upload', memberAuth, FileUpload.single('file'), (req, res) => {
     console.log("Body: ", req.body);
 
     if (!req.file) {
+      console.log("File: ", req.file);
       console.log("No file found");
-      return res.status(400).json({ success: false, message: 'No file uploaded' });
+      return res.status(400).json({ success: false, message: 'No file uploaded' + req.body });
     }
 
     res.status(200).json({
