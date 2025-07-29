@@ -19,6 +19,72 @@ import Dropdown from '../../componants/Main/Dropdown';
 import PointPopup from '../../componants/Main/PointPopup';
 const baseUrl = import.meta.env.VITE_API_BASE_IMG_URL;
 
+// Helper function to format message date
+const formatMessageDate = (dateString) => {
+    const messageDate = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Reset time to compare only dates
+    const messageDateOnly = new Date(messageDate.getFullYear(), messageDate.getMonth(), messageDate.getDate());
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const yesterdayOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+    
+    if (messageDateOnly.getTime() === todayOnly.getTime()) {
+        return 'Today';
+    } else if (messageDateOnly.getTime() === yesterdayOnly.getTime()) {
+        return 'Yesterday';
+    } else {
+        return messageDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+};
+
+// Helper function to group messages by date
+const groupMessagesByDate = (messages) => {
+    const groups = [];
+    let currentDate = null;
+    let currentGroup = [];
+
+    messages.forEach((message) => {
+        // Try different possible date field names
+        const dateField = message.create_at || message.created_at || message.date || message.timestamp;
+        
+        if (!dateField) {
+            return;
+        }
+        
+        const messageDate = new Date(dateField);
+        const dateKey = messageDate.toDateString();
+        
+        if (dateKey !== currentDate) {
+            if (currentGroup.length > 0) {
+                groups.push({
+                    date: currentDate,
+                    messages: currentGroup
+                });
+            }
+            currentDate = dateKey;
+            currentGroup = [message];
+        } else {
+            currentGroup.push(message);
+        }
+    });
+
+    // Add the last group
+    if (currentGroup.length > 0) {
+        groups.push({
+            date: currentDate,
+            messages: currentGroup
+        });
+    }
+
+    return groups;
+};
 
 function LeadsVendor() {
 
@@ -553,40 +619,67 @@ function LeadsVendor() {
                                         }}>
                                             No messages yet. Start a conversation!
                                         </div>
-                                    ) : (
-                                        messages.map((message, index) => {
-                                            const isSentByMe = message.sender === currentUserId;
-                                            return (
-                                                <div key={message.id || index} style={{
-                                                    display: 'flex',
-                                                    justifyContent: isSentByMe ? 'flex-end' : 'flex-start',
-                                                    marginBottom: '8px'
-                                                }}>
-                                                                                                    <div style={{
-                                                    maxWidth: '70%',
-                                                    padding: '10px 15px',
-                                                    borderRadius: '18px',
-                                                    backgroundColor: isSentByMe ? '#0084ff' : '#f0f0f0',
-                                                    color: isSentByMe ? 'white' : 'black',
-                                                    wordWrap: 'break-word',
-                                                    wordBreak: 'break-word',
-                                                    fontSize: '14px',
-                                                    lineHeight: '1.4',
-                                                    overflowWrap: 'break-word'
-                                                }}>
-                                                        {message.text}
+                                                                        ) : (
+                                        (() => {
+                                            const groupedMessages = groupMessagesByDate(messages);
+                                            return groupedMessages.map((group, groupIndex) => (
+                                                <div key={groupIndex}>
+                                                    {/* Date Separator */}
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'center',
+                                                        margin: groupIndex === 0 ? '10px 0 10px 0' : '20px 0 10px 0',
+                                                        padding: '0 10px'
+                                                    }}>
                                                         <div style={{
-                                                            fontSize: '11px',
-                                                            opacity: 0.7,
-                                                            marginTop: '4px',
-                                                            textAlign: isSentByMe ? 'right' : 'left'
+                                                            backgroundColor: '#f0f0f0',
+                                                            padding: '6px 12px',
+                                                            borderRadius: '12px',
+                                                            fontSize: '12px',
+                                                            color: '#666',
+                                                            fontWeight: '500'
                                                         }}>
-                                                            {new Date(message.create_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                            {formatMessageDate(group.messages[0].create_at || group.messages[0].created_at || group.messages[0].date || group.messages[0].timestamp)}
                                                         </div>
                                                     </div>
+                                                    
+                                                    {/* Messages for this date */}
+                                                    {group.messages.map((message, index) => {
+                                                        const isSentByMe = message.sender === currentUserId;
+                                                        return (
+                                                            <div key={message.id || index} style={{
+                                                                display: 'flex',
+                                                                justifyContent: isSentByMe ? 'flex-end' : 'flex-start',
+                                                                marginBottom: '8px'
+                                                            }}>
+                                                                <div style={{
+                                                                    maxWidth: '70%',
+                                                                    padding: '10px 15px',
+                                                                    borderRadius: '18px',
+                                                                    backgroundColor: isSentByMe ? '#0084ff' : '#f0f0f0',
+                                                                    color: isSentByMe ? 'white' : 'black',
+                                                                    wordWrap: 'break-word',
+                                                                    wordBreak: 'break-word',
+                                                                    fontSize: '14px',
+                                                                    lineHeight: '1.4',
+                                                                    overflowWrap: 'break-word'
+                                                                }}>
+                                                                    {message.text}
+                                                                    <div style={{
+                                                                        fontSize: '11px',
+                                                                        opacity: 0.7,
+                                                                        marginTop: '4px',
+                                                                        textAlign: isSentByMe ? 'right' : 'left'
+                                                                    }}>
+                                                                        {formatMessageDate(message.create_at || message.created_at || message.date || message.timestamp)} • {new Date(message.create_at || message.created_at || message.date || message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
-                                            );
-                                        })
+                                            ));
+                                        })()
                                     )}
                                 </div>
 
