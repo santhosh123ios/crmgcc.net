@@ -34,7 +34,15 @@ function ComplaintsAdmin() {
         },
         {
             id: 1,
+            name: "Review",
+        },
+        {
+            id: 2,
             name: "Done",
+        },
+        {
+            id: 3,
+            name: "Reject",
         },
     ];
 
@@ -74,16 +82,24 @@ function ComplaintsAdmin() {
         const response = await apiClient.post("/admin/complaints_status_update",payload);
 
             if (response?.result?.status === 1) {
-                setSelectedStatus(id);
+                setSelectedStatus(status);
                 //setShowPopup(false);
                 
-                fetchComplaints();
+                // Update the selected complaint's status locally
+                setSelectedComplaints(prev => prev ? { ...prev, status: parseInt(status) } : prev);
+                
+                // Update the complaints list locally without refetching
+                setComplaints(prev => prev.map(complaint => 
+                    complaint.id === id 
+                        ? { ...complaint, status: parseInt(status) }
+                        : complaint
+                ));
             } else {
                 console.warn("No records found or status");
             }
         } 
         catch (error) {
-        console.error("Failed to fetch leads:", error);
+        console.error("Failed to update complaint status:", error);
         } finally {
         ///setLoading(false);
         }
@@ -108,10 +124,9 @@ function ComplaintsAdmin() {
   const handleStatusChange = (e) => {
         setSelectedStatus(e.target.value);
         console.log("Selected Status ID:", e.target.value);
-        console.log("Selected LEAD ID:", selectedComplaints.id);
-        if (e.target.value == 1)
-        {
-            updateComplaintStatus(selectedComplaints.id,e.target.value)
+        console.log("Selected Complaint ID:", selectedComplaints.id);
+        if (e.target.value !== "" && selectedComplaints?.id) {
+            updateComplaintStatus(selectedComplaints.id, e.target.value);
         }
     };
 
@@ -178,15 +193,18 @@ function ComplaintsAdmin() {
                                       <div className="user-list-item-tr-inside" onClick={() => handleCompListClick(index)}>
                                         
                                             <div className="user-info-tr">
-                                                <DateWithIcon text={new Date(compItems?.created_at).toLocaleDateString("en-US", {
-                                                    year: "numeric",
-                                                    month: "long",
-                                                    day: "numeric",
-                                                    })} >
-                                                </DateWithIcon>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <DateWithIcon text={new Date(compItems?.created_at).toLocaleDateString("en-US", {
+                                                        year: "numeric",
+                                                        month: "long",
+                                                        day: "numeric",
+                                                        })} >
+                                                    </DateWithIcon>
+                                                    <TextView type="subDark" text={new Date(compItems?.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}/>
+                                                </div>
                                                 <TextView type="subDarkBold" text={compItems?.subject}/>
                                                 <TextView type="subDark" text={baseId+compItems?.id}/>
-                                                 <StatusBadge status={compItems?.status==0 ? 0 : compItems?.status==1 ? 3 : 4 } />
+                                                 <StatusBadge status={compItems?.status} />
                                                
                                             </div> 
 
@@ -230,7 +248,7 @@ function ComplaintsAdmin() {
                                                 {!(selectedComplaints?.status === 5) && (
                                                     <Dropdown
                                                         data={statusArray}
-                                                        selectedItem={selectedComplaints?.status}
+                                                        selectedItem={selectedComplaints?.status !== undefined && selectedComplaints?.status !== null ? parseInt(selectedComplaints.status) : ""}
                                                         onChange={handleStatusChange}
                                                         firstItem="Select Status"
                                                     />
@@ -244,12 +262,15 @@ function ComplaintsAdmin() {
                                         </div>
 
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <DateWithIcon text={new Date(selectedComplaints?.created_at).toLocaleDateString("en-US", {
-                                                year: "numeric",
-                                                month: "long",
-                                                day: "numeric",
-                                                })} >
-                                            </DateWithIcon>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <DateWithIcon text={new Date(selectedComplaints?.created_at).toLocaleDateString("en-US", {
+                                                    year: "numeric",
+                                                    month: "long",
+                                                    day: "numeric",
+                                                    })} >
+                                                </DateWithIcon>
+                                                <TextView type="subDark" text={new Date(selectedComplaints?.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}/>
+                                            </div>
                                             <TextView type="subDark" text={baseId+selectedComplaints?.id}/>
                                         </div>
                                     </div> 

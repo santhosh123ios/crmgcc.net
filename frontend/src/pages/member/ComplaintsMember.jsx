@@ -488,7 +488,7 @@ function ComplaintsMember() {
                                                 </div>
                                                 <TextView type="subDarkBold" text={compItems?.subject}/>
                                                 <TextView type="subDark" text={baseId+compItems?.id}/>
-                                                 <StatusBadge status={compItems?.status==0 ? 0 : compItems?.status==1 ? 3 : 4 } />
+                                                 <StatusBadge status={compItems?.status} />
                                                
                                             </div> 
 
@@ -530,7 +530,7 @@ function ComplaintsMember() {
 
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <TextView type="subDarkBold" text={selectedComplaints?.subject}/>
-                                            <StatusBadge status={selectedComplaints?.status==0 ? 0 : selectedComplaints?.status==1 ? 3 : 4 } />
+                                            <StatusBadge status={selectedComplaints?.status} />
                                         </div>
 
                                         <div style={{ display: 'flex', justifyContent: 'start', alignItems: 'start', flex:'1'}}>
