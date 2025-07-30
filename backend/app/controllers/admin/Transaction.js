@@ -154,3 +154,106 @@ export const redeemStatusUpdate = (req, res) => {
         res.status(500).json({ status: 0, message: "Server error", error: err.message });
     }
 }
+
+export const getTransactionSettings = (req, res) => {
+    try {
+        const query = "SELECT * FROM transaction_settings ORDER BY id DESC LIMIT 1";
+        executeQuery({
+            query,
+            data: [],
+            callback: (err, settingsData) => 
+            {
+                console.log("Query result:", settingsData);
+                if (err) {
+                    console.error("Database error:", err);
+                    return res
+                    .status(500)
+                    .json({ error: [{ message: err }], result: {} });
+                }
+
+                const result = {
+                    message: "Get transaction settings",
+                    status: 1,
+                    data: settingsData[0] || null,
+                };
+    
+                console.log("Sending response:", result);
+                return res.status(200).json({ error: [], result });
+            }
+        })
+    } 
+    catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+}
+
+export const updateTransactionSettings = (req, res) => {
+    try {
+        const { daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges } = req.body;
+        
+        if (!daily_limit || !minimum_redeem_limit || !maximum_redeem_limit || !transaction_charges)
+            return res
+              .status(404)
+              .json({ error: [{ message: "Input data missing" }], result: {} });
+
+        // Check if settings exist, if not create new, if exists update
+        const checkQuery = "SELECT * FROM transaction_settings ORDER BY id DESC LIMIT 1";
+        executeQuery({
+            query: checkQuery,
+            data: [],
+            callback: (err, existingData) => {
+                if (err)
+                    return res
+                    .status(500)
+                    .json({ error: [{ message: err }], result: {} });
+
+                if (existingData.length > 0) {
+                    // Update existing settings
+                    const updateQuery = "UPDATE transaction_settings SET daily_limit = ?, minimum_redeem_limit = ?, maximum_redeem_limit = ?, transaction_charges = ?, updated_at = NOW() WHERE id = ?";
+                    executeQuery({
+                        query: updateQuery,
+                        data: [daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges, existingData[0].id],
+                        callback: (err, updateData) => {
+                            if (err)
+                                return res
+                                .status(500)
+                                .json({ error: [{ message: err }], result: {} });
+
+                            const result = {
+                                message: "Transaction settings updated successfully",
+                                status: 1,
+                            };
+                            return res.status(200).json({ error: [], result });
+                        }
+                    });
+                } else {
+                    // Create new settings
+                    const insertQuery = "INSERT INTO transaction_settings (daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges, updated_at) VALUES (?, ?, ?, ?, NOW())";
+                    executeQuery({
+                        query: insertQuery,
+                        data: [daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges],
+                        callback: (err, insertData) => {
+                            if (err)
+                                return res
+                                .status(500)
+                                .json({ error: [{ message: err }], result: {} });
+
+                            const result = {
+                                message: "Transaction settings created successfully",
+                                status: 1,
+                            };
+                            return res.status(200).json({ error: [], result });
+                        }
+                    });
+                }
+            }
+        });
+    } 
+    catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+}
+
+
