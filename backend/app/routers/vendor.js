@@ -1,7 +1,7 @@
 import express from "express"
 import vendorAuth from "../middleware/vendor/authMiddlewareVendor.js";
 import { getLeads, leadStatusUpdate, createLeadMessage, getLeadMessage } from "../controllers/vendor/leads.js";
-import { getTransaction, addTransaction } from "../controllers/vendor/Transaction.js";
+import { getTransaction, addTransaction, getTransactionSettings } from "../controllers/vendor/Transaction.js";
 import { adminList, getProfile, memberList, updateProfile, updateProfileImage } from "../controllers/vendor/Profile.js";
 import { complaintsStatusUpdate, createComplaint, createComplaintMessage, getComplaintMessage, getComplaints } from "../controllers/vendor/Complaints.js";
 import FileUpload from "../services/FileUpload.js";
@@ -16,6 +16,7 @@ router.get("/getleads", vendorAuth, getLeads)
 router.post("/lead-status-update", vendorAuth, leadStatusUpdate)
 router.post("/add_transaction", vendorAuth, addTransaction)
 router.get("/get_transaction", vendorAuth, getTransaction)
+router.get("/get_transaction_settings", vendorAuth, getTransactionSettings)
 
 router.get("/member_list", vendorAuth, memberList)
 router.get("/admin_list", vendorAuth, adminList)
