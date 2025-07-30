@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
 import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { faPhone } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 import InputText from '../../componants/Main/InputText';
 import DateWithIcon from '../../componants/Main/DateWithIcon';
@@ -27,6 +28,8 @@ function TransactionsVendor() {
   const [showTopUpPopup, setShowTopUpPopup] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
   const [transactionSettings, setTransactionSettings] = useState(null);
+  const [showHistoryView, setShowHistoryView] = useState(false);
+  const [showCardNumber, setShowCardNumber] = useState(false);
 
 
   useEffect(() => {
@@ -107,6 +110,18 @@ function TransactionsVendor() {
   const handleTopUpCancel = () => {
       setShowTopUpPopup(false);
       setTopUpAmount('');
+  };
+
+  const handleHistoryClick = () => {
+      setShowHistoryView(true);
+  };
+
+  const handleCloseHistory = () => {
+      setShowHistoryView(false);
+  };
+
+  const toggleCardNumber = () => {
+      setShowCardNumber(!showCardNumber);
   };
 
 
@@ -207,61 +222,85 @@ function TransactionsVendor() {
                   flexDirection: 'column',
                   padding: '2px'
                 }}>
-                    {/* Transaction detalil view */}
+                    {/* Member detail view */}
                     <div style={{
                         width: '100%',
-                        height: '40%',
+                        height: '37%',
                         display: 'flex',
                         flexDirection: 'column',
                         padding: '2px'
                         }}>
-                        <DashboardBox >
-                          <div className='user-list-item-inside'>
-                              <img className="user-avatar" src={selectedTransaction?.member_image ? baseUrl+selectedTransaction?.member_image : "/dummy.jpg"} alt={"selectedLead.vendor_name"} /> 
-                                {/* <img className="user-avatar" src="http://localhost:8000/uploads/1747778079775.jpg"alt={"uploads"} /> */}
-                              <div className="user-info">
-                                  <p className="title-text-dark">{selectedTransaction?.member_name ?? "No member name"}</p>
-                                  <p className="sub-title-text-dark">{selectedTransaction?.member_email ?? "No member email"}</p>
+                        <DashboardBox>
+                            <div style={{
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                padding: '20px',
+                                gap: '15px'
+                            }}>
+                                {/* Header */}
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '10px'
+                                }}>
+                                    <TextView type="darkBold" text="Member Details" />
+                                    <div style={{
+                                        padding: '4px 12px',
+                                        backgroundColor: '#e8f5e8',
+                                        borderRadius: '20px',
+                                        fontSize: '11px',
+                                        color: '#2e7d32',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        Active Member
+                                    </div>
+                                </div>
 
-                                  <div className="button-row">
-                                      {/* Translation */}
-                                      <button className="circle-btn-light">
-                                              <FontAwesomeIcon icon={faPhone} />
-                                      </button>
-
-                                      {/* Translation */}
-                                      <button className="circle-btn-light">
-                                              <FontAwesomeIcon icon={faLocationDot} />
-                                      </button>
-
-                                      {/* Translation */}
-                                      <button className="circle-btn-light">
-                                              <FontAwesomeIcon icon={faExchangeAlt} />
-                                      </button>
-                                  </div>
-                              </div>
-                          </div>
-
-                          <div style={{boxSizing:'border-box',display: 'flex',alignItems: 'start',justifyItems:'start'}}>
-                            <div className="tr-view-item">
-                                  <div className="user-info-tr">
-                                      <DateWithIcon text={new Date(selectedTransaction?.transaction_created_at).toLocaleDateString("en-US", {
-                                          year: "numeric",
-                                          month: "long",
-                                          day: "numeric",
-                                          })} >
-                                      </DateWithIcon>
-                                      <TextView type="subDarkBold" text={selectedTransaction?.transaction_title}/>
-                                      <TextView type="subDark" text={selectedTransaction?.vendor_name}/>
-                                      <TextView type="subDark" text={baseId+selectedTransaction?.transaction_id}/>
-                                  </div>
-
-                                  <div style={{height: '100%',display: 'flex',justifyContent: 'center',alignItems: 'center',paddingLeft:'10px',paddingRight:'10px',gap:'2px'}}>
-                                    <TextView type="darkBold" text={selectedTransaction?.transaction_type === 1 ? selectedTransaction?.transaction_cr : selectedTransaction?.transaction_dr }/>
-                                    <TextView type="subDarkBold" text={selectedTransaction?.transaction_type === 1 ? "Cr" : "Dr" } style={{color:selectedTransaction?.transaction_type === 1 ? 'green' : 'red'}}/>
-                                  </div>
+                                {/* Member Profile Section */}
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '15px',
+                                    padding: '0px',
+                                    borderRadius: '12px',
+                                    marginTop: '15px'
+                                }}>
+                                    <div>
+                                        <img 
+                                            src={selectedTransaction?.member_image ? baseUrl+selectedTransaction?.member_image : "/dummy.jpg"} 
+                                            alt="Member" 
+                                            style={{
+                                                width: '80px',
+                                                height: '80px',
+                                                borderRadius: '50%',
+                                                objectFit: 'cover',
+                                                border: '3px solid #fff',
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                                            }}
+                                        />
+                                    </div>
+                                    
+                                    <div style={{
+                                        flex: 1
+                                    }}>
+                                        <TextView type="darkBold" text={selectedTransaction?.member_name ?? "No member name"} style={{marginBottom: '4px'}} />
+                                        <TextView type="subDark" text={selectedTransaction?.member_email ?? "No member email"} style={{marginBottom: '8px'}} />
+                                        <div className="button-row" style={{justifyContent: 'flex-start'}}>
+                                            <button className="circle-btn-light">
+                                                <FontAwesomeIcon icon={faPhone} />
+                                            </button>
+                                            <button className="circle-btn-light">
+                                                <FontAwesomeIcon icon={faLocationDot} />
+                                            </button>
+                                            <button className="circle-btn-light">
+                                                <FontAwesomeIcon icon={faExchangeAlt} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                          </div>
                         </DashboardBox>
                     </div>
                     
@@ -269,7 +308,7 @@ function TransactionsVendor() {
                     {/* Wallet detail view */}
                     <div style={{
                         width: '100%',
-                        height: '60%',
+                        height: '63%',
                         display: 'flex',
                         flexDirection: 'column',
                         padding: '2px'
@@ -322,12 +361,45 @@ function TransactionsVendor() {
 
                                     {/* Card Number */}
                                     <div style={{
-                                        fontSize: '16px',
-                                        letterSpacing: '2px',
+                                        display: 'flex',
+                                        alignItems: 'center',
                                         marginBottom: '20px',
-                                        fontFamily: 'monospace'
+                                        gap: '10px'
                                     }}>
-                                        **** **** **** 1234
+                                        <div style={{
+                                            fontSize: '16px',
+                                            letterSpacing: '2px',
+                                            fontFamily: 'monospace',
+                                            lineHeight: '1'
+                                        }}>
+                                            {showCardNumber ? '1234 5678 9012 3456' : '**** **** **** 1234'}
+                                        </div>
+                                        <button 
+                                            onClick={toggleCardNumber}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                color: 'white',
+                                                cursor: 'pointer',
+                                                padding: '4px',
+                                                borderRadius: '50%',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                                transition: 'background-color 0.2s',
+                                                width: '24px',
+                                                height: '24px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                marginTop: '2px'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
+                                            onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                                        >
+                                            <FontAwesomeIcon 
+                                                icon={showCardNumber ? faEyeSlash : faEye} 
+                                                style={{fontSize: '10px'}}
+                                            />
+                                        </button>
                                     </div>
 
                                     {/* Card Details */}
@@ -419,26 +491,28 @@ function TransactionsVendor() {
                                         >
                                             Top Up
                                         </button>
-                                        <button style={{
-                                            flex: 1,
-                                            padding: '8px 12px',
-                                            backgroundColor: 'transparent',
-                                            color: '#ffd700',
-                                            border: '1px solid #ffd700',
-                                            borderRadius: '6px',
-                                            fontSize: '12px',
-                                            fontWeight: 'bold',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.target.style.backgroundColor = '#ffd700';
-                                            e.target.style.color = 'black';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.target.style.backgroundColor = 'transparent';
-                                            e.target.style.color = '#ffd700';
-                                        }}
+                                        <button 
+                                            onClick={handleHistoryClick}
+                                            style={{
+                                                flex: 1,
+                                                padding: '8px 12px',
+                                                backgroundColor: 'transparent',
+                                                color: '#ffd700',
+                                                border: '1px solid #ffd700',
+                                                borderRadius: '6px',
+                                                fontSize: '12px',
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.backgroundColor = '#ffd700';
+                                                e.target.style.color = 'black';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.backgroundColor = 'transparent';
+                                                e.target.style.color = '#ffd700';
+                                            }}
                                         >
                                             History
                                         </button>
@@ -593,6 +667,131 @@ function TransactionsVendor() {
                             </div>
                         </div>
                     </DashboardBox>
+
+                    {/* History View */}
+                    {showHistoryView && (
+                        <div style={{
+                            position: 'fixed',
+                            top: 0,
+                            right: 0,
+                            width: '400px',
+                            height: '100%',
+                            backgroundColor: 'white',
+                            boxShadow: '-5px 0 15px rgba(0,0,0,0.1)',
+                            zIndex: 1000,
+                            display: 'flex',
+                            flexDirection: 'column'
+                        }}>
+                            {/* Header */}
+                            <div style={{
+                                padding: '20px',
+                                borderBottom: '1px solid #e0e0e0',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                            }}>
+                                <TextView type="darkBold" text="Transaction History" />
+                                <button 
+                                    onClick={handleCloseHistory}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        fontSize: '20px',
+                                        cursor: 'pointer',
+                                        color: '#666'
+                                    }}
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            {/* History Content */}
+                            <div style={{
+                                flex: 1,
+                                padding: '20px',
+                                overflowY: 'auto'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '15px'
+                                }}>
+                                    {/* Sample History Items */}
+                                    <div style={{
+                                        padding: '15px',
+                                        backgroundColor: '#f8f9fa',
+                                        borderRadius: '8px',
+                                        border: '1px solid #e9ecef'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginBottom: '8px'
+                                        }}>
+                                            <TextView type="darkBold" text="Top Up" style={{fontSize: '14px'}} />
+                                            <TextView type="darkBold" text="+500 Points" style={{color: '#2e7d32', fontSize: '14px'}} />
+                                        </div>
+                                        <TextView type="subDark" text="2024-01-15 14:30" style={{fontSize: '12px'}} />
+                                    </div>
+
+                                    <div style={{
+                                        padding: '15px',
+                                        backgroundColor: '#f8f9fa',
+                                        borderRadius: '8px',
+                                        border: '1px solid #e9ecef'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginBottom: '8px'
+                                        }}>
+                                            <TextView type="darkBold" text="Purchase" style={{fontSize: '14px'}} />
+                                            <TextView type="darkBold" text="-200 Points" style={{color: '#d32f2f', fontSize: '14px'}} />
+                                        </div>
+                                        <TextView type="subDark" text="2024-01-14 10:15" style={{fontSize: '12px'}} />
+                                    </div>
+
+                                    <div style={{
+                                        padding: '15px',
+                                        backgroundColor: '#f8f9fa',
+                                        borderRadius: '8px',
+                                        border: '1px solid #e9ecef'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginBottom: '8px'
+                                        }}>
+                                            <TextView type="darkBold" text="Top Up" style={{fontSize: '14px'}} />
+                                            <TextView type="darkBold" text="+1000 Points" style={{color: '#2e7d32', fontSize: '14px'}} />
+                                        </div>
+                                        <TextView type="subDark" text="2024-01-10 09:45" style={{fontSize: '12px'}} />
+                                    </div>
+
+                                    <div style={{
+                                        padding: '15px',
+                                        backgroundColor: '#f8f9fa',
+                                        borderRadius: '8px',
+                                        border: '1px solid #e9ecef'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginBottom: '8px'
+                                        }}>
+                                            <TextView type="darkBold" text="Reward" style={{fontSize: '14px'}} />
+                                            <TextView type="darkBold" text="+150 Points" style={{color: '#2e7d32', fontSize: '14px'}} />
+                                        </div>
+                                        <TextView type="subDark" text="2024-01-08 16:20" style={{fontSize: '12px'}} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
 
@@ -624,21 +823,48 @@ function TransactionsVendor() {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        marginBottom: '20px'
+                        marginBottom: '30px',
+                        padding: '15px 20px',
+                        borderBottom: '1px solid #e0e0e0',
+                        borderRadius: '8px 8px 0 0',
+                        height: '10px'
                     }}>
-                        <TextView type="darkBold" text="Top Up Wallet" />
-                        <button 
-                            onClick={handleTopUpCancel}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                fontSize: '20px',
-                                cursor: 'pointer',
-                                color: '#666'
-                            }}
-                        >
-                            ×
-                        </button>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            height: '100%'
+                        }}>
+                            <TextView type="darkBold" text="Top Up Wallet" style={{fontSize: '18px', margin: 0}} />
+                        </div>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            height: '100%'
+                        }}>
+                            <button 
+                                onClick={handleTopUpCancel}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '24px',
+                                    cursor: 'pointer',
+                                    color: '#666',
+                                    width: '30px',
+                                    height: '30px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: '50%',
+                                    transition: 'background-color 0.2s',
+                                    margin: 0,
+                                    padding: 0
+                                }}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                            >
+                                ×
+                            </button>
+                        </div>
                     </div>
 
                     <div style={{

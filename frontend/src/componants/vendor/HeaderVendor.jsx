@@ -24,7 +24,7 @@ function HeaderVendor({ selected, setSelected }) {
 
                 <div className={selected === 'transactions' ? 'div-tab-selected' : 'div-tab'}
                     onClick={() => setSelected('transactions')}>
-                    Transactions
+                    Wallet
                 </div>
 
                 <div className={selected === 'member' ? 'div-tab-selected' : 'div-tab'}

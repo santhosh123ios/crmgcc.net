@@ -102,14 +102,14 @@ export const login = (req, res) => {
     try {
       console.log(req.body);
       const {password,email } = req.body;
-console.log("santhosh Q");
-console.log(email);
-console.log(password);
+      console.log("santhosh Q");
+      console.log(email);
+      console.log(password);
   
       if (!password || !email) {
-  console.log("santhosh B");
-  return res.status(404).json({ error: [{ message: "Input data missing" }], result: {} });
-}
+        console.log("santhosh B");
+        return res.status(404).json({ error: [{ message: "Input data missing" }], result: {} });
+      }
           
   
 	
@@ -170,8 +170,9 @@ console.log(password);
                           );
                       }
                       const user_id = userData[0].id;
+                      const user_type = userData[0].user_type;
 
-                      if (userData[0].user_type === 2)
+                      if (userData[0].user_type === 2 || userData[0].user_type === 3)
                       {
                           const query = "SELECT * FROM cards WHERE user_id = ?";
                           executeQuery({
@@ -204,10 +205,10 @@ console.log(password);
                                           const card_type_id = cardTypeData[0].card_type_id;
                                           const card_no = generateCardNumber();
 
-                                          const query = "INSERT INTO cards (user_id, card_type_id, card_no) VALUES (?, ?, ?)";
+                                          const query = "INSERT INTO cards (user_id, user_type, card_type_id, card_no) VALUES (?, ?, ?, ?)";
                                           executeQuery({
                                               query,
-                                              data: [user_id, card_type_id, card_no],
+                                              data: [user_id, user_type, card_type_id, card_no],
                                               callback: (err, cardData) => {
                                                 // if (err) return res.status(500).json(err)
                                                 if (err)
@@ -224,13 +225,15 @@ console.log(password);
                                                           if (allCardData[0]) 
                                                           {
                                                             console.log("SANTHOSH CARD DATA");
-                                                            const query = "INSERT INTO transaction (transaction_type, transaction_cr, transaction_title,user_id,card_id,card_no ) VALUES (?, ?, ?, ?, ?, ?)";
+                                                            const query = "INSERT INTO transaction (transaction_type, transaction_cr, transaction_title,user_id, vendor_id, card_id,card_no ) VALUES (?, ?, ?, ?, ?, ?, ?)";
                                                             executeQuery({
                                                                       query,
-                                                                      data: [ 0, cardTypeData[0].card_type_w_point, "Welcome",user_id,allCardData[0].card_id,allCardData[0].card_no],
+                                                                      data: [ 0, cardTypeData[0].card_type_w_point, "Welcome",user_id, 0, allCardData[0].card_id, allCardData[0].card_no],
                                                                       callback: (err, data) => {
                                                                         // if (err) return res.status(500).json(err)
+                                                                        console.log("SANTHOSH CARD F TRANSACTION");
                                                                         if (err)
+                                                                          console.log(err);
                                                                             return res
                                                                             .status(500)
                                                                             .json({ error: [{ message: err }], result: {} });
@@ -439,6 +442,8 @@ export const addCard = (req, res) => {
     try {
       
       const user_id = req.user?.id;
+      const user_type = req.user?.user_type;
+      
       console.log(user_id)
 
       if (!user_id)
@@ -470,10 +475,10 @@ export const addCard = (req, res) => {
                     const card_type_id = cardTypeData[0].card_type_id;
                      const card_no = generateCardNumber();
 
-                      const query = "INSERT INTO cards (user_id, card_type_id, card_no) VALUES (?, ?, ?)";
+                      const query = "INSERT INTO cards (user_id, user_type, card_type_id, card_no) VALUES (?, ?, ?, ?)";
                       executeQuery({
                           query,
-                          data: [ user_id, card_type_id, card_no],
+                          data: [ user_id, user_type, card_type_id, card_no],
                           callback: (err, cardData) => {
                             // if (err) return res.status(500).json(err)
                             if (err)
