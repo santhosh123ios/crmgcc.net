@@ -217,11 +217,14 @@ function WalletMember() {
                                       <div className="user-list-item-tr-inside" onClick={() => handleLeadListClick(index)}>
                                         
                                             <div className="user-info-tr">
-                                                <DateWithIcon text={new Date(trItems.transaction_created_at).toLocaleDateString("en-US", {
+                                                <DateWithIcon text={new Date(trItems.transaction_created_at).toLocaleString("en-US", {
                                                     year: "numeric",
                                                     month: "long",
                                                     day: "numeric",
-                                                    })} >
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                    second: "2-digit"
+                                                })} >
                                                 </DateWithIcon>
                                                 <TextView type="subDarkBold" text={trItems.transaction_title}/>
                                                 <TextView type="subDark" text={trItems.vendor_name}/>
@@ -367,11 +370,14 @@ function WalletMember() {
 
                           <div className="user-list-item-redeem-inside" >      
                               <div className="user-info-tr">
-                                  <DateWithIcon text={new Date(selectedReadeem?.redeem_created_at).toLocaleDateString("en-US", {
+                                  <DateWithIcon text={new Date(selectedReadeem?.redeem_created_at).toLocaleString("en-US", {
                                       year: "numeric",
                                       month: "long",
                                       day: "numeric",
-                                      })} >
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      second: "2-digit"
+                                  })} >
                                   </DateWithIcon>
                                   <TextView type="subDarkBold" text={selectedReadeem?.notes}/>
                                     <StatusBadge status={selectedReadeem?.redeem_status==0 ? 0 : selectedReadeem?.redeem_status==1 ? 3 : 4 } />
@@ -457,11 +463,14 @@ function WalletMember() {
                                       <div className="user-list-item-tr-inside" onClick={() => handleLeadListClickRedeem(index)}>
                                         
                                             <div className="user-info-tr">
-                                                <DateWithIcon text={new Date(rdmItems.redeem_created_at).toLocaleDateString("en-US", {
+                                                <DateWithIcon text={new Date(rdmItems.redeem_created_at).toLocaleString("en-US", {
                                                     year: "numeric",
                                                     month: "long",
                                                     day: "numeric",
-                                                    })} >
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                    second: "2-digit"
+                                                })} >
                                                 </DateWithIcon>
                                                 <TextView type="subDarkBold" text={rdmItems.notes}/>
                                                  <StatusBadge status={rdmItems.redeem_status==0 ? 0 : rdmItems.redeem_status==1 ? 3 : 4 } />
@@ -492,7 +501,7 @@ function WalletMember() {
 
         {showRedeemPopup && (
             <RedeemPopup
-            point = {availablePoint}
+            point = {wallet?.available_point?.user_balance}
             onClose={() => setShowRedeemPopup(false)}
             onSubmit={handleRedeemPopupSubmit}
             />

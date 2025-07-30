@@ -161,3 +161,36 @@ export const getWalletDetails = (req, res) => {
         res.status(500).json({ status: 0, message: "Server error", error: err.message });
     }
 }
+
+export const getTransactionSettings = (req, res) => {
+    try {
+        const query = "SELECT * FROM transaction_settings ORDER BY id DESC LIMIT 1";
+        executeQuery({
+            query,
+            data: [],
+            callback: (err, settingsData) => 
+            {
+                console.log("Query result:", settingsData);
+                if (err) {
+                    console.error("Database error:", err);
+                    return res
+                    .status(500)
+                    .json({ error: [{ message: err }], result: {} });
+                }
+
+                const result = {
+                    message: "Get transaction settings",
+                    status: 1,
+                    data: settingsData[0] || null,
+                };
+    
+                console.log("Sending response:", result);
+                return res.status(200).json({ error: [], result });
+            }
+        })
+    } 
+    catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+}
