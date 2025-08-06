@@ -17,7 +17,7 @@ const baseId = import.meta.env.VITE_ID_BASE;
 const baseUrl = import.meta.env.VITE_API_BASE_IMG_URL;
 
 
-function TransactionsVendor() {
+function WalletAdmin() {
 
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState([]);
@@ -31,11 +31,11 @@ function TransactionsVendor() {
   const [transactionSettings, setTransactionSettings] = useState(null);
   const [showHistoryView, setShowHistoryView] = useState(false);
   const [showCardNumber, setShowCardNumber] = useState(false);
-  const [walletData, setWalletData] = useState(null);
-  const [walletLoading, setWalletLoading] = useState(true);
   const [showResponsePopup, setShowResponsePopup] = useState(false);
   const [responseMessage, setResponseMessage] = useState('');
   const [responseType, setResponseType] = useState('success'); // 'success' or 'error'
+  const [walletData, setWalletData] = useState(null);
+  const [walletLoading, setWalletLoading] = useState(true);
 
 
   useEffect(() => {
@@ -49,7 +49,7 @@ function TransactionsVendor() {
   const fetchTransaction = async () => {
       setLoading(true);
       try {
-      const response = await apiClient.get("/vendor/get_transaction");
+      const response = await apiClient.get("/admin/get_all_transaction");
       if (response?.result?.status === 1) {
           console.warn("Get Transaction successfully");
           setTransactions(response.result.data);
@@ -67,7 +67,7 @@ function TransactionsVendor() {
 
   const fetchTransactionSettings = async () => {
       try {
-          const response = await apiClient.get("/vendor/get_transaction_settings");
+          const response = await apiClient.get("/admin/get_transaction_settings");
           if (response?.result?.status === 1) {
               console.warn("Get Transaction Settings successfully");
               setTransactionSettings(response.result.data);
@@ -82,9 +82,9 @@ function TransactionsVendor() {
   const fetchWalletData = async () => {
       setWalletLoading(true);
       try {
-          const response = await apiClient.get("/vendor/get_wallet");
+          const response = await apiClient.get("/admin/get_wallet");
           if (response?.result?.status === 1) {
-              console.warn("Get wallet details successful");
+              console.warn("Get wallet details successfully");
               setWalletData(response.result.data);
           } else {
               console.warn("No wallet data found or status != 1");
@@ -133,29 +133,28 @@ function TransactionsVendor() {
       }
 
       try {
-          const response = await apiClient.post("/vendor/add_vendor_topup", {
+          const response = await apiClient.post("/admin/add_admin_topup", {
               transaction_point: parseInt(topUpAmount)
           });
 
           if (response?.result?.status === 1) {
-              console.warn("Top up successful");
+              console.log("Top up successful:", response.result);
               setResponseMessage("Top up successful!");
               setResponseType('success');
               setShowResponsePopup(true);
               setShowTopUpPopup(false);
               setTopUpAmount('');
-              // Refresh wallet data and transactions
-              fetchWalletData();
+              // Refresh transaction data
               fetchTransaction();
           } else {
-              console.warn("Top up failed:", response?.result?.message);
+              console.error("Top up failed:", response?.result?.message);
               setResponseMessage("Top up failed: " + (response?.result?.message || "Unknown error"));
               setResponseType('error');
               setShowResponsePopup(true);
           }
       } catch (error) {
           console.error("Failed to process top up:", error);
-          setResponseMessage("Top up failed. Please try again.");
+          setResponseMessage("Failed to process top up. Please try again.");
           setResponseType('error');
           setShowResponsePopup(true);
       }
@@ -240,14 +239,19 @@ function TransactionsVendor() {
                                       <div className="user-list-item-tr-inside" onClick={() => handleLeadListClick(index)}>
                                         
                                             <div className="user-info-tr">
+                                                
+                                                <TextView type="subDarkBold" text={trItems.transaction_title}/>
+                                                <TextView type="subDark" text={trItems.vendor_name}/>
+                                                <TextView type="subDark" text={`ID: ${baseId}${trItems.transaction_id}`} style={{fontSize: '11px', color: '#666'}}/>
+                                                
                                                 <DateWithIcon text={new Date(trItems.transaction_created_at).toLocaleDateString("en-US", {
                                                     year: "numeric",
                                                     month: "long",
                                                     day: "numeric",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit"
                                                     })} >
                                                 </DateWithIcon>
-                                                <TextView type="subDarkBold" text={trItems.transaction_title}/>
-                                                <TextView type="subDark" text={trItems.vendor_name}/>
                                             </div>
 
                                             <div style={{height: '100%',display: 'flex',justifyContent: 'center',alignItems: 'center',paddingLeft:'10px',paddingRight:'10px',gap:'2px'}}>
@@ -279,7 +283,7 @@ function TransactionsVendor() {
                     {/* Member detail view */}
                     <div style={{
                         width: '100%',
-                        height: '37%',
+                        height: '30%',
                         display: 'flex',
                         flexDirection: 'column',
                         padding: '2px'
@@ -362,7 +366,7 @@ function TransactionsVendor() {
                     {/* Wallet detail view */}
                     <div style={{
                         width: '100%',
-                        height: '63%',
+                        height: '70%',
                         display: 'flex',
                         flexDirection: 'column',
                         padding: '2px'
@@ -389,7 +393,7 @@ function TransactionsVendor() {
                                         color: '#1976d2',
                                         fontWeight: 'bold'
                                     }}>
-                                         {walletData?.card?.card_status === 1 ? 'Active' : 'Deactivated'}
+                                        Active
                                     </div>
                                 </div>
 
@@ -404,161 +408,174 @@ function TransactionsVendor() {
                                         overflow: 'hidden',
                                         boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
                                         display: 'flex',
-                                        justifyContent: 'center',
                                         alignItems: 'center',
+                                        justifyContent: 'center',
                                         height: '120px'
                                     }}>
-                                        <div className="spinner" style={{borderColor: 'white', borderTopColor: 'transparent'}}></div>
+                                        <div className="spinner" style={{borderColor: 'white', borderTopColor: 'transparent'}} />
                                     </div>
-                                ) : walletData?.card ? (
+                                ) : (
+                                <div style={{
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    borderRadius: '12px',
+                                    padding: '15px',
+                                    color: 'white',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
+                                }}>
+                                    {/* Card Chip */}
                                     <div style={{
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        borderRadius: '12px',
-                                        padding: '15px',
-                                        color: 'white',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
+                                        width: '40px',
+                                        height: '30px',
+                                        backgroundColor: '#ffd700',
+                                        borderRadius: '4px',
+                                        marginBottom: '40px'
+
+                                    }}></div>
+
+                                    {/* Card Number */}
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        marginBottom: '20px',
+                                        gap: '10px'
                                     }}>
-                                        {/* Card Chip */}
                                         <div style={{
-                                            width: '40px',
-                                            height: '30px',
-                                            backgroundColor: '#ffd700',
-                                            borderRadius: '4px',
-                                            marginBottom: '40px'
-
-                                        }}></div>
-
-                                        {/* Card Number */}
-                                        <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            marginBottom: '20px',
-                                            gap: '10px'
+                                            fontSize: '16px',
+                                            letterSpacing: '2px',
+                                            fontFamily: 'monospace',
+                                            lineHeight: '1'
                                         }}>
-                                            <div style={{
-                                                fontSize: '16px',
-                                                letterSpacing: '2px',
-                                                fontFamily: 'monospace',
-                                                lineHeight: '1'
-                                            }}>
-                                                {showCardNumber ? walletData?.card?.card_no : '**** **** **** ' + walletData?.card?.card_no?.slice(-4)}
-                                            </div>
-                                            <button 
-                                                onClick={toggleCardNumber}
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    color: 'white',
-                                                    cursor: 'pointer',
-                                                    padding: '4px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                                    transition: 'background-color 0.2s',
-                                                    width: '24px',
-                                                    height: '24px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    marginTop: '2px'
-                                                }}
-                                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
-                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
-                                            >
-                                                <FontAwesomeIcon 
-                                                    icon={showCardNumber ? faEyeSlash : faEye} 
-                                                    style={{fontSize: '10px'}}
-                                                />
-                                            </button>
+                                            {showCardNumber ? (walletData?.card?.card_no || '1234 5678 9012 3456') : '**** **** **** ' + (walletData?.card?.card_no?.slice(-4) || '1234')}
                                         </div>
+                                        <button 
+                                            onClick={toggleCardNumber}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                color: 'white',
+                                                cursor: 'pointer',
+                                                padding: '4px',
+                                                borderRadius: '50%',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                                transition: 'background-color 0.2s',
+                                                width: '24px',
+                                                height: '24px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                marginTop: '2px'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
+                                            onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                                        >
+                                            <FontAwesomeIcon 
+                                                icon={showCardNumber ? faEyeSlash : faEye} 
+                                                style={{fontSize: '10px'}}
+                                            />
+                                        </button>
+                                    </div>
 
-                                        {/* Card Details */}
+                                    {/* Card Details */}
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'flex-end'
+                                    }}>
+                                        <div>
+                                            <div style={{
+                                                fontSize: '10px',
+                                                opacity: '0.8',
+                                                marginBottom: '2px'
+                                            }}>
+                                                CARD TYPE
+                                            </div>
+                                            <div style={{
+                                                fontSize: '12px',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {walletData?.card?.card_type || 'Silver'}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div style={{
+                                                fontSize: '10px',
+                                                opacity: '0.8',
+                                                marginBottom: '2px'
+                                            }}>
+                                                EXPIRES
+                                            </div>
+                                            <div style={{
+                                                fontSize: '12px',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                12/25
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Decorative Elements */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '-20px',
+                                        right: '-20px',
+                                        width: '80px',
+                                        height: '80px',
+                                        borderRadius: '50%',
+                                        backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                                    }}></div>
+                                </div>
+                                )}
+
+                                {/* Card Details */}
+                                {!walletLoading && walletData?.card && (
+                                    <div style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '8px',
+                                        marginTop: '10px',
+                                        padding: '10px',
+                                        backgroundColor: '#f8f9fa',
+                                        borderRadius: '8px',
+                                        border: '1px solid #e9ecef'
+                                    }}>
+                                        {/* <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                        }}>
+                                            <TextView type="subDark" text="Card ID" />
+                                            <TextView type="darkBold" text={walletData.card.card_id} />
+                                        </div> */}
+                                        
                                         <div style={{
                                             display: 'flex',
                                             justifyContent: 'space-between',
-                                            alignItems: 'flex-end'
+                                            alignItems: 'center'
                                         }}>
-                                            <div>
-                                                <div style={{
-                                                    fontSize: '10px',
-                                                    opacity: '0.8',
-                                                    marginBottom: '2px'
-                                                }}>
-                                                    CARD TYPE
-                                                </div>
-                                                <div style={{
-                                                    fontSize: '12px',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    {walletData?.card?.card_type}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <div style={{
-                                                    fontSize: '10px',
-                                                    opacity: '0.8',
-                                                    marginBottom: '2px'
-                                                }}>
-                                                    STATUS
-                                                </div>
-                                                <div style={{
-                                                    fontSize: '12px',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    {walletData?.card?.card_status === 1 ? 'Active' : 'Deactivated'}
-                                                </div>
-                                            </div>
+                                            <TextView type="subDark" text="Total Points" />
+                                            <TextView type="darkBold" text={`${walletData.total_point_sum || '0'} Points`} style={{color: '#f57c00'}} />
                                         </div>
-
-                                        {/* Decorative Elements */}
+                                        {/* Balance and Top-up Section */}
                                         <div style={{
-                                            position: 'absolute',
-                                            top: '-20px',
-                                            right: '-20px',
-                                            width: '80px',
-                                            height: '80px',
-                                            borderRadius: '50%',
-                                            backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                                        }}></div>
-                                    </div>
-                                ) : (
-                                    <div style={{
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        borderRadius: '12px',
-                                        padding: '15px',
-                                        color: 'white',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        height: '120px'
-                                    }}>
-                                        <div style={{textAlign: 'center'}}>
-                                            <div style={{fontSize: '14px', marginBottom: '5px'}}>No Card Available</div>
-                                            <div style={{fontSize: '12px', opacity: '0.8'}}>Contact support to get a card</div>
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '8px 0'
+                                        }}>
+                                            <TextView type="subDark" text="Available Balance" />
+                                            <TextView type="darkBold" text={`${walletData?.balance_point || '0'} Points`} style={{color: '#2e7d32'}} />
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Balance and Top-up Section */}
+                                
                                 <div style={{
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: '8px'
                                 }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        padding: '8px 0'
-                                    }}>
-                                        <TextView type="subDark" text="Available Balance" />
-                                        <TextView type="darkBold" text={`${walletData?.balance_point || 0} Points`} style={{color: '#2e7d32'}} />
-                                    </div>
-
                                     <div style={{
                                         display: 'flex',
                                         gap: '8px'
@@ -1057,64 +1074,41 @@ function TransactionsVendor() {
             </div>
         )}
 
-        {/* Response Popup */}
+        {/* API Response Popup */}
         {showResponsePopup && (
             <SimplePopup onClose={() => setShowResponsePopup(false)}>
                 <div style={{
-                    padding: '30px',
+                    padding: '20px',
                     textAlign: 'center',
                 }}>
                     <div style={{
-                        marginBottom: '20px'
+                        marginBottom: '15px',
+                        fontSize: responseType === 'success' ? '24px' : '20px',
+                        color: responseType === 'success' ? '#2e7d32' : '#d32f2f',
+                        fontWeight: 'bold'
                     }}>
-                        <div style={{
-                            width: '60px',
-                            height: '60px',
-                            borderRadius: '50%',
-                            backgroundColor: responseType === 'success' ? '#4caf50' : '#f44336',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            margin: '0 auto 15px',
-                            color: 'white',
-                            fontSize: '24px',
-                            fontWeight: 'bold'
-                        }}>
-                            {responseType === 'success' ? '✓' : '✕'}
-                        </div>
-                        <TextView 
-                            type="darkBold" 
-                            text={responseType === 'success' ? 'Success' : 'Error'} 
-                            style={{
-                                fontSize: '18px',
-                                marginBottom: '10px',
-                                color: responseType === 'success' ? '#4caf50' : '#f44336'
-                            }}
-                        />
-                        <TextView 
-                            type="subDark" 
-                            text={responseMessage}
-                            style={{
-                                fontSize: '14px',
-                                lineHeight: '1.4'
-                            }}
-                        />
+                        {responseType === 'success' ? '✓' : '✗'}
                     </div>
+                    <TextView 
+                        type="darkBold" 
+                        text={responseMessage}
+                        style={{
+                            marginBottom: '20px',
+                            color: responseType === 'success' ? '#2e7d32' : '#d32f2f'
+                        }}
+                    />
                     <button 
                         onClick={() => setShowResponsePopup(false)}
                         style={{
-                            padding: '10px 25px',
-                            backgroundColor: responseType === 'success' ? '#4caf50' : '#f44336',
+                            padding: '10px 10px',
+                            backgroundColor: responseType === 'success' ? '#2e7d32' : '#d32f2f',
                             color: 'white',
                             border: 'none',
                             borderRadius: '6px',
                             cursor: 'pointer',
                             fontSize: '14px',
-                            fontWeight: 'bold',
-                            transition: 'opacity 0.2s'
+                            fontWeight: 'bold'
                         }}
-                        onMouseEnter={(e) => e.target.style.opacity = '0.8'}
-                        onMouseLeave={(e) => e.target.style.opacity = '1'}
                     >
                         OK
                     </button>
@@ -1125,4 +1119,4 @@ function TransactionsVendor() {
   )
 }
 
-export default TransactionsVendor
+export default WalletAdmin

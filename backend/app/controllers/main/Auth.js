@@ -172,7 +172,7 @@ export const login = (req, res) => {
                       const user_id = userData[0].id;
                       const user_type = userData[0].user_type;
 
-                      if (userData[0].user_type === 2 || userData[0].user_type === 3)
+                      if (userData[0].user_type === 2 || userData[0].user_type === 3 || userData[0].user_type === 1)
                       {
                           const query = "SELECT * FROM cards WHERE user_id = ?";
                           executeQuery({
@@ -180,7 +180,7 @@ export const login = (req, res) => {
                             data: [user_id],
                             callback: (err, userCardData) => {
                               // if (err) return res.status(500).json(err)
-                              console.log(userCardData)
+                              //console.log(userCardData)
                               if (userCardData[0]) {
                                   console.log("SANRHOSH CARD AVAILABLE")
                                   const result = {
@@ -216,51 +216,76 @@ export const login = (req, res) => {
                                                     .status(500)
                                                     .json({ error: [{ message: err }], result: {} });
 
-                                                      const query = "SELECT * FROM cards WHERE user_id = ?";
-                                                      executeQuery({
-                                                        query,
-                                                        data: [user_id],
-                                                        callback: (err, allCardData) => {
-                                                          console.log(allCardData)
-                                                          if (allCardData[0]) 
-                                                          {
-                                                            console.log("SANTHOSH CARD DATA");
-                                                            const query = "INSERT INTO transaction (transaction_type, transaction_cr, transaction_title,user_id, vendor_id, card_id,card_no ) VALUES (?, ?, ?, ?, ?, ?, ?)";
-                                                            executeQuery({
-                                                                      query,
-                                                                      data: [ 0, cardTypeData[0].card_type_w_point, "Welcome",user_id, 0, allCardData[0].card_id, allCardData[0].card_no],
-                                                                      callback: (err, data) => {
-                                                                        // if (err) return res.status(500).json(err)
-                                                                        console.log("SANTHOSH CARD F TRANSACTION");
-                                                                        if (err)
-                                                                          console.log(err);
+
+                                                    if (userData[0].user_type === 2)
+                                                      {
+                                                        const query = "SELECT * FROM cards WHERE user_id = ?";
+                                                        executeQuery({
+                                                          query,
+                                                          data: [user_id],
+                                                          callback: (err, allCardData) => {
+                                                            console.log(allCardData)
+                                                            if (allCardData[0]) 
+                                                            {
+                                                              console.log("SANTHOSH CARD DATA");
+                                                              const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
+                                                              card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+                                                              executeQuery({
+                                                                        query,
+                                                                        data: [ 1, cardTypeData[0].card_type_w_point, 0, "Welcome",user_id,1,user_id,user_id],
+                                                                        //data: [ 0, cardTypeData[0].card_type_w_point, "Welcome",user_id, 0, allCardData[0].card_id, allCardData[0].card_no],
+                                                                        callback: (err, data) => {
+                                                                          // if (err) return res.status(500).json(err)
+                                                                          //console.log("SANTHOSH CARD F TRANSACTION");
+                                                                          if (err)
+                                                                          {
+                                                                            console.log(err);
                                                                             return res
                                                                             .status(500)
                                                                             .json({ error: [{ message: err }], result: {} });
-
+                                                                          }
+                                                                          else
+                                                                          {
                                                                             const result = {
-                                                                            message: "login successful",
-                                                                            token,
-                                                                            status: 1,
-                                                                            // data: userData
-                                                                            data: userData[0],
-                                                                            };
-                                                                          return res.status(200).json({ error: [], result });
-                                                                      }
-                                                            });
-
-                                                          }
-                                                          else
-                                                          {
-                                                              return res
-                                                              .status(404)
-                                                              .json({
-                                                                error: [{ message: "Unknown error, Please try again..." }],
-                                                                result: {},
+                                                                              message: "login successful",
+                                                                              token,
+                                                                              status: 1,
+                                                                              // data: userData
+                                                                              data: userData[0],
+                                                                              };
+                                                                            return res.status(200).json({ error: [], result });
+                                                                          }
+                                                                        
+                                                                        }
                                                               });
+
+                                                            }
+                                                            else
+                                                            {
+                                                                return res
+                                                                .status(404)
+                                                                .json({
+                                                                  error: [{ message: "Unknown error, Please try again..." }],
+                                                                  result: {},
+                                                                });
+                                                            }
                                                           }
-                                                        }
-                                                      });
+                                                        });
+                                                      }
+                                                      else
+                                                      {
+                                                        const result = {
+                                                          message: "login successful",
+                                                          token,
+                                                          status: 1,
+                                                          // data: userData
+                                                          data: userData[0],
+                                                          };
+                                                        return res.status(200).json({ error: [], result });
+                                                      }
+
+
+                                                      
                                               }
                                           });   
                                         }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import DashboardBox from '../../componants/Main/DashboardBox'
 import InputText from '../../componants/Main/InputText'
 import CommonButton from '../../componants/Main/CommonButton'
+import SimplePopup from '../../componants/Main/SimplePopup'
 import apiClient from '../../utils/ApiClient'
 
 function SettingsTransaction() {
@@ -9,10 +10,14 @@ function SettingsTransaction() {
     dailyLimit: '',
     minimumRedeemLimit: '',
     maximumRedeemLimit: '',
-    transactionCharges: ''
+    transactionCharges: '',
+    transactionExpiryTime: ''
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState('');
+  const [popupType, setPopupType] = useState('success'); // 'success' or 'error'
 
   // Fetch transaction settings on component mount
   useEffect(() => {
@@ -29,12 +34,15 @@ function SettingsTransaction() {
           dailyLimit: response.result.data.daily_limit?.toString() || '',
           minimumRedeemLimit: response.result.data.minimum_redeem_limit?.toString() || '',
           maximumRedeemLimit: response.result.data.maximum_redeem_limit?.toString() || '',
-          transactionCharges: response.result.data.transaction_charges?.toString() || ''
+          transactionCharges: response.result.data.transaction_charges?.toString() || '',
+          transactionExpiryTime: response.result.data.transaction_expiry_time?.toString() || ''
         });
       }
     } catch (error) {
       console.error('Error fetching transaction settings:', error);
-      setMessage('Error loading settings');
+      setPopupMessage('Error loading settings');
+      setPopupType('error');
+      setShowPopup(true);
     } finally {
       setLoading(false);
     }
@@ -50,29 +58,56 @@ function SettingsTransaction() {
   const handleSave = async () => {
     try {
       setLoading(true);
-      setMessage('');
 
       const payload = {
         daily_limit: parseFloat(formData.dailyLimit) || 0,
         minimum_redeem_limit: parseFloat(formData.minimumRedeemLimit) || 0,
         maximum_redeem_limit: parseFloat(formData.maximumRedeemLimit) || 0,
-        transaction_charges: parseFloat(formData.transactionCharges) || 0
+        transaction_charges: parseFloat(formData.transactionCharges) || 0,
+        transaction_expiry_time: parseFloat(formData.transactionExpiryTime) || 0
       };
 
       const response = await apiClient.post('/admin/update_transaction_settings', payload);
       
       if (response.result.status) {
-        setMessage('Settings updated successfully!');
+        setPopupMessage('Settings updated successfully!');
+        setPopupType('success');
       } else {
-        setMessage('Error updating settings');
+        setPopupMessage('Error updating settings');
+        setPopupType('error');
       }
+      setShowPopup(true);
     } catch (error) {
       console.error('Error updating transaction settings:', error);
-      setMessage('Error updating settings');
+      setPopupMessage('Error updating settings');
+      setPopupType('error');
+      setShowPopup(true);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
+    setPopupMessage('');
+  };
+
+  // Auto-dismiss popup after 3 seconds
+  useEffect(() => {
+    let timer;
+    if (showPopup) {
+      timer = setTimeout(() => {
+        handleClosePopup();
+      }, 1000); // 3 seconds
+    }
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [showPopup]);
+
+
 
   return (
     <div style={{
@@ -89,14 +124,15 @@ function SettingsTransaction() {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          padding: '20px',
+          paddingLeft: '20px',
+          paddingTop: '10px',
           boxSizing: 'border-box',
           overflowY: 'auto'
         }}>
           <div style={{
             fontSize: '20px',
             fontWeight: 'bold',
-            marginBottom: '20px',
+            marginBottom: '10px',
             color: '#333'
           }}>
             Transaction Settings
@@ -248,24 +284,44 @@ function SettingsTransaction() {
               </span>
             </div>
 
-            {/* Message Display */}
-            {message && (
-              <div style={{
-                marginTop: '15px',
-                padding: '10px',
-                borderRadius: '6px',
-                fontSize: '13px',
-                backgroundColor: message.includes('successfully') ? '#d4edda' : '#f8d7da',
-                color: message.includes('successfully') ? '#155724' : '#721c24',
-                border: `1px solid ${message.includes('successfully') ? '#c3e6cb' : '#f5c6cb'}`
+            {/* Transaction Expiry Time */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '5px'
+            }}>
+              <label style={{
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#333'
               }}>
-                {message}
-              </div>
-            )}
+                Transaction Expiry Time
+              </label>
+              <InputText
+                placeholder="Enter transaction expiry time in hours"
+                value={formData.transactionExpiryTime}
+                onChange={handleInputChange('transactionExpiryTime')}
+                type="number"
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '6px',
+                  fontSize: '13px'
+                }}
+              />
+              <span style={{
+                fontSize: '11px',
+                color: '#666',
+                fontStyle: 'italic'
+              }}>
+                Time in hours after which transactions expire
+              </span>
+            </div>
 
             {/* Save Button */}
             <div style={{
-              marginTop: '20px',
+              marginTop: '0px',
               display: 'flex',
               gap: '10px'
             }}>
@@ -307,6 +363,32 @@ function SettingsTransaction() {
           </div>
         </div>
       </DashboardBox>
+
+      {/* Popup for API responses */}
+      {showPopup && (
+        <SimplePopup onClose={handleClosePopup}>
+          <div style={{
+            textAlign: 'center',
+            padding: '20px'
+          }}>
+            <div style={{
+              fontSize: '18px',
+              fontWeight: 'bold',
+              marginBottom: '10px',
+              color: popupType === 'success' ? '#28a745' : '#dc3545'
+            }}>
+              {popupType === 'success' ? 'Success' : 'Error'}
+            </div>
+            <div style={{
+              fontSize: '14px',
+              color: '#333',
+              lineHeight: '1.5'
+            }}>
+              {popupMessage}
+            </div>
+          </div>
+        </SimplePopup>
+      )}
     </div>
   )
 }

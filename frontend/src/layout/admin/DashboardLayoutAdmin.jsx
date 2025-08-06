@@ -12,6 +12,7 @@ import AdminProfile from '../../pages/admin/AdminProfile';
 import Offers from '../../pages/admin/Offers';
 import Notification from '../../pages/admin/Notification';
 import SettingsAdmin from '../../pages/admin/SettingsAdmin';
+import WalletAdmin from '../../pages/admin/WalletAdmin';
 
 const DashboardLayoutAdmin = () => {
 
@@ -30,6 +31,8 @@ const DashboardLayoutAdmin = () => {
         return <VendorAdmin/>;
       case 'transaction':
         return <TransactionAdmin/>;
+      case 'wallet':
+        return <WalletAdmin/>;
       case 'complaints':
         return <ComplaintsAdmin/>;
       case 'card':
