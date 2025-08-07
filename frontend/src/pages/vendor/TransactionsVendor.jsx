@@ -37,6 +37,13 @@ function TransactionsVendor() {
   const [responseMessage, setResponseMessage] = useState('');
   const [responseType, setResponseType] = useState('success'); // 'success' or 'error'
 
+  // Helper function to format card number with 4-digit separation
+  const formatCardNumber = (cardNumber) => {
+    if (!cardNumber) return '';
+    // Remove any existing spaces and format with 4-digit groups
+    const cleanNumber = cardNumber.replace(/\s/g, '');
+    return cleanNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
+  };
 
   useEffect(() => {
     fetchTransaction();
@@ -279,7 +286,7 @@ function TransactionsVendor() {
                     {/* Member detail view */}
                     <div style={{
                         width: '100%',
-                        height: '37%',
+                        height: '40%',
                         display: 'flex',
                         flexDirection: 'column',
                         padding: '2px'
@@ -289,7 +296,7 @@ function TransactionsVendor() {
                                 height: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                padding: '20px',
+                                padding: '15px',
                                 gap: '15px'
                             }}>
                                 {/* Header */}
@@ -362,7 +369,7 @@ function TransactionsVendor() {
                     {/* Wallet detail view */}
                     <div style={{
                         width: '100%',
-                        height: '63%',
+                        height: '60%',
                         display: 'flex',
                         flexDirection: 'column',
                         padding: '2px'
@@ -443,7 +450,7 @@ function TransactionsVendor() {
                                                 fontFamily: 'monospace',
                                                 lineHeight: '1'
                                             }}>
-                                                {showCardNumber ? walletData?.card?.card_no : '**** **** **** ' + walletData?.card?.card_no?.slice(-4)}
+                                                {showCardNumber ? formatCardNumber(walletData?.card?.card_no) : '**** **** **** ' + formatCardNumber(walletData?.card?.card_no?.slice(-4))}
                                             </div>
                                             <button 
                                                 onClick={toggleCardNumber}
@@ -495,19 +502,19 @@ function TransactionsVendor() {
                                                 </div>
                                             </div>
                                             <div>
-                                                <div style={{
-                                                    fontSize: '10px',
-                                                    opacity: '0.8',
-                                                    marginBottom: '2px'
-                                                }}>
-                                                    STATUS
-                                                </div>
-                                                <div style={{
-                                                    fontSize: '12px',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    {walletData?.card?.card_status === 1 ? 'Active' : 'Deactivated'}
-                                                </div>
+                                            <div style={{
+                                                fontSize: '10px',
+                                                opacity: '0.8',
+                                                marginBottom: '2px'
+                                            }}>
+                                                EXPIRES
+                                            </div>
+                                            <div style={{
+                                                fontSize: '12px',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                12/25
+                                            </div>
                                             </div>
                                         </div>
 
@@ -751,8 +758,19 @@ function TransactionsVendor() {
                                         display: 'flex',
                                         justifyContent: 'space-between'
                                     }}>
-                                        <TextView type="subDark" text="Status" />
-                                        <TextView type="darkBold" text="Completed" style={{color: '#28a745'}} />
+                                         <div style={{
+                                                fontSize: '10px',
+                                                opacity: '0.8',
+                                                marginBottom: '2px'
+                                            }}>
+                                                EXPIRES
+                                            </div>
+                                            <div style={{
+                                                fontSize: '12px',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                12/25
+                                            </div>
                                     </div>
                                 </div>
                             </div>

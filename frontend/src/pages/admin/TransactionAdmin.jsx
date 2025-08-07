@@ -7,6 +7,7 @@ import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { faPhone } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 import InputText from '../../componants/Main/InputText';
 import DateWithIcon from '../../componants/Main/DateWithIcon';
@@ -34,10 +35,20 @@ function TransactionAdmin() {
     const [loadingRdm, setLoadingRdm] = useState(true);
     const [loadingWallet, setLoadingWallet] = useState(true);
     const [selectedStatus, setSelectedStatus] = useState(0);
-         const [showPopup, setShowPopup] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
+    const [showCardNumber, setShowCardNumber] = useState(false);
+    const [walletData, setWalletData] = useState(null);
     const [formData, setFormData] = useState({
         search: ""
     });
+
+    // Helper function to format card number with 4-digit separation
+    const formatCardNumber = (cardNumber) => {
+        if (!cardNumber) return '';
+        // Remove any existing spaces and format with 4-digit groups
+        const cleanNumber = cardNumber.replace(/\s/g, '');
+        return cleanNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
+    };
 
     const statusArray =[
         {
@@ -57,6 +68,7 @@ function TransactionAdmin() {
     useEffect(() => {
         fetchTransaction();
         fetchRedeem();
+        fetchWalletData();
     },[]);
 
     ///API CALLING
@@ -96,6 +108,27 @@ function TransactionAdmin() {
       } finally {
       setLoadingRdm(false);
       }
+    };
+
+    const fetchWalletData = async () => {
+        setLoadingWallet(true);
+        try {
+            const response = await apiClient.get("/admin/get_wallet");
+            if (response?.result?.status === 1) {
+                console.warn("Get wallet details successfully");
+                setWalletData(response.result.data);
+            } else {
+                console.warn("No wallet data found or status != 1");
+            }
+        } catch (error) {
+            console.error("Failed to fetch wallet data:", error);
+        } finally {
+            setLoadingWallet(false);
+        }
+    };
+
+    const toggleCardNumber = () => {
+        setShowCardNumber(!showCardNumber);
     };
 
     const addTransaction = async (pointNote) => {
@@ -392,6 +425,8 @@ function TransactionAdmin() {
 
                         
                     </div>
+
+                    
 
                     {/* Redeem detail view */}
                     <div style={{

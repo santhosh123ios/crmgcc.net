@@ -37,6 +37,14 @@ function WalletAdmin() {
   const [walletData, setWalletData] = useState(null);
   const [walletLoading, setWalletLoading] = useState(true);
 
+  // Helper function to format card number with 4-digit separation
+  const formatCardNumber = (cardNumber) => {
+    if (!cardNumber) return '';
+    // Remove any existing spaces and format with 4-digit groups
+    const cleanNumber = cardNumber.replace(/\s/g, '');
+    return cleanNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
+};
+
 
   useEffect(() => {
     fetchTransaction();
@@ -293,7 +301,7 @@ function WalletAdmin() {
                                 height: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                padding: '20px',
+                                padding: '15px',
                                 gap: '15px'
                             }}>
                                 {/* Header */}
@@ -301,7 +309,7 @@ function WalletAdmin() {
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
-                                    marginBottom: '10px'
+                                    marginBottom: '5px'
                                 }}>
                                     <TextView type="darkBold" text="Member Details" />
                                     <div style={{
@@ -323,7 +331,7 @@ function WalletAdmin() {
                                     gap: '15px',
                                     padding: '0px',
                                     borderRadius: '12px',
-                                    marginTop: '15px'
+                                    marginTop: '0px'
                                 }}>
                                     <div>
                                         <img 
@@ -376,7 +384,9 @@ function WalletAdmin() {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 padding: '15px',
-                                gap: '10px'
+                                paddingBottom: '0px',
+                                paddingTop: '15px',
+                                gap: '5px'
                             }}>
                                 <div style={{
                                     display: 'flex',
@@ -447,7 +457,7 @@ function WalletAdmin() {
                                             fontFamily: 'monospace',
                                             lineHeight: '1'
                                         }}>
-                                            {showCardNumber ? (walletData?.card?.card_no || '1234 5678 9012 3456') : '**** **** **** ' + (walletData?.card?.card_no?.slice(-4) || '1234')}
+                                             {showCardNumber ? formatCardNumber(walletData?.card?.card_no) : '**** **** **** ' + formatCardNumber(walletData?.card?.card_no?.slice(-4))}
                                         </div>
                                         <button 
                                             onClick={toggleCardNumber}
