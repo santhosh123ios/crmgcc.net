@@ -4,8 +4,9 @@ import './Main.css'
 const statusStyles = {
   0: { color: 'orange', text: 'PENDING' },
   1: { color: 'yellow', text: 'REVIEW' },
-  2: { color: 'green', text: 'DONE' },
-  3: { color: 'red', text: 'REJECTED' },
+  2: { color: 'green', text: 'PROCESSING' },
+  3: { color: 'green', text: 'DONE' },
+  4: { color: 'red', text: 'REJECTED' },
   // Add more statuses here
 };
 

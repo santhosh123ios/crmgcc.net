@@ -348,7 +348,7 @@ function AdminLeads() {
 
                     <div style={{
                     width: '100%',
-                    height: '250px',
+                    height: '40%',
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '2px'
@@ -356,7 +356,7 @@ function AdminLeads() {
                          <DashboardBox>
                             <div style={{display: 'flex',flexDirection:'column', justifyContent: 'start', padding: '10px',height:'100%',width:'100%',boxSizing:'border-box'}}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', padding: '0px', margin: '0px',height:'50px'}}>
-                                    <p className="title-text-dark">{"Status"}</p>
+                                <p className="title-text-dark" style={{fontSize: '16px', fontWeight: '600', color: '#333'}}>{"Lead Status"}</p>
                                     <div style={{height:'50px',width:'130px'}}>
                                         {!(selectedStatus === 3 || selectedStatus === 4) && (
                                             <Dropdown
@@ -368,40 +368,251 @@ function AdminLeads() {
                                         )}
                                     </div>
                                 </div>
-                                <div style={{justifyContent: 'center',height:'100%',boxSizing:'border-box'}}>
+                                <div style={{justifyContent: 'center',boxSizing:'border-box'}}>
                                     <div style={{display:'flex',flexDirection:'row',alignItems: 'center',marginTop:'20px'}}>
-                                        <div style={{width:'150px',display:'flex',flexDirection:'column'}}>
-                                        <TextView type="subDark" text={"Pending"}/>
-                                            <div style={{display:'flex',flexDirection:'row',height:'10px'}}>
-                                                <DotBadge status={3} />
-                                                <hr style={{background: selectedStatus === 1 || selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? 'green' : 'gray'}}/>
+                                        {/* <DotBadge status={3} /> */}
+                                        {/* Step 1: Pending */}
+                                        <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
+                                            <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
+                                                
+                                                <div style={{
+                                                    display: 'flex',
+                                                    position: 'relative',
+                                                    alignItems: 'center',
+                                                    width:'100%'
+                                                }}>
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: selectedStatus >= 0 ? '#4CAF50' : '#e0e0e0',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        border: '2px solid white',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                        transition: 'all 0.3s ease'
+                                                    }}>
+                                                        {selectedStatus >= 0 && (
+                                                            <div style={{
+                                                                width: '8px',
+                                                                height: '8px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: 'white'
+                                                            }} />
+                                                        )}
+                                                    </div>
+                                                    <hr style={{background: selectedStatus === 1 || selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',width:'100%',padding:'0px',margin:'0px'}}/>
+                                                </div>
+
+                                                <div style={{
+                                                        marginTop: '15px',
+                                                        fontSize: '12px',
+                                                        fontWeight: '500',
+                                                        color: selectedStatus >= 0 ? '#4CAF50' : '#999',
+                                                        textAlign: 'center',
+                                                        transition: 'color 0.3s ease'
+                                                    }}>
+                                                        Pending
+                                                    </div>
+                                               
                                             </div>
+                                            
                                         </div>
 
-                                        <div style={{width:'150px',display:'flex',flexDirection:'column'}}>
-                                            <TextView type="subDark" text={"Review"}/>
-                                            <div style={{display:'flex',flexDirection:'row',height:'10px'}}>
-                                                <DotBadge status={selectedStatus === 1 || selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? 3 : 6} />
-                                                <hr style={{background: selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? 'green' : 'gray'}}/>
+
+                                        {/* <DotBadge status={3} /> */}
+                                        {/* Step 2: Review */}
+                                        <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
+                                            <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
+                                                
+                                                <div style={{
+                                                    display: 'flex',
+                                                    position: 'relative',
+                                                    alignItems: 'center',
+                                                    width:'100%'
+                                                }}>
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: selectedStatus >= 1 ? '#4CAF50' : '#e0e0e0',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        border: '2px solid white',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                        transition: 'all 0.3s ease'
+                                                    }}>
+                                                        {selectedStatus >= 1 && (
+                                                            <div style={{
+                                                                width: '8px',
+                                                                height: '8px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: 'white'
+                                                            }} />
+                                                        )}
+                                                    </div>
+                                                    <hr style={{background: selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',width:'100%',padding:'0px',margin:'0px'}}/>
+                                                </div>
+
+                                                <div style={{
+                                                        marginTop: '15px',
+                                                        fontSize: '12px',
+                                                        fontWeight: '500',
+                                                        color: selectedStatus >= 1 ? '#4CAF50' : '#999',
+                                                        textAlign: 'center',
+                                                        transition: 'color 0.3s ease'
+                                                }}>
+                                                    Review
+                                                </div>
+                                               
                                             </div>
+                                            
                                         </div>
 
-                                        <div style={{width:'200px',display:'flex',flexDirection:'column'}}>
-                                            <TextView type="subDark" text={"Processing"}/>
-                                            <div style={{display:'flex',flexDirection:'row',height:'10px'}}>
-                                                <DotBadge status={selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? 3 : 6} />
-                                                <hr style={{background: selectedStatus === 3 || selectedStatus === 4 ? 'green' : 'gray'}}/>
+                                        
+                                        {/* <DotBadge status={3} /> */}
+                                        {/* Step 2: Processing */}
+                                        <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
+                                            <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
+                                                
+                                                <div style={{
+                                                    display: 'flex',
+                                                    position: 'relative',
+                                                    alignItems: 'center',
+                                                    width:'100%'
+                                                }}>
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: selectedStatus >= 2 ? '#4CAF50' : '#e0e0e0',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        border: '2px solid white',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                        transition: 'all 0.3s ease'
+                                                    }}>
+                                                        {selectedStatus >= 2 && (
+                                                            <div style={{
+                                                                width: '8px',
+                                                                height: '8px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: 'white'
+                                                            }} />
+                                                        )}
+                                                    </div>
+                                                    <hr style={{
+                                                        backgroundColor: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#e0e0e0',
+                                                        //background: selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',
+                                                        width:'100%',padding:'0px',margin:'0px'}}/>
+                                                </div>
+
+                                                <div style={{
+                                                        marginTop: '15px',
+                                                        fontSize: '12px',
+                                                        fontWeight: '500',
+                                                        color: selectedStatus >= 2 ? '#4CAF50' : '#999',
+                                                        textAlign: 'center',
+                                                        transition: 'color 0.3s ease'
+                                                    }}>
+                                                        Processing
+                                                    </div>
+                                               
                                             </div>
+                                            
                                         </div>
 
-                                        <div style={{width:'80px',display:'flex',flexDirection:'column'}}>
+
+                                        {/* <DotBadge status={3} /> */}
+                                        {/* Step 2: Final */}
+                                        <div style={{width:'60px',display:'flex',flexDirection:'row'}}>
+                                            <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
+                                                
+                                                <div style={{
+                                                    display: 'flex',
+                                                    position: 'relative',
+                                                    alignItems: 'center',
+                                                    width:'100%'
+                                                }}>
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#e0e0e0',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        border: '2px solid white',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                        transition: 'all 0.3s ease'
+                                                    }}>
+                                                        {selectedStatus >= 3 && (
+                                                            <div style={{
+                                                                width: '8px',
+                                                                height: '8px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: 'white'
+                                                            }} />
+                                                        )}
+                                                    </div>
+                                                    {/* <hr style={{background: selectedStatus === 3 || selectedStatus === 4 ? 'green' : 'gray',width:'100%',padding:'0px',margin:'0px'}}/> */}
+                                                </div>
+
+                                                <div style={{
+                                                        marginTop: '15px',
+                                                        fontSize: '12px',
+                                                        fontWeight: '500',
+                                                        color: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#999',
+                                                        textAlign: 'center',
+                                                        transition: 'color 0.3s ease'
+                                                    }}>
+                                                        {selectedStatus === 4 ? "Rejected" : "Done"}
+                                                    </div>
+                                               
+                                            </div>
+                                            
+                                        </div>
+
+                                        
+
+                                        {/* <div style={{width:'80px',display:'flex',flexDirection:'column'}}>
                                             <TextView type="subDark" text={selectedStatus === 4 ? "Rejected" : "Done"}/>
                                             <div style={{display:'flex',flexDirection:'row',height:'10px'}}>
                                                 <DotBadge status={selectedStatus === 3 || selectedStatus === 4 ? 3 : 6} />
                                                 
                                             </div>
-                                        </div>
+                                        </div> */}
 
+                                    </div>
+                                </div>
+
+                                {/* Status Description */}
+                                <div style={{
+                                    marginTop: '15px',
+                                    padding: '10px 15px',
+                                    backgroundColor: selectedStatus === 4 ? '#ffebee' : '#f1f8e9',
+                                    borderRadius: '8px',
+                                    border: `1px solid ${selectedStatus === 4 ? '#ffcdd2' : '#c8e6c9'}`,
+                                    transition: 'all 0.3s ease'
+                                }}>
+                                    <div style={{
+                                        fontSize: '13px',
+                                        fontWeight: '500',
+                                        color: selectedStatus === 4 ? '#d32f2f' : '#2e7d32',
+                                        textAlign: 'center'
+                                    }}>
+                                        {selectedStatus === 0 && "Your lead is pending review"}
+                                        {selectedStatus === 1 && "Your lead is under review"}
+                                        {selectedStatus === 2 && "Your lead is being processed"}
+                                        {selectedStatus === 3 && "Your lead has been completed"}
+                                        {selectedStatus === 4 && "Your lead has been rejected"}
                                     </div>
                                 </div>
                                 
