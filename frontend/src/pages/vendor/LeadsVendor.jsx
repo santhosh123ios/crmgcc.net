@@ -271,10 +271,9 @@ function LeadsVendor() {
         try {
 
             const payload = {
-                transaction_type: 1,
                 transaction_point: point,
                 transaction_title: selectedLead.lead_name,
-                member_id: selectedLead.user_id
+                to_id: selectedLead.user_id
             };
             //console.log("SANTHOSH Vendor ID:", payload);
             const data = await apiClient.post("/vendor/add_transaction", payload);
@@ -334,8 +333,7 @@ function LeadsVendor() {
     };
 
     const handlePopupSubmit = (points) => {
-        console.log('Submitted Points:', points);
-
+       console.log('Submitted Points:', points);
        addTransaction(points)
 
     };
@@ -744,6 +742,7 @@ function LeadsVendor() {
             <PointPopup
             onClose={() => setShowPopup(false)}
             onSubmit={handlePopupSubmit}
+            userType="vendor"
             />
         )}
 

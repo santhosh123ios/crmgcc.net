@@ -181,13 +181,7 @@
   gap: 20px;
 }
 
-.popup-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding-top: 10px;
-  border-top: 0px solid transparent;
-}
+
 
 .btn {
   padding: 8px 16px;
@@ -435,12 +429,14 @@
   font-size: 16px;
 }
 
-.popup-actions {
-  margin-top: 15px;
-  display: flex;
-  justify-content: space-between;
-}
 
+.popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 0px;
+  border-top: 0px solid transparent;
+}
 .popup-button-cancel {
   background-color:  var(--bg-main);
   padding: 8px 15px;

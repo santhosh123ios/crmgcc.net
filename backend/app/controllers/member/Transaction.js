@@ -4,7 +4,7 @@ export const getTransaction = (req, res) => {
 
     try {
         const user_id = req.user?.id;
-        const query =  "SELECT transaction.*, users.name AS vendor_name, users.email AS vendor_email, users.profile_img AS vendor_image FROM  transaction LEFT JOIN  users  ON  transaction.vendor_id = users.id WHERE transaction.user_id = ?";
+        const query =  "SELECT t.transaction_id, t.transaction_type, t.transaction_cr, t.transaction_dr, t.transaction_title, t.transaction_created_at, t.user_id, t.from_id, t.to_id, t.card_id, t.card_no,  from_user.name AS from_name, from_user.profile_img AS from_image, from_user.user_type AS from_type,  to_user.name AS to_name, to_user.email AS to_email, to_user.profile_img AS to_image, to_user.user_type AS to_type FROM `transaction` t  LEFT JOIN `users` AS from_user ON t.from_id = from_user.id LEFT JOIN `users` AS to_user ON t.to_id = to_user.id  WHERE t.user_id = ?";
         executeQuery({
             query,
             data: [user_id],

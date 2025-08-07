@@ -60,7 +60,7 @@ export const addTransaction = (req, res) => {
           .status(404)
           .json({ error: [{ message: "Input data missing" }], result: {} });
 
-            const balanceQuery = "SELECT SUM(transaction_cr) - SUM(transaction_dr) AS user_balance FROM transaction WHERE user_id = ?";
+            const balanceQuery = "SELECT COALESCE(SUM(transaction_cr), 0) - COALESCE(SUM(transaction_dr), 0) AS user_balance FROM transaction WHERE user_id = ?";
             executeQuery({
                 query: balanceQuery,
                 data: [user_id],
@@ -70,14 +70,18 @@ export const addTransaction = (req, res) => {
                         .status(500)
                         .json({ error: [{ message: err }], result: {} });
 
-                    const currentBalance = balanceData[0]?.user_balance || 0;
+                    const currentBalance = parseFloat(balanceData[0]?.user_balance || 0);
+                    const requiredPoints = parseFloat(transaction_point);
                     
-                    if (currentBalance < transaction_point) {
+                    console.log("Balance check - Available:", currentBalance, "Required:", requiredPoints, "Type - Available:", typeof currentBalance, "Required:", typeof requiredPoints);
+                    
+                    if (currentBalance < requiredPoints) {
+                        console.log("Insufficient points. Available: ", currentBalance, "Required: ", requiredPoints)
                         return res
                         .status(400)
                         .json({ 
                             error: [{ 
-                                message: `Insufficient points. Available: ${currentBalance}, Required: ${transaction_point}` 
+                                message: `Insufficient points. Available: ${currentBalance}, Required: ${requiredPoints}` 
                             }], 
                             result: {} 
                         });
@@ -279,7 +283,7 @@ export const add_vendor_topup = (req, res) => {
            .status(404)
            .json({ error: [{ message: "Input data missing" }], result: {} });
  
-             const balanceQuery = "SELECT SUM(transaction_cr) - SUM(transaction_dr) AS user_balance FROM transaction WHERE user_id = ?";
+                          const balanceQuery = "SELECT COALESCE(SUM(transaction_cr), 0) - COALESCE(SUM(transaction_dr), 0) AS user_balance FROM transaction WHERE user_id = ?";
              executeQuery({
                  query: balanceQuery,
                  data: [1],
@@ -288,15 +292,16 @@ export const add_vendor_topup = (req, res) => {
                          return res
                          .status(500)
                          .json({ error: [{ message: err }], result: {} });
- 
-                     const currentBalance = balanceData[0]?.user_balance || 0;
+
+                     const currentBalance = parseFloat(balanceData[0]?.user_balance || 0);
+                     const requiredPoints = parseFloat(transaction_point);
                      
-                     if (currentBalance < transaction_point) {
+                     if (currentBalance < requiredPoints) {
                          return res
                          .status(400)
                          .json({ 
                              error: [{ 
-                                 message: `Insufficient points. Available: ${currentBalance}, Required: ${transaction_point}` 
+                                 message: `Insufficient points. Available: ${currentBalance}, Required: ${requiredPoints}` 
                              }], 
                              result: {} 
                          });

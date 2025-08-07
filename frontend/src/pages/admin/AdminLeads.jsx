@@ -474,6 +474,7 @@ function AdminLeads() {
             <PointPopup
             onClose={() => setShowPopup(false)}
             onSubmit={handlePopupSubmit}
+            userType="admin"
             />
         )}
 
