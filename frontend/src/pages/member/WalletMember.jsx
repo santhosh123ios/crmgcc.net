@@ -45,12 +45,23 @@ function WalletMember() {
   });
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const qrCanvasRef = useRef(null);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [filteredRedeems, setFilteredRedeems] = useState([]);
 
   useEffect(() => {
     fetchTransaction();
     fetchRedeem();
     fetchWallet();
   },[]);
+
+  // Filter data when search term changes
+  useEffect(() => {
+    if (activeTab === 'transactions') {
+      filterTransactions();
+    } else {
+      filterRedeems();
+    }
+  }, [formData.search, transactions, redeems, activeTab]);
 
   useEffect(() => {
     if (wallet?.card?.card_no) {
@@ -89,6 +100,7 @@ function WalletMember() {
       if (response?.result?.status === 1) {
           console.warn("Get Transaction successfully");
           setTransactions(response.result.data);
+          setFilteredTransactions(response.result.data);
           setSelectedTransaction(response.result.data[0])
 
       } else {
@@ -126,6 +138,7 @@ function WalletMember() {
       if (responseRedeems?.result?.status === 1) {
           console.warn("Get Redeem successfully");
           setredeems(responseRedeems.result.data);
+          setFilteredRedeems(responseRedeems.result.data);
           setSelectedRedeem(responseRedeems.result.data[0])
 
       } else {
@@ -166,11 +179,58 @@ function WalletMember() {
       }));
   };
 
+  // Filter transactions based on search term
+  const filterTransactions = () => {
+    if (!formData.search.trim()) {
+      setFilteredTransactions(transactions);
+      return;
+    }
+
+    const searchTerm = formData.search.toLowerCase();
+    const filtered = transactions.filter(transaction => 
+      transaction.transaction_title?.toLowerCase().includes(searchTerm) ||
+      transaction.vendor_name?.toLowerCase().includes(searchTerm) ||
+      transaction.transaction_id?.toString().includes(searchTerm) ||
+      transaction.transaction_cr?.toString().includes(searchTerm) ||
+      transaction.transaction_dr?.toString().includes(searchTerm) ||
+      new Date(transaction.transaction_created_at).toLocaleDateString().includes(searchTerm)
+    );
+    setFilteredTransactions(filtered);
+  };
+
+  // Filter redeems based on search term
+  const filterRedeems = () => {
+    if (!formData.search.trim()) {
+      setFilteredRedeems(redeems);
+      return;
+    }
+
+    const searchTerm = formData.search.toLowerCase();
+    const filtered = redeems.filter(redeem => 
+      redeem.notes?.toLowerCase().includes(searchTerm) ||
+      redeem.redeem_id?.toString().includes(searchTerm) ||
+      redeem.point?.toString().includes(searchTerm) ||
+      getStatusText(redeem.redeem_status)?.toLowerCase().includes(searchTerm) ||
+      new Date(redeem.redeem_created_at).toLocaleDateString().includes(searchTerm)
+    );
+    setFilteredRedeems(filtered);
+  };
+
+  // Clear search function
+  const clearSearch = () => {
+    setFormData(prev => ({
+      ...prev,
+      search: ""
+    }));
+  };
+
   const handleLeadListClick = (index) => {
-      setselectedPosTr(index)
+      const selectedTransaction = filteredTransactions[index];
+      const originalIndex = transactions.findIndex(t => t.transaction_id === selectedTransaction.transaction_id);
+      setselectedPosTr(originalIndex >= 0 ? originalIndex : index);
       console.log("Clicked index:", index);
-      console.log("Clicked Sttaus:", transactions[index].lead_status);
-      setSelectedTransaction(transactions[index])
+      console.log("Clicked Sttaus:", selectedTransaction.lead_status);
+      setSelectedTransaction(selectedTransaction)
   };
 
   const handleRedeemPopupSubmit = (points,notes) => {
@@ -179,10 +239,12 @@ function WalletMember() {
   };
 
   const handleLeadListClickRedeem = (index) => {
-      setselectedPosReadeem(index)
+      const selectedRedeem = filteredRedeems[index];
+      const originalIndex = redeems.findIndex(r => r.redeem_id === selectedRedeem.redeem_id);
+      setselectedPosReadeem(originalIndex >= 0 ? originalIndex : index);
       console.log("Clicked index:", index);
-      console.log("Clicked Sttaus:", redeems[index].redeem_id);
-      setSelectedRedeem(redeems[index])
+      console.log("Clicked Sttaus:", selectedRedeem.redeem_id);
+      setSelectedRedeem(selectedRedeem)
   };
 
   const toggleCardNumber = () => {
@@ -591,7 +653,18 @@ function WalletMember() {
                 position: 'relative',
                 flex: 1
               }}>
-                
+                <FontAwesomeIcon 
+                  icon={faSearch} 
+                  style={{ 
+                    position: 'absolute', 
+                    left: '12px', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)', 
+                    color: '#999', 
+                    fontSize: '14px',
+                    zIndex: 1
+                  }} 
+                />
                 <InputText 
                   type="text"
                   placeholder={`Search ${activeTab === 'transactions' ? 'transactions' : 'redeem requests'}...`}
@@ -600,11 +673,38 @@ function WalletMember() {
                   onChange={handleChange}
                   style={{
                     paddingLeft: '40px',
+                    paddingRight: formData.search ? '40px' : '12px',
                     borderRadius: '12px',
                     border: '1px solid #eee',
                     backgroundColor: '#fafafa'
                   }}
                 />
+                {formData.search && (
+                  <button
+                    onClick={clearSearch}
+                    style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#999',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      zIndex: 1
+                    }}
+                    onMouseEnter={(e) => e.target.style.color = '#666'}
+                    onMouseLeave={(e) => e.target.style.color = '#999'}
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
               
               {activeTab === 'redeems' && (
@@ -648,27 +748,27 @@ function WalletMember() {
                   }}>
                     <div className="spinner" />
                   </div>
-                ) : transactions.length > 0 ? (
-                  transactions.map((trItems, index) => (
+                ) : filteredTransactions.length > 0 ? (
+                  filteredTransactions.map((trItems, index) => (
                     <div 
                       key={index}
                       onClick={() => handleLeadListClick(index)}
                       style={{
                         padding: '15px',
                         marginBottom: '10px',
-                        backgroundColor: selectedPosTr === index ? 'var(--highlight-color)' : '#ffffff',
+                        backgroundColor: selectedTransaction?.transaction_id === trItems.transaction_id ? 'var(--highlight-color)' : '#ffffff',
                         borderRadius: '12px',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
-                        border: selectedPosTr === index ? '2px solid var(--highlight-color)' : '1px solid #eee'
+                        border: selectedTransaction?.transaction_id === trItems.transaction_id ? '2px solid var(--highlight-color)' : '1px solid #eee'
                       }}
                       onMouseEnter={(e) => {
-                        if (selectedPosTr !== index) {
+                        if (selectedTransaction?.transaction_id !== trItems.transaction_id) {
                           e.target.style.backgroundColor = '#f0f0f0';
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (selectedPosTr !== index) {
+                        if (selectedTransaction?.transaction_id !== trItems.transaction_id) {
                           e.target.style.backgroundColor = '#ffffff';
                         }
                       }}
@@ -737,7 +837,7 @@ function WalletMember() {
                         </div>
                         <div style={{
                           fontSize: '11px',
-                          color: selectedPosTr === index ? '#666' : '#999',
+                          color: selectedTransaction?.transaction_id === trItems.transaction_id ? '#666' : '#999',
                         }}>
                           {new Date(trItems.transaction_created_at).toLocaleDateString()}
                         </div>
@@ -755,8 +855,12 @@ function WalletMember() {
                     textAlign: 'center'
                   }}>
                     <FontAwesomeIcon icon={faInbox} style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.5 }} />
-                    <div style={{ fontSize: '14px', marginBottom: '6px' }}>No Transactions</div>
-                    <div style={{ fontSize: '12px', opacity: 0.8 }}>No transaction data available</div>
+                    <div style={{ fontSize: '14px', marginBottom: '6px' }}>
+                      {formData.search.trim() ? 'No Search Results' : 'No Transactions'}
+                    </div>
+                    <div style={{ fontSize: '12px', opacity: 0.8 }}>
+                      {formData.search.trim() ? 'No transactions match your search criteria' : 'No transaction data available'}
+                    </div>
                   </div>
                 )
               ) : (
@@ -770,27 +874,27 @@ function WalletMember() {
                   }}>
                                 <div className="spinner" />
                             </div>
-                ) : redeems.length > 0 ? (
-                            redeems.map((rdmItems, index) => (
+                ) : filteredRedeems.length > 0 ? (
+                            filteredRedeems.map((rdmItems, index) => (
                     <div 
                       key={index}
                       onClick={() => handleLeadListClickRedeem(index)}
                       style={{
                         padding: '15px',
                         marginBottom: '10px',
-                        backgroundColor: selectedPosRedeem === index ? 'var(--highlight-color)' : '#ffffff',
+                        backgroundColor: selectedReadeem?.redeem_id === rdmItems.redeem_id ? 'var(--highlight-color)' : '#ffffff',
                         borderRadius: '12px',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
-                        border: selectedPosRedeem === index ? '2px solid var(--highlight-color)' : '1px solid #eee'
+                        border: selectedReadeem?.redeem_id === rdmItems.redeem_id ? '2px solid var(--highlight-color)' : '1px solid #eee'
                       }}
                       onMouseEnter={(e) => {
-                        if (selectedPosRedeem !== index) {
+                        if (selectedReadeem?.redeem_id !== rdmItems.redeem_id) {
                           e.target.style.backgroundColor = '#f0f0f0';
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (selectedPosRedeem !== index) {
+                        if (selectedReadeem?.redeem_id !== rdmItems.redeem_id) {
                           e.target.style.backgroundColor = '#ffffff';
                         }
                       }}
@@ -816,7 +920,7 @@ function WalletMember() {
                           <div style={{
                             fontSize: '16px',
                             fontWeight: 'bold',
-                            color: selectedPosRedeem === index ? '#333' : 'var(--highlight-color)',
+                            color: selectedReadeem?.redeem_id === rdmItems.redeem_id ? '#333' : 'var(--highlight-color)',
                           }}>
                             {rdmItems.point}
                           </div>
@@ -847,7 +951,7 @@ function WalletMember() {
                         </div>
                                                 <div style={{
                           fontSize: '11px',
-                          color: selectedPosRedeem === index ? '#666' : '#999',
+                          color: selectedReadeem?.redeem_id === rdmItems.redeem_id ? '#666' : '#999',
                           backgroundColor: 'transparent'
                         }}>
                           {new Date(rdmItems.redeem_created_at).toLocaleDateString()}
@@ -866,9 +970,13 @@ function WalletMember() {
                     textAlign: 'center'
                   }}>
                     <FontAwesomeIcon icon={faGift} style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.5 }} />
-                    <div style={{ fontSize: '14px', marginBottom: '6px' }}>No Redeem Requests</div>
-                    <div style={{ fontSize: '12px', opacity: 0.8 }}>No redeem requests available</div>
-                                    </div>
+                    <div style={{ fontSize: '14px', marginBottom: '6px' }}>
+                      {formData.search.trim() ? 'No Search Results' : 'No Redeem Requests'}
+                    </div>
+                    <div style={{ fontSize: '12px', opacity: 0.8 }}>
+                      {formData.search.trim() ? 'No redeem requests match your search criteria' : 'No redeem requests available'}
+                    </div>
+                  </div>
                 )
               )}
               </div>
