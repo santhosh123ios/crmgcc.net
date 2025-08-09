@@ -229,6 +229,7 @@
   color: var(--text-primary-select);
   font-size: 16px;
   margin: 0px;
+  background-color: transparent;
 }
 .light-bold
 {
@@ -236,12 +237,14 @@
   font-size: 16px;
   font-weight: bold;
   margin: 0px;
+  background-color: transparent;
 }
 .sub-light
 {
   color: var(--text-primary-select);
   font-size: 14px;
   margin: 0px;
+  background-color: transparent;
 }
 .sub-light-bold
 {
@@ -249,6 +252,7 @@
   font-size: 14px;
   font-weight: bold;
   margin: 0px;
+  background-color: transparent;
 }
 
 .dark
@@ -257,6 +261,7 @@
   font-size: 16px;
   /* font-weight: bold; */
   margin: 0px;
+  background-color: transparent;
 }
 .dark-bold
 {
@@ -264,12 +269,14 @@
   font-size: 16px;
   font-weight: bold;
   margin: 0px;
+  background-color: transparent;
 }
 .sub-dark
 {
   color: var(--text-primary);
   font-size: 14px;
   margin: 0px;
+  background-color: transparent;
 }
 .sub-dark-bold
 {
@@ -277,6 +284,7 @@
   font-size: 14px;
   font-weight: bold;
   margin: 0px;
+  background-color: transparent;
 }
 
 .dropdown {
@@ -533,6 +541,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  background-color: transparent;
 }
 
 .common-btn {
