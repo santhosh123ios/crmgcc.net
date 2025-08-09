@@ -9,6 +9,7 @@ import DateWithIcon from '../../componants/Main/DateWithIcon';
 import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
 import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { faPhone } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import RightSidePopup from '../../componants/Main/RightSidePopup';
@@ -492,46 +493,11 @@ function LeadsMember() {
                   flexDirection: 'column',
                   padding: '2px'
                 }}>
-                    {/* Brand detalil view */}
-                    <div style={{
-                        width: '100%',
-                        height: '100px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        padding: '2px'
-                        }}>
-                        <DashboardBox>
-                            <div className='user-list-item-inside'>
-                                <img className="user-avatar" src={selectedLead?.vendor_image ? baseUrl+selectedLead.vendor_image : "/dummy.jpg"} alt={"selectedLead.lead_name"} /> 
-                                
-                                <div className="user-info">
-                                    <TextView  type="darkBold" text={selectedLead?.vendor_name ?? "No vendor name"}/>
-                                    <p className="sub-title-text-dark">{selectedLead?.vendor_email ?? "No vendor email"}</p>
 
-                                    <div className="button-row">
-                                        {/* Translation */}
-                                        <button className="circle-btn-light">
-                                                <FontAwesomeIcon icon={faPhone} />
-                                        </button>
-
-                                        {/* Translation */}
-                                        <button className="circle-btn-light">
-                                                <FontAwesomeIcon icon={faLocationDot} />
-                                        </button>
-
-                                        {/* Translation */}
-                                        <button className="circle-btn-light">
-                                                <FontAwesomeIcon icon={faExchangeAlt} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </DashboardBox>
-                    </div>
                     {/* Lead Status */}
                     <div style={{
                     width: '100%',
-                    height: '40%',
+                    height: '25%',
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '2px'
@@ -797,29 +763,334 @@ function LeadsMember() {
                     {/* Leads detalil view */}
                     <div style={{
                         width: '100%',
-                        height: '100%',
+                        height: '75%',
                         display: 'flex',
                         flexDirection: 'column',
                         padding: '2px'
                         }}>
                         <DashboardBox>
-                            <div className="user-info-leads-full">
-                                <div style={{width:'100%',height:'100%'}}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px', margin: '0px'}}>
-                                    <p className="title-text-dark-bold">{selectedLead?.lead_name ?? "No lead name"}</p>
-                                    
+                            <div style={{
+                                padding: '20px',
+                                paddingBottom: '0px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '10px'
+                            }}>
+                                {/* Header Section */}
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-start',
+                                    borderBottom: '2px solid #f0f0f0',
+                                    paddingBottom: '15px'
+                                }}>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '12px',
+                                            marginBottom: '8px'
+                                        }}>
+                                            <div style={{
+                                                width: '40px',
+                                                height: '40px',
+                                                borderRadius: '50%',
+                                                backgroundColor: '#e3f2fd',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                border: '2px solid #2196f3'
+                                            }}>
+                                                <FontAwesomeIcon 
+                                                    icon={faExchangeAlt} 
+                                                    style={{ color: '#2196f3', fontSize: '16px' }}
+                                                />
                                     </div>
-                                    <div style={{marginTop:'5PX'}}></div>
-                                    <p className="sub-title-text-dark">{selectedLead?.lead_description ?? "No lead description"}</p>
+                                            <div>
+                                                <TextView 
+                                                    type="darkBold" 
+                                                    text={selectedLead?.lead_name ?? "Lead Title"} 
+                                                    style={{ fontSize: '18px', marginBottom: '4px' }}
+                                                />
+                                                <div style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }}>
+                                                    <div style={{
+                                                        width: '8px',
+                                                        height: '8px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: selectedLead?.lead_status === 3 ? '#4caf50' : 
+                                                                       selectedLead?.lead_status === 4 ? '#f44336' : '#ff9800'
+                                                    }} />
+                                                    <span style={{
+                                                        fontSize: '12px',
+                                                        color: '#666',
+                                                        fontWeight: '500'
+                                                    }}>
+                                                        {selectedLead?.lead_status === 0 ? 'Pending' :
+                                                         selectedLead?.lead_status === 1 ? 'Under Review' :
+                                                         selectedLead?.lead_status === 2 ? 'Processing' :
+                                                         selectedLead?.lead_status === 3 ? 'Completed' : 'Rejected'}
+                                                    </span>
                                 </div>
-                                <div >
-                                    <div style={{marginTop:'5PX'}}></div>
-                                    <DateWithIcon text={new Date(selectedLead?.created_at ?? "No lead description").toLocaleDateString("en-US", {
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'flex-end',
+                                        gap: '8px'
+                                    }}>
+                                        <div style={{
+                                            padding: '6px 12px',
+                                            backgroundColor: '#f5f5f5',
+                                            borderRadius: '20px',
+                                            fontSize: '11px',
+                                            color: '#666',
+                                            fontWeight: '500'
+                                        }}>
+                                            Lead ID: #{selectedLead?.id ?? 'N/A'}
+                                        </div>
+                                                                                <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            fontSize: '12px',
+                                            color: '#666',
+                                            fontWeight: '500'
+                                        }}>
+                                            <FontAwesomeIcon 
+                                                icon={faCalendar} 
+                                                style={{ color: '#999', fontSize: '12px' }}
+                                            />
+                                            <span>
+                                                {new Date(selectedLead?.created_at ?? new Date()).toLocaleDateString("en-US", {
                                                     year: "numeric",
-                                                    month: "long",
+                                                    month: "short",
                                                     day: "numeric",
-                                                    })} >
-                                    </DateWithIcon>
+                                                })} • {new Date(selectedLead?.created_at ?? new Date()).toLocaleTimeString("en-US", {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                    hour12: true
+                                                })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Description Section */}
+                                <div style={{
+                                    backgroundColor: '#fafafa',
+                                    borderRadius: '12px',
+                                    padding: '16px',
+                                    border: '1px solid #e0e0e0'
+                                }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        marginBottom: '12px'
+                                    }}>
+                                        <FontAwesomeIcon 
+                                            icon={faLocationDot} 
+                                            style={{ color: '#666', fontSize: '14px' }}
+                                        />
+                                        <span style={{
+                                            fontSize: '14px',
+                                            fontWeight: '600',
+                                            color: '#333'
+                                        }}>
+                                            Lead Description
+                                        </span>
+                                    </div>
+                                    <p style={{
+                                        fontSize: '14px',
+                                        lineHeight: '1.6',
+                                        color: '#555',
+                                        margin: '0',
+                                        padding: '0'
+                                    }}>
+                                        {selectedLead?.lead_description ?? "No description available for this lead."}
+                                    </p>
+                                </div>
+
+                                {/* Key Information Grid */}
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr 1fr',
+                                    gap: '16px'
+                                }}>
+                                    {/* Vendor Information */}
+                                    <div style={{
+                                        backgroundColor: '#fff',
+                                        borderRadius: '10px',
+                                        padding: '16px',
+                                        border: '1px solid #e8e8e8',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            marginBottom: '12px'
+                                        }}>
+                                            <div style={{
+                                                width: '24px',
+                                                height: '24px',
+                                                borderRadius: '50%',
+                                                backgroundColor: '#e8f5e8',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}>
+                                                <FontAwesomeIcon 
+                                                    icon={faExchangeAlt} 
+                                                    style={{ color: '#4caf50', fontSize: '12px' }}
+                                                />
+                                            </div>
+                                            <span style={{
+                                                fontSize: '13px',
+                                                fontWeight: '600',
+                                                color: '#333'
+                                            }}>
+                                                Vendor Details
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.5' }}>
+                                            <div style={{ marginBottom: '6px' }}>
+                                                <strong>Name:</strong> {selectedLead?.vendor_name ?? 'N/A'}
+                                            </div>
+                                            <div style={{ marginBottom: '6px' }}>
+                                                <strong>Email:</strong> {selectedLead?.vendor_email ?? 'N/A'}
+                                            </div>
+                                            <div>
+                                                <strong>Contact:</strong> {selectedLead?.vendor_phone ?? 'N/A'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Lead Statistics */}
+                                    <div style={{
+                                        backgroundColor: '#fff',
+                                        borderRadius: '10px',
+                                        padding: '16px',
+                                        border: '1px solid #e8e8e8',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            marginBottom: '12px'
+                                        }}>
+                                            <div style={{
+                                                width: '24px',
+                                                height: '24px',
+                                                borderRadius: '50%',
+                                                backgroundColor: '#fff3e0',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}>
+                                                <FontAwesomeIcon 
+                                                    icon={faPaperPlane} 
+                                                    style={{ color: '#ff9800', fontSize: '12px' }}
+                                                />
+                                            </div>
+                                            <span style={{
+                                                fontSize: '13px',
+                                                fontWeight: '600',
+                                                color: '#333'
+                                            }}>
+                                                Lead Info
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.5' }}>
+                                            <div style={{ marginBottom: '6px' }}>
+                                                <strong>Category:</strong> Business Lead
+                                            </div>
+                                            <div style={{ marginBottom: '6px' }}>
+                                                <strong>Priority:</strong> 
+                                                <span style={{
+                                                    padding: '2px 8px',
+                                                    borderRadius: '10px',
+                                                    fontSize: '10px',
+                                                    fontWeight: '500',
+                                                    backgroundColor: '#e3f2fd',
+                                                    color: '#1976d2',
+                                                    marginLeft: '6px'
+                                                }}>
+                                                    Medium
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <strong>Messages:</strong> {messages.length} exchanged
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '12px',
+                                    marginTop: '20px',
+                                    paddingTop: '0px',
+                                    borderTop: '1px solid #f0f0f0'
+                                }}>
+                                    <button style={{
+                                        flex: 1,
+                                        padding: '12px 16px',
+                                        backgroundColor: '#2196f3',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: '500',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = '#1976d2'}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = '#2196f3'}
+                                    >
+                                        <FontAwesomeIcon icon={faPhone} style={{ fontSize: '14px' }} />
+                                        Contact Vendor
+                                    </button>
+                                    <button style={{
+                                        flex: 1,
+                                        padding: '12px 16px',
+                                        backgroundColor: '#fff',
+                                        color: '#666',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: '500',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.backgroundColor = '#f5f5f5';
+                                        e.target.style.borderColor = '#ccc';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.backgroundColor = '#fff';
+                                        e.target.style.borderColor = '#ddd';
+                                    }}
+                                    >
+                                        <FontAwesomeIcon icon={faLocationDot} style={{ fontSize: '14px' }} />
+                                        Location
+                                    </button>
                                 </div>
                             </div>
                         </DashboardBox>
@@ -846,9 +1117,10 @@ function LeadsMember() {
                         <DashboardBox>
                             <div style={{boxSizing:'border-box',display: 'flex',height:'100%',flexDirection:'column', justifyContent: 'start', padding: '10px', minHeight: '400px'}}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px', margin: '0px',height:'30px'}}>
-                                    <p className="title-text-dark">
+                                <TextView type="darkBold" text="Chat with Vendor" />
+                                    {/* <p className="title-text-dark">
                                         {selectedLead?.vendor_name ? `Chat with ${selectedLead.vendor_name}` : "Chat with Lead"}
-                                    </p>
+                                    </p> */}
                                 </div>
 
                                 

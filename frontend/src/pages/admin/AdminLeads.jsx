@@ -265,7 +265,7 @@ function AdminLeads() {
                 </div>
 
                 <div style={{
-                  width: '30%',
+                  width: '35%',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
@@ -336,15 +336,6 @@ function AdminLeads() {
                             </div>
                         </DashboardBox>
                     </div>
-                </div>
-
-                <div style={{
-                  width: '40%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '2px'
-                }}>
 
                     <div style={{
                     width: '100%',
@@ -619,6 +610,17 @@ function AdminLeads() {
                             </div>
                          </DashboardBox>
                     </div>
+                </div>
+
+                <div style={{
+                  width: '35%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: '2px'
+                }}>
+
+                    
 
                     <div style={{
                     width: '100%',
