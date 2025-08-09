@@ -96,6 +96,7 @@ function LeadsMember() {
     const [selectedPos, setselectedPos] = useState(0);
     const [selectedLead, setSelectedLead] = useState(null);
     const [leads, setLeads] = useState([]);
+    const [filteredLeads, setFilteredLeads] = useState([]);
     const [file, setFile] = useState(null);
     const [fileName, setfileName] = useState("");
     const [fileUploadStatus, setfileUploadStatus] = useState("");
@@ -148,8 +149,8 @@ function LeadsMember() {
     const handleLeadListClick = (index) => {
         setselectedPos(index)
         console.log("Clicked index:", index);
-        setSelectedLead(leads[index])
-        setSelectedStatus(leads[index].lead_status);
+        setSelectedLead(filteredLeads[index])
+        setSelectedStatus(filteredLeads[index].lead_status);
     };
 
     const handleFileChange = async (e) => {
@@ -191,6 +192,7 @@ function LeadsMember() {
 
         if (response?.result?.status === 1) {
             setLeads(response.result.data);
+            setFilteredLeads(response.result.data);
             setSelectedLead(response.result.data[0])
             setSelectedStatus(response.result.data[selectedPos].lead_status);
         } else {
@@ -299,13 +301,37 @@ function LeadsMember() {
     };
 
 
+    // Search functionality
+    const handleSearch = (searchTerm) => {
+        if (!searchTerm.trim()) {
+            setFilteredLeads(leads);
+            return;
+        }
+
+        const filtered = leads.filter(lead => {
+            const searchLower = searchTerm.toLowerCase();
+            return (
+                lead.lead_name?.toLowerCase().includes(searchLower) ||
+                lead.lead_description?.toLowerCase().includes(searchLower) ||
+                lead.vendor_name?.toLowerCase().includes(searchLower) ||
+                lead.id?.toString().includes(searchTerm)
+            );
+        });
+        setFilteredLeads(filtered);
+    };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
-        ...prev,
-        [name]: value,
-        vendorId:selectedVendor
+            ...prev,
+            [name]: value,
+            vendorId: selectedVendor
         }));
+
+        // Handle search in real-time
+        if (name === 'search') {
+            handleSearch(value);
+        }
     };
   
     ///API CALLS GET ALL VENDORS LIST
@@ -445,38 +471,141 @@ function LeadsMember() {
                         </div>
 
 
+                        {/* Search Results Counter */}
+                        {formData.search && !loading && (
+                            <div style={{
+                                padding: '8px 16px',
+                                fontSize: '12px',
+                                color: '#666',
+                                borderBottom: '1px solid #f0f0f0',
+                                backgroundColor: '#f8f9fa'
+                            }}>
+                                {filteredLeads.length === 1 ? '1 lead found' : `${filteredLeads.length} leads found`}
+                                {formData.search && (
+                                    <span style={{ color: '#999' }}>
+                                        {' '}for "{formData.search}"
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
                         <div className="user-list-scroll-container">
                             {loading ? (
                             <div className="loader-container">
                                 <div className="spinner" />
                             </div>
+                            ) : filteredLeads.length === 0 ? (
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '40px 20px',
+                                    color: '#666',
+                                    textAlign: 'center'
+                                }}>
+                                    <div style={{
+                                        fontSize: '48px',
+                                        marginBottom: '16px',
+                                        opacity: 0.5
+                                    }}>
+                                        🔍
+                                    </div>
+                                    <div style={{
+                                        fontSize: '16px',
+                                        fontWeight: '500',
+                                        marginBottom: '8px',
+                                        color: '#333'
+                                    }}>
+                                        No leads found
+                                    </div>
+                                    <div style={{
+                                        fontSize: '14px',
+                                        color: '#888'
+                                    }}>
+                                        {formData.search ? `No results for "${formData.search}"` : 'No leads available'}
+                                    </div>
+                                </div>
                             ) : (
-                            leads.map((leadsItems, index) => (
+                            filteredLeads.map((leadsItems, index) => (
                                 <div className="user-list-item-leads" key={index}>
-                                <DashboardBox>
                                     <div className={`${selectedPos === index ? "user-list-item-leads-inside-select" : "user-list-item-leads-inside"}`} onClick={() => handleLeadListClick(index)}>
-                                        <img className="user-avatar" src={leadsItems.vendor_image ? baseUrl+leadsItems.vendor_image : "/public/dummy.jpg"} alt={leadsItems.lead_name} />
+                                        {/* Vendor Avatar */}
+                                        <div style={{
+                                            position: 'relative',
+                                            flexShrink: 0
+                                        }}>
+                                            <img 
+                                                className="user-avatar" 
+                                                src={leadsItems.vendor_image ? baseUrl+leadsItems.vendor_image : "/public/dummy.jpg"} 
+                                                alt={leadsItems.lead_name}
+                                                style={{
+                                                    width: '50px',
+                                                    height: '50px',
+                                                    borderRadius: '12px',
+                                                    objectFit: 'cover',
+                                                    border: '2px solid #f0f0f0'
+                                                }}
+                                            />
+                                            {/* Status indicator dot */}
+                                            <div className={`lead-status-indicator lead-status-${leadsItems.lead_status === 0 ? 'pending' : 
+                                                                                           leadsItems.lead_status === 1 ? 'review' : 
+                                                                                           leadsItems.lead_status === 2 ? 'processing' : 
+                                                                                           leadsItems.lead_status === 3 ? 'completed' : 'rejected'}`} />
+                                        </div>
+                                        
+                                        {/* Lead Information */}
                                         <div className="user-info-leads">
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px', margin: '0px'}}>
-                                                
-                                                <TextView  type="darkBold" text={leadsItems.lead_name}/>
-                                                <div className="text-with-dot">
+                                            {/* Header with title and status */}
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                justifyContent: 'space-between', 
+                                                alignItems: 'flex-start', 
+                                                gap: '12px'
+                                            }}>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div className="lead-item-title">
+                                                        {leadsItems.lead_name}
+                                                    </div>
+                                                </div>
+                                                <div style={{ flexShrink: 0 }}>
                                                     <StatusBadge status={leadsItems.lead_status} />
                                                 </div>
-                                                {/* <TextButton text={"View All"} /> */}
-                                                
                                             </div>
                                             
-                                            <p className="sub-title-text-dark truncate-text">{leadsItems.lead_description}</p>
-                                            <DateWithIcon text={new Date(leadsItems.created_at).toLocaleDateString("en-US", {
-                                                year: "numeric",
-                                                month: "long",
-                                                day: "numeric",
-                                                })} >
-                                            </DateWithIcon>
+                                            {/* Description */}
+                                            <div className="lead-item-description-box">
+                                                <p className="lead-item-description">
+                                                    {leadsItems.lead_description || "No description available"}
+                                                </p>
+                                            </div>
+                                            
+                                            {/* Footer with date and vendor info */}
+                                            <div className="lead-item-meta">
+                                                <div className="lead-item-date">
+                                                    <FontAwesomeIcon 
+                                                        icon={faCalendar} 
+                                                        style={{ fontSize: '11px', color: '#999' }}
+                                                    />
+                                                    <span>
+                                                        {new Date(leadsItems.created_at).toLocaleDateString("en-US", {
+                                                            month: "short",
+                                                            day: "numeric",
+                                                            year: "numeric"
+                                                        })}
+                                                    </span>
+                                                </div>
+                                                
+                                                <div className="lead-item-vendor">
+                                                    <FontAwesomeIcon 
+                                                        icon={faExchangeAlt} 
+                                                        style={{ fontSize: '10px' }}
+                                                    />
+                                                    <span>{leadsItems.vendor_name || 'Vendor'}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </DashboardBox>
                                 </div>
                             ))
                             )}

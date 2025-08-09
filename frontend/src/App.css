@@ -682,11 +682,10 @@ button:focus {
 }
 
 .user-list-item-leads {
-  height: 100px;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 5px;
+  height: auto;
+  padding: 8px 12px;
   border-bottom: 0px solid transparent;
+  transition: all 0.2s ease;
 }
 
 .user-list-item-card {
@@ -700,21 +699,36 @@ button:focus {
 .user-list-item-leads-inside {
   height: 100%;
   display: flex;
-  align-items: start;
-  gap: 12px;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
   background-color: var(--primary-color);
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.user-list-item-leads-inside:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-color: var(--highlight-color);
+  background-color: #fffef7;
 }
 
 .user-list-item-leads-inside-select {
   height: 100%;
   display: flex;
-  align-items: start;
-  gap: 12px;
-  padding: 10px;
-  border: 0px solid var(--highlight-color);
-  background-color: var(--highlight-color);
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid var(--highlight-color);
+  background-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(248, 211, 7, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .user-info-leads {
@@ -723,6 +737,95 @@ button:focus {
   padding: 0px;
   flex-direction: column;
   background-color: transparent;
+  gap: 8px;
+}
+
+/* Enhanced lead list item styles */
+.lead-item-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lead-item-description {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lead-item-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.lead-item-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lead-item-vendor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background-color: #e3f2fd;
+  border-radius: 12px;
+  color: #1976d2;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.lead-item-description-box {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border: 1px solid #e9ecef;
+}
+
+/* Status indicator styles */
+.lead-status-indicator {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+
+.lead-status-pending { background-color: #ff9800; }
+.lead-status-review { background-color: #2196f3; }
+.lead-status-processing { background-color: #ff9800; }
+.lead-status-completed { background-color: #4caf50; }
+.lead-status-rejected { background-color: #f44336; }
+
+/* Hover effects for better interactivity */
+.user-list-item-leads-inside:hover .lead-status-indicator {
+  transform: scale(1.1);
+}
+
+.user-list-item-leads-inside-select .lead-status-indicator {
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
 }
 
 .user-list-scroll-container {
@@ -732,6 +835,7 @@ button:focus {
   overflow-y: scroll;
   scrollbar-width: none; 
   -ms-overflow-style: none;       
+  padding: 8px 0;
 }
 
 .user-list-scroll-container::-webkit-scrollbar {
