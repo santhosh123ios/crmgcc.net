@@ -168,6 +168,7 @@ function ComplaintsMember() {
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [sendingMessage, setSendingMessage] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
+    const [filteredComplaints, setFilteredComplaints] = useState([]);
 
      useEffect(() => {
         fetchComplaints();
@@ -178,6 +179,29 @@ function ComplaintsMember() {
             setCurrentUserId(parseInt(userId));
         }
       },[]);
+
+    useEffect(() => {
+        // Filter complaints based on search term
+        if (complaints.length > 0) {
+            if (formData.search.trim() === "") {
+                setFilteredComplaints(complaints);
+            } else {
+                const filtered = complaints.filter(complaint => {
+                    const searchTerm = formData.search.toLowerCase();
+                    const subject = String(complaint.subject || '').toLowerCase();
+                    const message = String(complaint.message || '').toLowerCase();
+                    const complaintId = String(baseId + complaint.id || '').toLowerCase();
+                    const status = String(complaint.status || '').toLowerCase();
+                    
+                    return subject.includes(searchTerm) ||
+                           message.includes(searchTerm) ||
+                           complaintId.includes(searchTerm) ||
+                           status.includes(searchTerm);
+                });
+                setFilteredComplaints(filtered);
+            }
+        }
+    }, [formData.search, complaints]);
 
     useEffect(() => {
         if (selectedComplaints?.id) {
@@ -217,6 +241,7 @@ function ComplaintsMember() {
         if (response?.result?.status === 1) {
             console.warn("Get Complaints successfully");
             setComplaints(response.result.data);
+            setFilteredComplaints(response.result.data);
             setSelectedComplaints(response.result.data[0])
 
         } else {
@@ -374,8 +399,8 @@ function ComplaintsMember() {
     const handleCompListClick = (index) => {
         setselectedPosComp(index)
         console.log("Clicked index:", index);
-        console.log("Clicked Sttaus:", complaints[index].lead_status);
-        setSelectedComplaints(complaints[index])
+        console.log("Clicked Status:", filteredComplaints[index].status);
+        setSelectedComplaints(filteredComplaints[index])
     };
 
     const handleVendorChange = (e) => {
@@ -416,7 +441,7 @@ function ComplaintsMember() {
             }}>
 
                 <div style={{
-                  width: '40%',
+                  width: '30%',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
@@ -470,34 +495,66 @@ function ComplaintsMember() {
                             <div className="loader-container">
                                 <div className="spinner" />
                             </div>
+                            ) : filteredComplaints.length === 0 ? (
+                            <div className="no-results-container">
+                                <div className="no-results-icon">🔍</div>
+                                <div className="no-results-text">No complaints found</div>
+                                <div className="no-results-subtext">Try adjusting your search terms</div>
+                            </div>
                             ) : (
-                            complaints.map((compItems, index) => (
-                              <div className="user-list-item-rdm" key={index}>
-                                <DashboardBox>
-                                      <div className="user-list-item-tr-inside" onClick={() => handleCompListClick(index)}>
-                                        
-                                            <div className="user-info-tr">
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <DateWithIcon text={new Date(compItems?.created_at).toLocaleDateString("en-US", {
-                                                        year: "numeric",
-                                                        month: "long",
-                                                        day: "numeric",
-                                                        })} >
-                                                    </DateWithIcon>
-                                                    <TextView type="subDark" text={new Date(compItems?.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}/>
-                                                </div>
-                                                <TextView type="subDarkBold" text={compItems?.subject}/>
-                                                <TextView type="subDark" text={baseId+compItems?.id}/>
-                                                 <StatusBadge status={compItems?.status} />
-                                               
-                                            </div> 
-
-                                            {selectedPosComp === index && (
-                                                 <div className='tr-list-selection-div'/>
-                                            )}
-                                            
-                                      </div>
-                                </DashboardBox>
+                            filteredComplaints.map((compItems, index) => (
+                              <div className="user-list-item-rdm" key={compItems.id || index}>
+                                <div 
+                                  className={`complaint-list-item ${selectedPosComp === index ? 'complaint-list-item-selected' : ''}`}
+                                  onClick={() => handleCompListClick(index)}
+                                >
+                                  <div className="complaint-item-header">
+                                    <div className="complaint-status-indicator">
+                                      <StatusBadge status={compItems?.status} />
+                                    </div>
+                                    <div className="complaint-date-time">
+                                      <span className="complaint-date">
+                                        {new Date(compItems?.created_at).toLocaleDateString("en-US", {
+                                          month: "short",
+                                          day: "numeric"
+                                        })}
+                                      </span>
+                                      <span className="complaint-time">
+                                        {new Date(compItems?.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="complaint-item-content">
+                                    <h4 className="complaint-subject">
+                                      {compItems?.subject}
+                                    </h4>
+                                    <p className="complaint-message-preview">
+                                      {compItems?.message?.length > 60 
+                                        ? `${compItems?.message.substring(0, 60)}...` 
+                                        : compItems?.message
+                                      }
+                                    </p>
+                                  </div>
+                                  
+                                  <div className="complaint-item-footer">
+                                    <span className="complaint-id">
+                                      #{baseId}{compItems?.id}
+                                    </span>
+                                    <div className="complaint-priority">
+                                      <span className={`priority-dot ${compItems?.status === 'pending' ? 'high' : compItems?.status === 'in_progress' ? 'medium' : 'low'}`}></span>
+                                      <span className="priority-text">
+                                        {compItems?.status === 'pending' ? 'High' : compItems?.status === 'in_progress' ? 'Medium' : 'Low'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  
+                                  {selectedPosComp === index && (
+                                    <div className="complaint-selection-indicator">
+                                      <div className="selection-arrow"></div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             ))
                           )}
@@ -506,58 +563,238 @@ function ComplaintsMember() {
                     </DashboardBox>
 
                 </div>
+                
+                {/* Complaint Details */}
+                <div style={{
+                    width: '35%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '2px'
+                    
+                    }}>
+                        <DashboardBox>
+                            <div className="comp-item-inside complaint-details-container">               
+                                <div style={{display: 'flex', flexDirection: 'column',height: '100%'}}>
+
+                                    {/* Header Section with Gradient Background */}
+                                    <div className="complaint-header">
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'flex-start'
+                                        }}>
+                                            <div style={{ flex: 1, marginRight: '16px' }}>
+                                                <h3 style={{ 
+                                                    margin: '0 0 8px 0', 
+                                                    color: 'white', 
+                                                    fontSize: '18px',
+                                                    fontWeight: '600',
+                                                    textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                                }}>
+                                                    {selectedComplaints?.subject || 'Complaint Details'}
+                                                </h3>
+                                                <p style={{ 
+                                                    margin: '0', 
+                                                    color: 'rgba(255, 255, 255, 0.9)', 
+                                                    fontSize: '14px',
+                                                    textShadow: '0 1px 1px rgba(0,0,0,0.1)'
+                                                }}>
+                                                    Complaint Information & Status
+                                                </p>
+                                            </div>
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                flexDirection: 'column', 
+                                                alignItems: 'flex-end',
+                                                gap: '8px'
+                                            }}>
+                                                <StatusBadge status={selectedComplaints?.status} />
+                                                <div style={{
+                                                    fontSize: '10px',
+                                                    color: 'rgba(255, 255, 255, 0.8)',
+                                                    textAlign: 'center'
+                                                }}>
+                                                    Last Updated
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Complaint ID and Priority Section */}
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between', 
+                                        alignItems: 'center',
+                                        marginBottom: '20px',
+                                        padding: '16px',
+                                        backgroundColor: '#f8f9fa',
+                                        borderRadius: '10px',
+                                        border: '1px solid #e9ecef',
+                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div className="complaint-icon">
+                                                #
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '11px', color: '#6c757d', marginBottom: '2px', fontWeight: '500' }}>
+                                                    COMPLAINT ID
+                                                </div>
+                                                <div style={{ fontSize: '14px', fontWeight: '600', color: '#495057' }}>
+                                                    {baseId}{selectedComplaints?.id}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="complaint-status-active">
+                                            Active
+                                        </div>
+                                        {/* Decorative corner element */}
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '0',
+                                            right: '0',
+                                            width: '0',
+                                            height: '0',
+                                            borderStyle: 'solid',
+                                            borderWidth: '0 20px 20px 0',
+                                            borderColor: 'transparent #007bff transparent transparent',
+                                            borderRadius: '0 10px 0 0'
+                                        }}></div>
+                                    </div>
+
+                                    {/* Message Content Section */}
+                                    <div style={{ 
+                                        flex: 1,
+                                        marginBottom: '20px'
+                                    }}>
+                                        <div style={{
+                                            marginBottom: '16px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '10px'
+                                        }}>
+                                            <div className="complaint-icon">
+                                                💬
+                                            </div>
+                                            <h4 style={{ 
+                                                margin: '0', 
+                                                fontSize: '16px', 
+                                                fontWeight: '600',
+                                                color: '#495057'
+                                            }}>
+                                                Complaint Details
+                                            </h4>
+                                        </div>
+                                        <div className="complaint-message-box">
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'flex-start',
+                                                gap: '12px'
+                                            }}>
+                                                <div style={{
+                                                    width: '4px',
+                                                    height: '20px',
+                                                    backgroundColor: '#007bff',
+                                                    borderRadius: '2px',
+                                                    marginTop: '2px'
+                                                }}></div>
+                                                <div style={{ flex: 1 }}>
+                                                    <TextView type="subDark" text={selectedComplaints?.message || 'No complaint message available.'} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="complaint-divider"></div>
+
+                                    {/* Footer Section with Date and Time */}
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between', 
+                                        alignItems: 'flex-end'
+                                    }}>
+                                        <div >
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                flexDirection: 'column', 
+                                                gap: '8px'
+                                            }}>
+                                                <div style={{ 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    gap: '10px',
+                                                    padding: '5px'
+                                                }}>
+                                                    <DateWithIcon text={new Date(selectedComplaints?.created_at).toLocaleDateString("en-US", {
+                                                        year: "numeric",
+                                                        month: "long",
+                                                        day: "numeric",
+                                                        })} >
+                                                    </DateWithIcon>
+                                                    <TextView type="subDark" text={new Date(selectedComplaints?.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}/>
+                                               
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Action Buttons */}
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            gap: '8px'
+                                        }}>
+                                            {/* <button className="complaint-action-btn" title="Copy Complaint ID to clipboard">
+                                                📋 Copy ID
+                                            </button>
+                                            <button className="complaint-action-btn" title="Export complaint details">
+                                                📤 Export
+                                            </button> */}
+                                        </div>
+                                    </div>
+
+                                    {/* Additional Info Section */}
+                                    {selectedComplaints && (
+                                        <div style={{
+                                            marginTop: '16px',
+                                            padding: '12px',
+                                            backgroundColor: '#f8f9fa',
+                                            borderRadius: '8px',
+                                            border: '1px solid #e9ecef',
+                                            fontSize: '12px',
+                                            color: '#6c757d'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                <span>ℹ️</span>
+                                                <span style={{ fontWeight: '500' }}>Quick Actions</span>
+                                            </div>
+                                            <div style={{ fontSize: '11px', lineHeight: '1.4' }}>
+                                                Use the buttons above to copy the complaint ID or export details. 
+                                                The status badge shows the current resolution progress.
+                                            </div>
+                                        </div>
+                                    )}
+                                </div> 
+                            </div>
+                        </DashboardBox>
+
+                </div>
 
 
                 <div style={{
-                  width: '60%',
+                  width: '35%',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
                   padding: '0px'
                   
                 }}>
-                    <div style={{
-                        width: '100%',
-                        height: '30%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        padding: '2px'
-                        
-                        }}>
-                            <DashboardBox>
-                                <div className="comp-item-inside">               
-                                    <div style={{display: 'flex', flexDirection: 'column',height: '100%'}}>
-
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <TextView type="subDarkBold" text={selectedComplaints?.subject}/>
-                                            <StatusBadge status={selectedComplaints?.status} />
-                                        </div>
-
-                                        <div style={{ display: 'flex', justifyContent: 'start', alignItems: 'start', flex:'1'}}>
-                                            <TextView type="subDark" text={selectedComplaints?.message} />
-                                        </div>
-
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <DateWithIcon text={new Date(selectedComplaints?.created_at).toLocaleDateString("en-US", {
-                                                    year: "numeric",
-                                                    month: "long",
-                                                    day: "numeric",
-                                                    })} >
-                                                </DateWithIcon>
-                                                <TextView type="subDark" text={new Date(selectedComplaints?.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}/>
-                                            </div>
-                                            <TextView type="subDark" text={baseId+selectedComplaints?.id}/>
-                                        </div>
-                                    </div> 
-                                </div>
-                            </DashboardBox>
-
-                    </div>
+                    
 
                     <div style={{
                         width: '100%',
-                        height: '70%',
+                        height: '100%',
                         display: 'flex',
                         flexDirection: 'column',
                         padding: '2px'
