@@ -1016,7 +1016,7 @@ hr {
   display: flex;
   flex-direction: column;
   gap: 0px;
-  padding: 10px;
+  padding: 20px;
   border-bottom: 1px solid #eee;
 }
 
@@ -1221,7 +1221,7 @@ hr {
 
 
 .grid-container {
-  max-height: calc(100vh - 205px);
+  max-height: calc(100vh - 220px);
   min-height: 150px;
 
   display: grid;
@@ -1449,6 +1449,9 @@ hr {
   position: relative;
   margin-right: 12px;
   flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .vendor-avatar {
@@ -2205,7 +2208,7 @@ hr {
 .vendor-tab-content {
   padding: 20px;
   /* min-height: 400px; */
-  max-height: calc(100vh - 240px);
+  max-height: calc(100vh - 250px);
   min-height: 480px;
 }
 
