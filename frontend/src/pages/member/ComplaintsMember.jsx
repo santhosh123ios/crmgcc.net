@@ -781,7 +781,7 @@ function ComplaintsMember() {
 
                 </div>
 
-
+                {/* Chat with Vendor */}
                 <div style={{
                   width: '35%',
                   height: '100%',
@@ -792,171 +792,289 @@ function ComplaintsMember() {
                 }}>
                     
 
+                    {/* Messages Container */}
                     <div style={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        padding: '2px'
-                        }}>
-                            <DashboardBox>
-                                <div className="comp-item-inside">               
-                                    
-                                    <div style={{display: 'flex', flexDirection: 'column',height: '100%'}}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px', margin: '0px',height:'30px'}}>
-                                            <p className="title-text-dark">
-                                                {selectedComplaints?.vendor_name ? `Chat: ${selectedComplaints.vendor_name}` : "Chat with Vendor"}
-                                            </p>
-                                        </div>
-
-                                        {/* Messages Container */}
-                                        <div 
-                                            className="messages-container"
-                                            style={{
-                                                flex: 1,
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                overflowY: 'auto',
-                                                padding: '10px 0px 0px 0px',
-                                                gap: '10px',
-                                                maxHeight: 'calc(100vh - 400px)',
-                                                minHeight: '200px'
-                                            }}
-                                        >
-                                            {loadingMessages ? (
-                                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px' }}>
-                                                    <div className="spinner" />
-                                                </div>
-                                            ) : messages.length === 0 ? (
-                                                <div style={{ 
-                                                    display: 'flex', 
-                                                    justifyContent: 'center', 
-                                                    alignItems: 'center', 
-                                                    height: '100px',
-                                                    color: '#666',
-                                                    fontSize: '14px'
-                                                }}>
-                                                    No messages yet. Start a conversation!
-                                                </div>
-                                            ) : (
-                                                (() => {
-                                                    const groupedMessages = groupMessagesByDate(messages);
-                                                    console.log('Grouped messages:', groupedMessages);
-                                                    return groupedMessages.map((group, groupIndex) => (
-                                                        <div key={groupIndex}>
-                                                            {/* Date Separator */}
-                                                            <div style={{
-                                                                display: 'flex',
-                                                                justifyContent: 'center',
-                                                                margin: groupIndex === 0 ? '10px 0 10px 0' : '20px 0 10px 0',
-                                                                padding: '0 10px'
-                                                            }}>
-                                                                <div style={{
-                                                                    backgroundColor: '#f0f0f0',
-                                                                    padding: '6px 12px',
-                                                                    borderRadius: '12px',
-                                                                    fontSize: '12px',
-                                                                    color: '#666',
-                                                                    fontWeight: '500'
-                                                                }}>
-                                                                    {formatMessageDate(group.messages[0].create_at || group.messages[0].created_at || group.messages[0].date || group.messages[0].timestamp)}
-                                                                </div>
-                                                            </div>
-                                                            
-                                                            {/* Messages for this date */}
-                                                            {group.messages.map((message, index) => {
-                                                                const isSentByMe = message.sender === currentUserId;
-                                                                return (
-                                                                    <div key={message.id || index} style={{
-                                                                        display: 'flex',
-                                                                        justifyContent: isSentByMe ? 'flex-end' : 'flex-start',
-                                                                        marginBottom: '8px'
-                                                                    }}>
-                                                                        <div style={{
-                                                                            maxWidth: '70%',
-                                                                            padding: '10px 15px',
-                                                                            borderRadius: '18px',
-                                                                            backgroundColor: isSentByMe ? '#0084ff' : '#f0f0f0',
-                                                                            color: isSentByMe ? 'white' : 'black',
-                                                                            wordWrap: 'break-word',
-                                                                            wordBreak: 'break-word',
-                                                                            fontSize: '14px',
-                                                                            lineHeight: '1.4',
-                                                                            overflowWrap: 'break-word'
-                                                                        }}>
-                                                                            {message.text}
-                                                                            <div style={{
-                                                                                fontSize: '11px',
-                                                                                opacity: 0.7,
-                                                                                marginTop: '4px',
-                                                                                textAlign: isSentByMe ? 'right' : 'left'
-                                                                            }}>
-                                                                                {formatMessageDate(message.create_at || message.created_at || message.date || message.timestamp)} • {new Date(message.create_at || message.created_at || message.date || message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    ));
-                                                })()
-                                            )}
-                                        </div>
-
-                                        {/* Input Section */}
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '2px'
+                    }}>
+                        <DashboardBox>
+                            <div style={{
+                                boxSizing: 'border-box',
+                                display: 'flex',
+                                height: '100%',
+                                flexDirection: 'column',
+                                justifyContent: 'start',
+                                padding: '0px',
+                                maxHeight: 'calc(100vh - 300px)',
+                                minHeight: '480px'
+                            }}>
+                                {/* Chat Header */}
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: '20px 20px 15px 20px',
+                                    borderBottom: '1px solid #f0f0f0',
+                                    backgroundColor: '#fafafa',
+                                    borderRadius: '8px 8px 0 0'
+                                }}>
+                                    <div>
                                         <div style={{
-                                            width: '100%',
-                                            height: '40px',
-                                            display: 'flex',
-                                            flexDirection: 'row',
-                                            borderTop: '1px solid #e0e0e0',
-                                            paddingTop: '10px'
+                                            fontSize: '16px',
+                                            fontWeight: '600',
+                                            color: '#333',
+                                            marginBottom: '2px'
                                         }}>
-
-                                            <div style={{
-                                                flex: 1,
-                                                height: '40px',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                justifyContent:'center',
-                                                justifyItems: 'center',
-                                            }}> 
-
-                                            <InputText 
-                                                    type="name"
-                                                    placeholder="Type a message..."
-                                                    name="message"
-                                                    value={formData.message}
-                                                    onChange={handleChange}
-                                                    onKeyPress={(e) => {
-                                                        if (e.key === 'Enter') {
-                                                            handleSendMessage();
-                                                        }
-                                                    }}
-                                                />
-
-                                            </div>
-
-                                            <div style={{
-                                            width: '55px',
-                                            height: '40px',
+                                            Chat with Vendor
+                                        </div>
+                                        <div style={{
+                                            fontSize: '12px',
+                                            color: '#666',
                                             display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center'}}> 
-                                                <RoundButton 
-                                                    icon={faPaperPlane} 
-                                                    onClick={handleSendMessage}
-                                                    // disabled={!formData.message.trim() || sendingMessage}
-                                                />
-                                            </div>      
-                                            
+                                            alignItems: 'center',
+                                            gap: '6px'
+                                        }}>
+                                            <div style={{
+                                                width: '6px',
+                                                height: '6px',
+                                                borderRadius: '50%',
+                                                backgroundColor: '#4caf50'
+                                            }} />
+                                            <span>Active now</span>
                                         </div>
                                     </div>
-
-
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px'
+                                    }}>
+                                        <div style={{
+                                            padding: '6px 12px',
+                                            backgroundColor: '#e8f5e8',
+                                            borderRadius: '20px',
+                                            fontSize: '11px',
+                                            color: '#2e7d32',
+                                            fontWeight: '500',
+                                            border: '1px solid #c8e6c9'
+                                        }}>
+                                            {selectedComplaints?.vendor_name || 'Vendor'}
+                                        </div>
+                                    </div>
                                 </div>
-                            </DashboardBox>
 
+                                {/* Messages Container */}
+                                <div 
+                                    className="messages-container"
+                                    style={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        overflowY: 'auto',
+                                        padding: '20px',
+                                        gap: '16px',
+                                        maxHeight: 'calc(100vh - 300px)',
+                                        minHeight: '440px'
+                                    }}
+                                >
+                                    {loadingMessages ? (
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            height: '100px',
+                                            flexDirection: 'column',
+                                            gap: '12px'
+                                        }}>
+                                            <div className="spinner" />
+                                            <div style={{
+                                                fontSize: '14px',
+                                                color: '#666'
+                                            }}>
+                                                Loading messages...
+                                            </div>
+                                        </div>
+                                    ) : messages.length === 0 ? (
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'center', 
+                                            alignItems: 'center', 
+                                            height: '100%',
+                                            flexDirection: 'column',
+                                            gap: '16px',
+                                            color: '#666'
+                                        }}>
+                                            
+                                            <div style={{
+                                                textAlign: 'center'
+                                            }}>
+                                                <div style={{
+                                                    fontSize: '18px',
+                                                    fontWeight: '600',
+                                                    color: '#333',
+                                                    marginBottom: '8px'
+                                                }}>
+                                                    Start a conversation
+                                                </div>
+                                                <div style={{
+                                                    fontSize: '14px',
+                                                    color: '#666',
+                                                    lineHeight: '1.5'
+                                                }}>
+                                                    Send your first message to begin chatting with the vendor
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        (() => {
+                                            const groupedMessages = groupMessagesByDate(messages);
+                                            return groupedMessages.map((group, groupIndex) => (
+                                                <div key={groupIndex}>
+                                                    {/* Date Separator */}
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'center',
+                                                        margin: groupIndex === 0 ? '0 0 20px 0' : '30px 0 20px 0',
+                                                        padding: '0 10px'
+                                                    }}>
+                                                        <div style={{
+                                                            backgroundColor: '#fff',
+                                                            padding: '8px 16px',
+                                                            borderRadius: '20px',
+                                                            fontSize: '12px',
+                                                            color: '#666',
+                                                            fontWeight: '500',
+                                                            border: '1px solid #e0e0e0',
+                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                                        }}>
+                                                            {formatMessageDate(group.messages[0].create_at || group.messages[0].created_at || group.messages[0].date || group.messages[0].timestamp)}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Messages for this date */}
+                                                    {group.messages.map((message, index) => {
+                                                        const isSentByMe = message.sender === currentUserId;
+                                                        const isLastMessage = index === group.messages.length - 1;
+                                                        const isFirstMessage = index === 0;
+                                                        
+                                                        return (
+                                                            <div key={message.id || index} style={{
+                                                                display: 'flex',
+                                                                justifyContent: isSentByMe ? 'flex-end' : 'flex-start',
+                                                                marginBottom: isLastMessage ? '0' : '8px',
+                                                                alignItems: 'flex-end',
+                                                                gap: '8px'
+                                                            }}>
+                                                                
+                                                                
+                                                                                                                                 {/* Message Bubble */}
+                                                                 <div style={{
+                                                                     maxWidth: '70%',
+                                                                     position: 'relative'
+                                                                 }}>
+                                                                     <div 
+                                                                         className="message-bubble"
+                                                                         style={{
+                                                                             padding: '12px 16px',
+                                                                             borderRadius: '20px',
+                                                                             backgroundColor: isSentByMe ? '#0084ff' : '#fff',
+                                                                             color: isSentByMe ? 'white' : '#333',
+                                                                             wordWrap: 'break-word',
+                                                                             wordBreak: 'break-word',
+                                                                             fontSize: '14px',
+                                                                             lineHeight: '1.5',
+                                                                             overflowWrap: 'break-word',
+                                                                             boxShadow: isSentByMe ? '0 2px 8px rgba(0,132,255,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
+                                                                             border: isSentByMe ? 'none' : '1px solid #e0e0e0',
+                                                                             position: 'relative'
+                                                                         }}
+                                                                     >
+                                                                         {message.text}
+                                                                         
+                                                                         {/* Message Time */}
+                                                                         <div style={{
+                                                                             fontSize: '11px',
+                                                                             opacity: isSentByMe ? 0.8 : 0.6,
+                                                                             marginTop: '6px',
+                                                                             textAlign: isSentByMe ? 'right' : 'left',
+                                                                             fontWeight: '500'
+                                                                         }}>
+                                                                             {new Date(message.create_at || message.created_at || message.date || message.timestamp).toLocaleTimeString([], {
+                                                                                 hour: '2-digit',
+                                                                                 minute: '2-digit',
+                                                                                 hour12: true
+                                                                             })}
+                                                                         </div>
+                                                                     </div>
+                                                                    
+                                                                    
+                                                                </div>
+                                                                
+                                                                
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ));
+                                        })()
+                                    )}
+                                </div>
+
+                                {/* Input Section */}
+                                <div style={{
+                                    width: '100%',
+                                    height: '40px',
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    borderTop: '1px solid #e0e0e0',
+                                    paddingTop: '10px',
+                                    paddingLeft: '20px',
+                                    paddingRight: '20px',
+                                    paddingBottom: '10px'
+                                }}>
+
+                                    <div style={{
+                                        width: '82%',
+                                        height: '40px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent:'center',
+                                        justifyItems: 'center',
+                                    }}> 
+
+                                    <InputText 
+                                            type="name"
+                                            placeholder="Type a message..."
+                                            name="message"
+                                            value={formData.message}
+                                            onChange={handleChange}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    handleSendMessage();
+                                                }
+                                            }}
+                                        />
+
+                                    </div>
+
+                                    <div style={{
+                                    width: '55px',
+                                    height: '40px',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'}}> 
+                                        <RoundButton 
+                                            icon={faPaperPlane} 
+                                            onClick={handleSendMessage}
+                                            disabled={!formData.message.trim() || sendingMessage}
+                                        />
+                                    </div>      
+                                    
+                                </div>
+                            </div>
+                        </DashboardBox>
                     </div>
 
                 </div>
