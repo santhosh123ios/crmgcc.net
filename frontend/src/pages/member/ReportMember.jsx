@@ -333,10 +333,13 @@ function ReportMember() {
           <div className="summary-card">
             <div className="summary-icon leads-icon">📊</div>
             <div className="summary-content">
-              <TextView type="darkBold" text={totalLeads.toString()} />
               <TextView type="subDark" text="Total Leads" />
               <TextView type="subDark" text={`${approvedLeads} Approved`} />
             </div>
+            <div className="summary-content-points">
+                <TextView type="darkBold" text={totalLeads.toString()} />
+            </div>
+            
           </div>
         </DashboardBox>
         
@@ -344,9 +347,12 @@ function ReportMember() {
           <div className="summary-card">
             <div className="summary-icon transactions-icon">💰</div>
             <div className="summary-content">
-              <TextView type="darkBold" text={`${(totalCredits - totalDebits).toFixed(0)}`} />
+              
               <TextView type="subDark" text="Net Balance" />
               <TextView type="subDark" text={`${totalCredits.toFixed(0)} Credits`} />
+            </div>
+            <div className="summary-content-points">
+                <TextView type="darkBold" text={`${(totalCredits - totalDebits).toFixed(0)}`} />
             </div>
           </div>
         </DashboardBox>
@@ -355,9 +361,12 @@ function ReportMember() {
           <div className="summary-card">
             <div className="summary-icon redeems-icon">🎁</div>
             <div className="summary-content">
-              <TextView type="darkBold" text={totalRedeems.toString()} />
+             
               <TextView type="subDark" text="Total Redeems" />
               <TextView type="subDark" text={`${totalPoints} Points Used`} />
+            </div>
+            <div className="summary-content-points">
+                <TextView type="darkBold" text={totalRedeems.toString()} />
             </div>
           </div>
         </DashboardBox>
@@ -562,28 +571,6 @@ function ReportMember() {
 
                             {renderSummaryCards()}
 
-                            
-
-                            <div className="search-export-controls">
-                                {hasActiveFilters() && (
-                                    <button 
-                                        className="clear-filters-button"
-                                        onClick={clearFilters}
-                                    >
-                                        🗑️ Clear Filters
-                                    </button>
-                                )}
-                                
-                                
-                                   
-                                    <button 
-                                    className="export-button"
-                                    onClick={handleExport}
-                                    disabled={loading}
-                                    >
-                                    📊 Export CSV
-                                    </button>
-                            </div>
 
                             <div >
                                 {hasActiveFilters() && (
@@ -595,6 +582,8 @@ function ReportMember() {
                                             borderRadius: '4px',
                                             justifyItems: 'center',
                                             alignItems: 'center',
+                                            marginTop: '20px',
+                                            textAlign: 'center',
                                         }}>
                                             {(() => {
                                                 let totalItems, filteredItems
@@ -619,6 +608,31 @@ function ReportMember() {
                                         </div>
                                 )}
                             </div>
+
+                            
+
+                            <div className="search-export-controls">
+                                {hasActiveFilters() && (
+                                    <button 
+                                        className="clear-filters-button"
+                                        onClick={clearFilters}
+                                    >
+                                        🗑️ Clear Filters
+                                    </button>
+                                )}
+                                
+                                
+                                   
+                                    <button 
+                                    className="export-button"
+                                    onClick={handleExport}
+                                    disabled={loading}
+                                    >
+                                    📊 Export CSV
+                                    </button>
+                            </div>
+
+                            
 
                         </div>
 
