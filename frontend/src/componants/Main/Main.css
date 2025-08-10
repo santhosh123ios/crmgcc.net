@@ -563,31 +563,140 @@
 
 .circle-btns-date {
   /* max-width: 100px; */
-  height: 40px;
-  border-radius: 40px;
-  background-color: var(--primary-color);
+  height: auto;
+  min-height: 40px;
+  border-radius: 8px;
+  background-color: transparent;
   color: var(--text-primary);
   font-size: 16px;
   margin: 0px;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 8px;
 }
 
 .circle-btns-date:hover {
-  background-color: var(--highlight-color);
-  border-color: var(--highlight-color);
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .date-picker-input {
-  padding-right: 0 !important;
+  padding: 8px 12px !important;
   margin: 0;
   box-sizing: border-box;
-  min-width: unset;
-  width: fit-content;
-  text-align: right;
-  margin-right: 10px;
+  width: 100% !important;
+  min-width: 120px;
+  text-align: left;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  color: #333 !important;
+  background-color: #fff !important;
+  outline: none !important;
+}
+
+.date-picker-input:focus {
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+}
+
+.date-picker-input::placeholder {
+  color: #999 !important;
+}
+
+/* React DatePicker global styles */
+.react-datepicker-wrapper {
+  width: 100% !important;
+}
+
+.react-datepicker__input-container {
+  width: 100% !important;
+}
+
+.react-datepicker__input-container input {
+  width: 100% !important;
+  color: #333 !important;
+  background-color: #fff !important;
+}
+
+.react-datepicker__input-container input:focus {
+  outline: none !important;
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+}
+
+/* Additional date picker styling for better text visibility */
+.react-datepicker__input-container {
+  position: relative;
+}
+
+.react-datepicker__input-container input {
+  font-family: inherit !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  color: #222222 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  padding: 8px 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.react-datepicker__input-container input:hover {
+  border-color: #999 !important;
+}
+
+.react-datepicker__input-container input:focus {
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+}
+
+.react-datepicker__input-container input::placeholder {
+  color: #999 !important;
+  opacity: 1 !important;
+}
+
+/* Date picker calendar popup styling */
+.react-datepicker {
+  font-family: inherit !important;
+  border: 1px solid #ddd !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.react-datepicker__header {
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #ddd !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.react-datepicker__day {
+  color: #333 !important;
+  border-radius: 4px !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: #e9ecef !important;
+}
+
+.react-datepicker__day--selected {
+  background-color: #007bff !important;
+  color: white !important;
+}
+
+.react-datepicker__day--keyboard-selected {
+  background-color: #007bff !important;
+  color: white !important;
+}
+
+.react-datepicker__navigation {
+  border: none !important;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: #333 !important;
 }
 
 /* Complaint List Item Styles */
@@ -1084,7 +1193,7 @@
   margin-bottom: 0px;
   margin-left: 5px;
   margin-right: 5px;
-  margin-top: 30px;
+  margin-top: 0px;
 }
 
 .summary-card {
@@ -1238,7 +1347,7 @@
   text-align: center;
   width: 100%;
   justify-content: center;
-  margin-top: 30px;
+  /* margin-top: 30px; */
 }
 
 .export-button:hover {
@@ -1252,6 +1361,24 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.clear-filters-button {
+  padding: 8px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  margin-right: 10px;
+}
+
+.clear-filters-button:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .search-input:focus {
@@ -1505,6 +1632,7 @@
     gap: 12px;
     padding: 5px;
     margin: 5px;
+    background-color: red;
   }
   
   .search-input {

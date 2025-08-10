@@ -22,6 +22,10 @@ function ReportMember() {
     fetchData()
   }, [activeTab, startDate, endDate])
 
+  useEffect(() => {
+    console.log('Dates changed:', { startDate, endDate, activeTab })
+  }, [startDate, endDate, activeTab])
+
   const fetchData = async () => {
     setLoading(true)
     try {
@@ -56,31 +60,82 @@ function ReportMember() {
   }
 
   const filterData = (data) => {
-    if (!searchTerm) return data
-    
-    return data.filter(item => {
-      const searchLower = searchTerm.toLowerCase()
-      if (activeTab === 'leads') {
-        return (
-          item.vendor_name?.toLowerCase().includes(searchLower) ||
-          item.lead_status?.toString().includes(searchLower) ||
-          item.lead_id?.toString().includes(searchLower)
-        )
-      } else if (activeTab === 'transactions') {
-        return (
-          item.transaction_title?.toLowerCase().includes(searchLower) ||
-          item.vendor_name?.toLowerCase().includes(searchLower) ||
-          item.transaction_id?.toString().includes(searchLower)
-        )
-      } else if (activeTab === 'redeems') {
-        return (
-          item.notes?.toLowerCase().includes(searchLower) ||
-          item.redeem_status?.toString().includes(searchLower) ||
-          item.redeem_id?.toString().includes(searchLower)
-        )
-      }
-      return false
-    })
+    let filteredData = data
+
+    // Apply date filtering
+    if (startDate || endDate) {
+      console.log('Date filtering:', { startDate, endDate, activeTab })
+      filteredData = filteredData.filter(item => {
+        let itemDate
+        if (activeTab === 'leads') {
+          itemDate = new Date(item.created_at)
+        } else if (activeTab === 'transactions') {
+          itemDate = new Date(item.transaction_created_at)
+        } else if (activeTab === 'redeems') {
+          itemDate = new Date(item.redeem_created_at)
+        }
+
+        if (!itemDate || isNaN(itemDate.getTime())) {
+          console.log('Invalid date for item:', item)
+          return false
+        }
+
+        const start = startDate ? new Date(startDate) : null
+        const end = endDate ? new Date(endDate) : null
+
+        if (start && end) {
+          // Set end date to end of day for inclusive filtering
+          const endOfDay = new Date(end)
+          endOfDay.setHours(23, 59, 59, 999)
+          const result = itemDate >= start && itemDate <= endOfDay
+          console.log('Date range filter:', { itemDate, start, endOfDay, result })
+          return result
+        } else if (start) {
+          const result = itemDate >= start
+          console.log('Start date filter:', { itemDate, start, result })
+          return result
+        } else if (end) {
+          // Set end date to end of day for inclusive filtering
+          const endOfDay = new Date(end)
+          endOfDay.setHours(23, 59, 59, 999)
+          const result = itemDate <= endOfDay
+          console.log('End date filter:', { itemDate, endOfDay, result })
+          return result
+        }
+        return true
+      })
+      console.log('After date filtering:', filteredData.length, 'items')
+    }
+
+    // Apply text search filtering
+    if (searchTerm) {
+      filteredData = filteredData.filter(item => {
+        const searchLower = searchTerm.toLowerCase()
+        if (activeTab === 'leads') {
+          return (
+            item.vendor_name?.toLowerCase().includes(searchLower) ||
+            item.lead_status?.toString().includes(searchLower) ||
+            item.lead_id?.toString().includes(searchLower)
+          )
+        } else if (activeTab === 'transactions') {
+          return (
+            item.transaction_title?.toLowerCase().includes(searchLower) ||
+            item.vendor_name?.toLowerCase().includes(searchLower) ||
+            item.transaction_id?.toString().includes(searchLower)
+          )
+        } else if (activeTab === 'redeems') {
+          return (
+            item.notes?.toLowerCase().includes(searchLower) ||
+            item.redeem_status?.toString().includes(searchLower) ||
+            item.redeem_id?.toString().includes(searchLower)
+          )
+        }
+        return false
+      })
+      console.log('After text filtering:', filteredData.length, 'items')
+    }
+
+    return filteredData
   }
 
 
@@ -404,6 +459,16 @@ function ReportMember() {
     exportToCSV(data, filename)
   }
 
+  const clearFilters = () => {
+    setStartDate('')
+    setEndDate('')
+    setSearchTerm('')
+  }
+
+  const hasActiveFilters = () => {
+    return startDate || endDate || searchTerm
+  }
+
   return (
 
 <div  className='content-view'>
@@ -449,22 +514,25 @@ function ReportMember() {
                                     width: '100%',
                                     display: 'flex',
                                     flexDirection: 'row',
-                                    gap: '10px',
-                                    marginTop: '10px',
-                                    marginLeft: '5px',
+                                    gap: '0px',
+                                    marginTop: '0px',
+                                    justifyContent: 'space-between',
+                                    padding: '0px',
                                 }}>
                                     <CommonDatePicker
                                     style={{
-                                        width: '30%',
+                                        width: '40%',
                                     }}
+                                    label="Start Date"
                                     value={startDate}
                                     onChange={setStartDate}
                                     placeholder="Start Date"
                                     />
                                     <CommonDatePicker
                                     style={{
-                                        width: '30%',
+                                        width: '40%',
                                     }}
+                                    label="End Date"
                                     value={endDate}
                                     onChange={setEndDate}
                                     placeholder="End Date"
@@ -494,7 +562,19 @@ function ReportMember() {
 
                             {renderSummaryCards()}
 
+                            
+
                             <div className="search-export-controls">
+                                {hasActiveFilters() && (
+                                    <button 
+                                        className="clear-filters-button"
+                                        onClick={clearFilters}
+                                    >
+                                        🗑️ Clear Filters
+                                    </button>
+                                )}
+                                
+                                
                                    
                                     <button 
                                     className="export-button"
@@ -503,6 +583,41 @@ function ReportMember() {
                                     >
                                     📊 Export CSV
                                     </button>
+                            </div>
+
+                            <div >
+                                {hasActiveFilters() && (
+                                        <div style={{
+                                            fontSize: '12px',
+                                            color: '#666',
+                                            marginRight: '0px',
+                                            padding: '4px 8px',
+                                            borderRadius: '4px',
+                                            justifyItems: 'center',
+                                            alignItems: 'center',
+                                        }}>
+                                            {(() => {
+                                                let totalItems, filteredItems
+                                                switch (activeTab) {
+                                                    case 'leads':
+                                                        totalItems = leads.length
+                                                        filteredItems = filterData(leads).length
+                                                        break
+                                                    case 'transactions':
+                                                        totalItems = transactions.length
+                                                        filteredItems = filterData(transactions).length
+                                                        break
+                                                    case 'redeems':
+                                                        totalItems = redeems.length
+                                                        filteredItems = filterData(redeems).length
+                                                        break
+                                                    default:
+                                                        return null
+                                                }
+                                                return `Showing ${filteredItems} of ${totalItems} items`
+                                            })()}
+                                        </div>
+                                )}
                             </div>
 
                         </div>
