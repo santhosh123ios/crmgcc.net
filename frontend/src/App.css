@@ -2210,6 +2210,8 @@ hr {
   /* min-height: 400px; */
   max-height: calc(100vh - 250px);
   min-height: 480px;
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 /* Offers Grid Styles */

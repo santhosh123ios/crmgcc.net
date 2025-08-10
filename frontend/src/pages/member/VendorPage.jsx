@@ -147,7 +147,7 @@ function VendorPage() {
                     <div key={offer.id} className="user-list-item-product">
                         <DashboardBox>
                             <div 
-                                className={`user-list-item-product-inside ${selectedItem?.id === offer.id && showDetails ? 'selected' : ''}`}
+                                className={`user-list-item-product-inside ${selectedItem?.id === offer.id && showDetails ? 'user-list-item-product-inside-selected' : ''}`}
                                 onClick={() => handleItemClick(offer)}
                                 style={{ cursor: 'pointer' }}
                             >
@@ -184,7 +184,7 @@ function VendorPage() {
                     <div key={product.id} className="user-list-item-product">
                         <DashboardBox>
                             <div 
-                                className={`user-list-item-product-inside ${selectedItem?.id === product.id && showDetails ? 'selected' : ''}`}
+                                className={`user-list-item-product-inside ${selectedItem?.id === product.id && showDetails ? 'user-list-item-product-inside-selected' : ''}`}
                                 onClick={() => handleItemClick(product)}
                                 style={{ cursor: 'pointer' }}
                             >

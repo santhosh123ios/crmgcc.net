@@ -31,6 +31,11 @@ function HeaderMember({ selected, setSelected }) {
             onClick={() => setSelected('vendor')}>
                     Vendor
                   </div>
+
+                  <div className={selected === 'offers' ? 'div-tab-selected' : 'div-tab'} 
+            onClick={() => setSelected('offers')}>
+                    Offers&Products
+                  </div>
       
                   <div className={selected === 'report' ? 'div-tab-selected' : 'div-tab'}
             onClick={() => setSelected('report')}>
@@ -42,10 +47,7 @@ function HeaderMember({ selected, setSelected }) {
                     Complaints
                   </div>
 
-                  <div className={selected === 'offers' ? 'div-tab-selected' : 'div-tab'}
-            onClick={() => setSelected('offers')}>
-                    Offers
-                  </div>
+                 
       
               </div>
               
