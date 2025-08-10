@@ -432,7 +432,7 @@ function ComplaintsMember() {
 
   return (
     <div  className='content-view'>
-
+        
         <div style={{
               width: '100%',
               height: '100%',
