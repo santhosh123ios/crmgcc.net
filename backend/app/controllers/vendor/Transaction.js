@@ -357,3 +357,86 @@ export const add_vendor_topup = (req, res) => {
          res.status(500).json({ status: 0, message: "Server error", error: err.message });
      }
 }
+
+export const check_member_points = (req, res) => {
+    try {
+        const { card_no } = req.body;
+        
+        if (!card_no) {
+            return res
+                .status(400)
+                .json({ error: [{ message: "Card number is required" }], result: {} });
+        }
+
+        // Get card details and user information including member details
+        const cardQuery = `
+            SELECT 
+                c.user_id,
+                c.card_status,
+                c.card_no,
+                u.name AS member_name,
+                u.status AS member_status,
+                u.phone AS member_number
+            FROM cards c 
+            LEFT JOIN users u ON c.user_id = u.id 
+            WHERE c.card_no = ?
+        `;
+        
+        executeQuery({
+            query: cardQuery,
+            data: [card_no],
+            callback: (err, cardData) => {
+                if (err) {
+                    return res
+                        .status(500)
+                        .json({ error: [{ message: err }], result: {} });
+                }
+
+                if (!cardData || cardData.length === 0) {
+                    return res
+                        .status(404)
+                        .json({ error: [{ message: "Card not found" }], result: {} });
+                }
+
+                const user_id = cardData[0].user_id;
+
+                // Get the available points for the user
+                const balanceQuery = "SELECT COALESCE(SUM(transaction_cr), 0) - COALESCE(SUM(transaction_dr), 0) AS available_points FROM transaction WHERE user_id = ?";
+                
+                executeQuery({
+                    query: balanceQuery,
+                    data: [user_id],
+                    callback: (err, balanceData) => {
+                        if (err) {
+                            return res
+                                .status(500)
+                                .json({ error: [{ message: err }], result: {} });
+                        }
+
+                        const availablePoints = parseFloat(balanceData[0]?.available_points || 0);
+
+                        const result = {
+                            message: "Member points retrieved successfully",
+                            status: 1,
+                            data: {
+                                card_no: card_no,
+                                card_status: cardData[0].card_status,
+                                user_id: user_id,
+                                member_name: cardData[0].member_name,
+                                member_status: cardData[0].member_status,
+                                member_number: cardData[0].member_number,
+                                available_points: availablePoints
+                            }
+                        };
+
+                        return res.status(200).json({ error: [], result });
+                    }
+                });
+            }
+        });
+    } 
+    catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+}

@@ -15,7 +15,12 @@ function DashboardVendor() {
   const [cat, setCat] = useState([]);
   const [catPopup, setCatPopup] = useState(false);
   const [loadingCat, setLoadingCat] = useState(false);
-  
+
+  // Helper function to format numbers
+  const formatNumber = (num) => {
+    if (!num) return '0';
+    return num.toLocaleString();
+  };
 
   const optionsBrand = {
         chart: {
@@ -229,8 +234,6 @@ function DashboardVendor() {
 
   return (
     <div className='content-view'>
-      
-
       <div style={{
               width: '100%',
               height: '100%',
@@ -239,175 +242,135 @@ function DashboardVendor() {
             }}>
 
                <div style={{
-                  width: '20%',
+                  width: '30%',
                   height: '100%',
                   backgroundColor: '#00000', 
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
-                    <div style={{
-                    boxSizing: 'border-box',
-                    padding: '2px',
-                    width: '100%',
-                    height: '50%',
-                    display: 'flex',
-                    }}>
-                      <DashboardBox>
-                        <div style={{width:'100%',height:'100%', display:'flex', justifyContent:'center',alignItems:'center',flexDirection:'column'}}>
-                            <h1 style={{padding:'0px',margin:'0px',color:'var(--text-primary)'}}>{dashboard?.member_total}</h1>
-                            <p style={{padding:'0px',margin:'0px',color:'var(--text-primary)'}}>
-                            Total Members
-                            </p>
-                        </div>
-                      </DashboardBox>
-                   </div>
 
-                    <div style={{
-                    boxSizing: 'border-box',
-                    padding: '2px',
-                    width: '100%',
-                    height: '50%',
-                    display: 'flex',
-                    }}>
-                      <DashboardBox>
-                        <div style={{width:'100%',height:'100%', display:'flex', justifyContent:'center',alignItems:'center',flexDirection:'column'}}>
-                            <h1 style={{padding:'0px',margin:'0px',color:'var(--text-primary)'}}>{dashboard?.vendor_total}</h1>
-                            <p style={{padding:'0px',margin:'0px',color:'var(--text-primary)'}}>
-                            Total Vendors
-                            </p>
-                        </div>
-                      </DashboardBox>
+                  {/* Stats Cards Grid */}
+                  <div className="stats-grid">
+                    <div className="stat-card">
+                      <div className="stat-icon members-icon">👥</div>
+                      <div className="stat-content">
+                        <h3 className="stat-number">{formatNumber(dashboard?.member_total)}</h3>
+                        <p className="stat-label">Total Members</p>
+                      </div>
                     </div>
+
+                    <div className="stat-card">
+                      <div className="stat-icon vendors-icon">🏢</div>
+                      <div className="stat-content">
+                        <h3 className="stat-number">{formatNumber(dashboard?.vendor_total)}</h3>
+                        <p className="stat-label">Total Vendors</p>
+                      </div>
+                    </div>
+
+                    <div className="stat-card">
+                      <div className="stat-icon leads-icon">📊</div>
+                      <div className="stat-content">
+                        <h3 className="stat-number">{formatNumber(dashboard?.leads_total)}</h3>
+                        <p className="stat-label">Total Leads</p>
+                      </div>
+                    </div>
+
+                    <div className="stat-card">
+                      <div className="stat-icon transactions-icon">💰</div>
+                      <div className="stat-content">
+                        <h3 className="stat-number">{formatNumber(dashboard?.transaction_total)}</h3>
+                        <p className="stat-label">Total Transactions</p>
+                      </div>
+                    </div>
+                    
+                    <div className="stat-card">
+                      <div className="stat-icon vendors-icon">🏢</div>
+                      <div className="stat-content">
+                        <h3 className="stat-number">{formatNumber(dashboard?.vendor_total)}</h3>
+                        <p className="stat-label">Total Vendors</p>
+                      </div>
+                    </div>
+
+                  </div>
               </div>
 
               <div style={{
-                  width: '40%',
+                  width: '35%',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column'
                   
                 }}>
-                  <div style={{
-                  width: '100%',
-                  height: '35%',
-                  display: 'flex',
-                  flexDirection:'row'
-                  }}>
-                      <div style={{
-                      boxSizing: 'border-box',
-                      padding: '2px',
-                      width: '50%',
-                      height: '100%',
-                      display: 'flex',
-                      }}>
-                        <DashboardBox>
-                          <div style={{width:'100%',height:'100%', display:'flex', justifyContent:'center',alignItems:'center',flexDirection:'column'}}>
-                            <h1 style={{padding:'0px',margin:'0px',color:'var(--text-primary)'}}>{dashboard?.leads_total}</h1>
-                            <p style={{padding:'0px',margin:'0px',color:'var(--text-primary)'}}>
-                            Total Leads
-                            </p>
-                        </div>
-                        </DashboardBox>
-                    </div>
 
-                      <div style={{
-                      boxSizing: 'border-box',
-                      padding: '2px',
-                       width: '50%',
-                      height: '100%',
-                      display: 'flex',
-                      }}>
-                        <DashboardBox>
-                          <div style={{width:'100%',height:'100%', display:'flex', justifyContent:'center',alignItems:'center',flexDirection:'column'}}>
-                            <h1 style={{padding:'0px',margin:'0px',color:'var(--text-primary)'}}>{dashboard?.transaction_total}</h1>
-                            <p style={{padding:'0px',margin:'0px',color:'var(--text-primary)'}}>
-                            Total Transactions
-                            </p>
-                        </div>
-                        </DashboardBox>
-                      </div>
-
-                  </div>
-
-                  <div style={{
-                  boxSizing: 'border-box',
-                  padding: '2px',
-                  width: '100%',
-                  height: '65%',
-                  display: 'flex',
-                  }}>
+                  {/* Transaction Chart */}
+                  <div className="chart-container">
                     <DashboardBox>
-                      <HighchartsReact highcharts={Highcharts} options={optionsBrand} />
+                      <div className="chart-header">
+                        <h3>Transaction Trends</h3>
+                        <p>Weekly credit vs debit</p>
+                      </div>
+                      <div className="chart-content">
+                        <HighchartsReact highcharts={Highcharts} options={transaction_options} />
+                      </div>
                     </DashboardBox>
                   </div>
+                  
 
               </div>
+
               <div style={{
                   boxSizing: 'border-box',
-                  width: '40%',
+                  width: '35%',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column'
-                }}>
-                  <div style={{
-                      boxSizing: 'border-box',
-                      padding: '2px',
-                      width: '100%',
-                      height: '50%',
-                      display: 'flex',
-                    }}>
-                        <DashboardBox>
-                          <HighchartsReact highcharts={Highcharts} options={transaction_options} />
-                        </DashboardBox>
-                  </div>
+              }}>
 
-                  <div style={{
-                      boxSizing: 'border-box',
-                      padding: '2px',
-                      width: '100%',
-                      height: '50%',
-                      display: 'flex',
-                    }}>
-                        <DashboardBox> 
-                          <HighchartsReact highcharts={Highcharts} options={leads_options} />
-                        </DashboardBox>
-                  </div>
-              </div>
+                {/* Leads Chart */}
+                <div className="chart-container">
+                  <DashboardBox>
+                    <div className="chart-header">
+                      <h3>Lead Generation</h3>
+                      <p>Weekly lead performance</p>
+                    </div>
+                    <div className="chart-content">
+                      <HighchartsReact highcharts={Highcharts} options={leads_options} />
+                    </div>
+                  </DashboardBox>
+                </div>
+                  
+            </div>
       </div>
+      {/* Category Selection Popup */}
       {catPopup && (
         <ImportantPopup>
-          <TextView type="darkBold" text={"Select your brand type"}/>
-          <div style={{margin:'15px'}}/>
-          <div className="user-list-scroll-container">
-                {loadingCat ? (
+          <div className="category-popup-content">
+            <TextView type="darkBold" text="Select Your Brand Type" />
+            <p className="category-subtitle">Choose the category that best describes your business</p>
+            
+            <div className="category-list">
+              {loadingCat ? (
                 <div className="loader-container">
-                    <div className="spinner" />
+                  <div className="spinner"></div>
+                  <p>Loading categories...</p>
                 </div>
-                ) : (
-                  
+              ) : (
                 cat.map((catItems, index) => (
-                    <div style={{paddingLeft:'10px', paddingRight:'10px', paddingTop:'5px'}}  key={index}>
-                      <DashboardBox>
-                        <div className={"user-list-item-cat-inside"} onClick={() => handleCatListClick(index)}>
-                          <div className="user-info-leads">
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px', margin: '0px'}}>
-                                  <TextView type="darkBold" text={catItems?.name}/>
-                                  <div style={{display:'flex',flexDirection:'row'}}>
-                                      
-                                      <div style={{margin:'5px'}}/>
-                                      
-                                  </div>
-                              </div>
-                          </div>
+                  <div className="category-item" key={index}>
+                    <DashboardBox>
+                      <div className="category-item-content" onClick={() => handleCatListClick(index)}>
+                        <div className="category-info">
+                          <TextView type="darkBold" text={catItems?.name} />
+                          <p className="category-description">Click to select this category</p>
                         </div>
-                      </DashboardBox>
-                    </div>
+                        <div className="category-arrow">→</div>
+                      </div>
+                    </DashboardBox>
+                  </div>
                 ))
-                
-                )}
+              )}
+            </div>
           </div>
-          
-          
         </ImportantPopup>
       )}
     </div>
