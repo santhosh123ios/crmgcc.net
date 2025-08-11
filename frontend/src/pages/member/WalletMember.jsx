@@ -590,62 +590,37 @@ function WalletMember() {
               marginTop: '0',
               paddingTop: '0'
             }}>
-              {/* Tab Navigation - Reduced Size */}
-              <div style={{
-                display: 'flex',
-                backgroundColor: '#f5f5f5',
-                borderRadius: '8px',
-                padding: '5px',
-                minWidth: '200px',
-                gap: '5px',
+              {/* Tab Navigation - Same as Vendor Page */}
+              <div className="div-items-view" style={{
+                minWidth: '220px',
+                paddingRight: '5px'
               }}>
-                <button
+                <div 
+                  className={activeTab === 'transactions' ? 'div-tab-selected' : 'div-tab'}
                   onClick={() => setActiveTab('transactions')}
                   style={{
-                    padding: '8px 12px',
-                    border: 'none',
-                    borderRadius: '6px',
-                    background: activeTab === 'transactions' ? 'var(--highlight-color)' : 'transparent',
-                    color: activeTab === 'transactions' ? '#333' : '#666',
-                    fontWeight: activeTab === 'transactions' ? 'bold' : 'normal',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px',
-                    fontSize: '12px',
-                    whiteSpace: 'nowrap',
-                    marginTop: '0px'
-            
+                    gap: '8px'
                   }}
                 >
-                  <FontAwesomeIcon icon={faHistory} style={{ fontSize: '12px' }} />
+                  <FontAwesomeIcon icon={faHistory} style={{ fontSize: '14px' }} />
                   Transactions
-                </button>
-                <button
+                </div>
+                <div 
+                  className={activeTab === 'redeems' ? 'div-tab-selected' : 'div-tab'}
                   onClick={() => setActiveTab('redeems')}
                   style={{
-                    padding: '8px 12px',
-                    border: 'none',
-                    borderRadius: '6px',
-                    background: activeTab === 'redeems' ? 'var(--highlight-color)' : 'transparent',
-                    color: activeTab === 'redeems' ? '#333' : '#666',
-                    fontWeight: activeTab === 'redeems' ? 'bold' : 'normal',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px',
-                    fontSize: '12px',
-                    whiteSpace: 'nowrap',
-                    marginTop: '0px',
+                    gap: '8px'
                   }}
                 >
-                  <FontAwesomeIcon icon={faGift} style={{ fontSize: '12px' }} />
+                  <FontAwesomeIcon icon={faGift} style={{ fontSize: '14px' }} />
                   Redeems
-                </button>
+                </div>
               </div>
 
               {/* Search Input */}
