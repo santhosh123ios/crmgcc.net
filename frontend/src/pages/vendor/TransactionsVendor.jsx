@@ -44,6 +44,11 @@ function TransactionsVendor() {
   const [memberPointResult, setMemberPointResult] = useState(null);
   const [memberPointError, setMemberPointError] = useState('');
   
+  // Offer Validity Check states
+  const [offerValidityLoading, setOfferValidityLoading] = useState(false);
+  const [offerValidityResult, setOfferValidityResult] = useState(null);
+  const [showOfferValidityPopup, setShowOfferValidityPopup] = useState(false);
+  
   // Point Redeem Popup states
   const [showPointRedeemPopup, setShowPointRedeemPopup] = useState(false);
   const [redeemAmount, setRedeemAmount] = useState('');
@@ -167,6 +172,55 @@ function TransactionsVendor() {
           setMemberPointError('Network error. Please try again.');
       } finally {
           setMemberPointLoading(false);
+      }
+  };
+
+  // Offer Validity Check API
+  const handleOfferValidityCheck = async () => {
+      if (!formData.offerCode) {
+          setOfferValidityResult({
+              status: 0,
+              message: 'Please enter an offer code'
+          });
+          setShowOfferValidityPopup(true);
+          return;
+      }
+
+      setOfferValidityLoading(true);
+      setOfferValidityResult(null);
+
+      try {
+          const requestData = {
+              offer_code: formData.offerCode
+          };
+
+          const response = await apiClient.post("/vendor/offers_validity_check", requestData);
+          
+          if (response?.result?.status === 1) {
+              console.warn("Offer validity check successful");
+              setOfferValidityResult({
+                  status: 1,
+                  message: response.result.message,
+                  data: response.result.data
+              });
+          } else {
+              setOfferValidityResult({
+                  status: 0,
+                  message: response?.result?.message || 'Failed to check offer validity',
+                  error: response?.result?.error || 'Unknown error'
+              });
+          }
+          setShowOfferValidityPopup(true);
+      } catch (error) {
+          console.error("Failed to check offer validity:", error);
+          setOfferValidityResult({
+              status: 0,
+              message: 'Network error. Please try again.',
+              error: 'Network error'
+          });
+          setShowOfferValidityPopup(true);
+      } finally {
+          setOfferValidityLoading(false);
       }
   };
 
@@ -341,1065 +395,1045 @@ function TransactionsVendor() {
   return (
     <div  className='content-view'>
 
+        
         <div style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'row'
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'row'
+        }}>
+
+            <div style={{
+                width: '35%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '2px'
             }}>
-
-                <div style={{
-                  width: '35%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '2px'
-                }}>
-                    <DashboardBox>
-                        {/* Search bar and add button */}
-                        <div style={{
-                            width: '100%',
-                            height: '60px',
-                            display: 'flex',
-                            flexDirection: 'row',
-                            padding: '2px',
-                            borderBlock:'boxSizing'}}>
-
-                                <div style={{width: '100%',
-                                height: '60px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent:'center',
-                                justifyItems: 'center',
-                                paddingLeft:'10px',
-                                paddingRight:'10px'
-                                }}> 
-
-                                   <InputText 
-                                        type="name"
-                                        placeholder="Search Transaction"
-                                        name="search"
-                                        value={formData.search}
-                                        onChange={handleChange}
-                                    />
-
-                                </div>
-                        </div>
-
-
-                        <div className="user-list-scroll-container">
-                            {loading ? (
-                            <div className="loader-container">
-                                <div className="spinner" />
-                            </div>
-                            ) : (
-                            transactions.map((trItems, index) => (
-                              <div className="user-list-item-tr" key={index}>
-                                <DashboardBox>
-                                      <div className="user-list-item-tr-inside" onClick={() => handleLeadListClick(index)}>
-                                        
-                                            <div className="user-info-tr">
-                                                <DateWithIcon text={new Date(trItems.transaction_created_at).toLocaleDateString("en-US", {
-                                                    year: "numeric",
-                                                    month: "long",
-                                                    day: "numeric",
-                                                    })} >
-                                                </DateWithIcon>
-                                                <TextView type="subDarkBold" text={trItems.transaction_title}/>
-                                                <TextView type="subDark" text={trItems.vendor_name}/>
-                                            </div>
-
-                                            <div style={{height: '100%',display: 'flex',justifyContent: 'center',alignItems: 'center',paddingLeft:'10px',paddingRight:'10px',gap:'2px'}}>
-                                              <TextView type="darkBold" text={trItems.transaction_type === 1 ? trItems.transaction_cr : trItems.transaction_dr }/>
-                                              <TextView type="subDarkBold" text={trItems.transaction_type === 1 ? "Cr" : "Dr" } style={{color:trItems.transaction_type === 1 ? 'green' : 'red'}}/>
-                                            </div>
-                                            {selectedPosTr === index && (
-                                                 <div className='tr-list-selection-div'/>
-                                            )}
-                                            
-                                      </div>
-                                </DashboardBox>
-                              </div>
-                            ))
-                          )}
-                        </div>
-
-                    </DashboardBox>
-
-                </div>
-
-                <div style={{
-                  width: '30%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '2px'
-                }}>
-
-                    {/* Member point redeem view */}
+                <DashboardBox>
+                    {/* Search bar and add button */}
                     <div style={{
                         width: '100%',
-                        height: 'auto',
+                        height: '60px',
                         display: 'flex',
-                        flexDirection: 'column',
-                        padding: '5px'
+                        flexDirection: 'row',
+                        padding: '2px',
+                        borderBlock:'boxSizing'}}>
+
+                            <div style={{width: '100%',
+                            height: '60px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent:'center',
+                            justifyItems: 'center',
+                            paddingLeft:'10px',
+                            paddingRight:'10px'
+                            }}> 
+
+                                <InputText 
+                                    type="name"
+                                    placeholder="Search Transaction"
+                                    name="search"
+                                    value={formData.search}
+                                    onChange={handleChange}
+                                />
+
+                            </div>
+                    </div>
+
+
+                    <div className="user-list-scroll-container">
+                        {loading ? (
+                        <div className="loader-container">
+                            <div className="spinner" />
+                        </div>
+                        ) : (
+                        transactions.map((trItems, index) => (
+                            <div className="user-list-item-tr" key={index}>
+                            <DashboardBox>
+                                    <div className="user-list-item-tr-inside" onClick={() => handleLeadListClick(index)}>
+                                    
+                                        <div className="user-info-tr">
+                                            <DateWithIcon text={new Date(trItems.transaction_created_at).toLocaleDateString("en-US", {
+                                                year: "numeric",
+                                                month: "long",
+                                                day: "numeric",
+                                                })} >
+                                            </DateWithIcon>
+                                            <TextView type="subDarkBold" text={trItems.transaction_title}/>
+                                            <TextView type="subDark" text={trItems.vendor_name}/>
+                                        </div>
+
+                                        <div style={{height: '100%',display: 'flex',justifyContent: 'center',alignItems: 'center',paddingLeft:'10px',paddingRight:'10px',gap:'2px'}}>
+                                            <TextView type="darkBold" text={trItems.transaction_type === 1 ? trItems.transaction_cr : trItems.transaction_dr }/>
+                                            <TextView type="subDarkBold" text={trItems.transaction_type === 1 ? "Cr" : "Dr" } style={{color:trItems.transaction_type === 1 ? 'green' : 'red'}}/>
+                                        </div>
+                                        {selectedPosTr === index && (
+                                                <div className='tr-list-selection-div'/>
+                                        )}
+                                        
+                                    </div>
+                            </DashboardBox>
+                            </div>
+                        ))
+                        )}
+                    </div>
+
+                </DashboardBox>
+
+            </div>
+
+            <div style={{
+                width: '30%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '2px'
+            }}>
+
+                {/* Wallet detail view */}
+                <div style={{
+                    width: '100%',
+                    height: '55%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '2px'
+                    }}>
+                    <DashboardBox>
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            padding: '15px',
+                            gap: '10px'
                         }}>
-                        <DashboardBox>
                             <div style={{
-                                height: '100%',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '5px'
+                            }}>
+                                <TextView type="darkBold" text="Wallet" />
+                                <div style={{
+                                    padding: '4px 8px',
+                                    backgroundColor: '#e3f2fd',
+                                    borderRadius: '12px',
+                                    fontSize: '11px',
+                                    color: '#1976d2',
+                                    fontWeight: 'bold'
+                                }}>
+                                        {walletData?.card?.card_status === 1 ? 'Active' : 'Deactivated'}
+                                </div>
+                            </div>
+
+                            {/* Wallet Card */}
+                            {walletLoading ? (
+                                <div style={{
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    borderRadius: '12px',
+                                    padding: '15px',
+                                    color: 'white',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    height: '120px'
+                                }}>
+                                    <div className="spinner" style={{borderColor: 'white', borderTopColor: 'transparent'}}></div>
+                                </div>
+                            ) : walletData?.card ? (
+                                <div style={{
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    borderRadius: '12px',
+                                    padding: '15px',
+                                    color: 'white',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
+                                }}>
+                                    {/* Card Chip */}
+                                    <div style={{
+                                        width: '40px',
+                                        height: '30px',
+                                        backgroundColor: '#ffd700',
+                                        borderRadius: '4px',
+                                        marginBottom: '40px'
+
+                                    }}></div>
+
+                                    {/* Card Number */}
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        marginBottom: '20px',
+                                        gap: '10px'
+                                    }}>
+                                        <div style={{
+                                            fontSize: '16px',
+                                            letterSpacing: '2px',
+                                            fontFamily: 'monospace',
+                                            lineHeight: '1'
+                                        }}>
+                                            {showCardNumber ? formatCardNumber(walletData?.card?.card_no) : '**** **** **** ' + formatCardNumber(walletData?.card?.card_no?.slice(-4))}
+                                        </div>
+                                        <button 
+                                            onClick={toggleCardNumber}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                color: 'white',
+                                                cursor: 'pointer',
+                                                padding: '4px',
+                                                borderRadius: '50%',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                                transition: 'background-color 0.2s',
+                                                width: '24px',
+                                                height: '24px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                marginTop: '2px'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
+                                            onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                                        >
+                                            <FontAwesomeIcon 
+                                                icon={showCardNumber ? faEyeSlash : faEye} 
+                                                style={{fontSize: '10px'}}
+                                            />
+                                        </button>
+                                    </div>
+
+                                    {/* Card Details */}
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'flex-end'
+                                    }}>
+                                        <div>
+                                            <div style={{
+                                                fontSize: '10px',
+                                                opacity: '0.8',
+                                                marginBottom: '2px'
+                                            }}>
+                                                CARD TYPE
+                                            </div>
+                                            <div style={{
+                                                fontSize: '12px',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {walletData?.card?.card_type}
+                                            </div>
+                                        </div>
+                                        <div>
+                                        <div style={{
+                                            fontSize: '10px',
+                                            opacity: '0.8',
+                                            marginBottom: '2px'
+                                        }}>
+                                            EXPIRES
+                                        </div>
+                                        <div style={{
+                                            fontSize: '12px',
+                                            fontWeight: 'bold'
+                                        }}>
+                                            12/25
+                                        </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Decorative Elements */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '-20px',
+                                        right: '-20px',
+                                        width: '80px',
+                                        height: '80px',
+                                        borderRadius: '50%',
+                                        backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                                    }}></div>
+                                </div>
+                            ) : (
+                                <div style={{
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    borderRadius: '12px',
+                                    padding: '15px',
+                                    color: 'white',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    height: '120px'
+                                }}>
+                                    <div style={{textAlign: 'center'}}>
+                                        <div style={{fontSize: '14px', marginBottom: '5px'}}>No Card Available</div>
+                                        <div style={{fontSize: '12px', opacity: '0.8'}}>Contact support to get a card</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Balance and Top-up Section */}
+                            <div style={{
                                 display: 'flex',
                                 flexDirection: 'column',
-                                padding: '15px',
-                                gap: '15px'
+                                gap: '0px'
                             }}>
-                                {/* Header */}
                                 <div style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
-                                    marginBottom: '0px',
+                                    padding: '8px 0'
                                 }}>
-                                    <TextView type="darkBold" text="Member Point Check" />
+                                    <TextView type="subDark" text="Available Balance" />
+                                    <TextView type="darkBold" text={`${walletData?.balance_point || 0} Points`} style={{color: '#2e7d32'}} />
                                 </div>
 
-                                {/* Input Fields */}
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '8px',
+                                }}>
+                                    <button 
+                                        onClick={handleTopUpClick}
+                                        style={{
+                                            flex: 1,
+                                            padding: '8px 12px',
+                                            backgroundColor: '#ffd700',
+                                            color: 'black',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            fontSize: '12px',
+                                            fontWeight: 'bold',
+                                            cursor: 'pointer',
+                                            transition: 'background-color 0.2s',
+                                            marginTop:'0px'
+                                        }}
+                                        onMouseEnter={(e) => e.target.style.backgroundColor = '#ffed4e'}
+                                        onMouseLeave={(e) => e.target.style.backgroundColor = '#ffd700'}
+                                    >
+                                        Top Up
+                                    </button>
+                                    <button 
+                                        onClick={handleHistoryClick}
+                                        style={{
+                                            flex: 1,
+                                            padding: '8px 12px',
+                                            backgroundColor: 'transparent',
+                                            color: 'black',
+                                            border: '1px solid #ffd700',
+                                            borderRadius: '6px',
+                                            fontSize: '12px',
+                                            fontWeight: 'bold',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            marginTop:'0px'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.backgroundColor = '#ffd700';
+                                            e.target.style.color = 'black';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.backgroundColor = 'transparent';
+                                            e.target.style.color = 'black';
+                                        }}
+                                    >
+                                        History
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </DashboardBox>
+                </div>
+
+                <div style={{
+                    width: '100%',
+                    height: '45%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '5px',
+                    paddingBottom: '0px'
+                }}> 
+
+                    <DashboardBox>
+                        {/* Transaction Details Card */}
+                        <div style={{
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            padding: '20px',
+                            gap: '15px',
+                        }}>
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                borderBottom: '1px solid #e0e0e0',
+                                paddingBottom: '10px'
+                            }}>
+                                <TextView type="darkBold" text="Transaction Details" />
+                                <div style={{
+                                    padding: '6px 12px',
+                                    borderRadius: '20px',
+                                    backgroundColor: selectedTransaction?.transaction_type === 1 ? '#e8f5e8' : '#ffe8e8',
+                                    color: selectedTransaction?.transaction_type === 1 ? '#2e7d32' : '#d32f2f',
+                                    fontSize: '12px',
+                                    fontWeight: 'bold'
+                                }}>
+                                    {selectedTransaction?.transaction_type === 1 ? 'Credit' : 'Debit'}
+                                </div>
+                            </div>
+
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '12px'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="Transaction ID" />
+                                    <TextView type="darkBold" text={baseId + (selectedTransaction?.transaction_id || 'N/A')} />
+                                </div>
+
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="Amount" />
+                                    <TextView type="darkBold" text={`${selectedTransaction?.transaction_type === 1 ? selectedTransaction?.transaction_cr : selectedTransaction?.transaction_dr || '0'} Points`} />
+                                </div>
+
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="Date" />
+                                    <TextView type="darkBold" text={selectedTransaction?.transaction_created_at ? new Date(selectedTransaction.transaction_created_at).toLocaleDateString("en-US", {
+                                        year: "numeric",
+                                        month: "short",
+                                        day: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit"
+                                    }) : 'N/A'} />
+                                </div>
+                            
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="Description" />
+                                    <TextView type="darkBold" text={selectedTransaction?.transaction_title || 'N/A'} />
+                                </div>
+
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="Transaction Charge" />
+                                    <TextView type="darkBold" text={`${selectedTransaction?.transaction_charge || '0'} Points`} style={{color: '#f57c00'}} />
+                                </div>
+                            </div>
+
+                            
+                        </div>
+                    </DashboardBox>
+                
+                </div>
+
+                
+            </div>
+
+            <div style={{
+                width: '35%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '5px',
+                paddingBottom: '0px'
+            }}>
+
+                {/* Member detail view */}
+                <div style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '2px'
+                    }}>
+                    <DashboardBox>
+                        <div style={{
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            padding: '15px',
+                            gap: '15px'
+                        }}>
+                            {/* Header */}
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '30px'
+                            }}>
+                                <TextView type="darkBold" text="Member Details" />
+                                <div style={{
+                                    padding: '4px 12px',
+                                    backgroundColor: '#e8f5e8',
+                                    borderRadius: '20px',
+                                    fontSize: '11px',
+                                    color: '#2e7d32',
+                                    fontWeight: 'bold'
+                                }}>
+                                    Active Member
+                                </div>
+                            </div>
+
+                            {/* Member Profile Section */}
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '15px',
+                                padding: '0px',
+                                borderRadius: '12px',
+                                marginTop: '0px'
+                            }}>
+                                <div>
+                                    <img 
+                                        src={selectedTransaction?.member_image ? baseUrl+selectedTransaction?.member_image : "/dummy.jpg"} 
+                                        alt="Member" 
+                                        style={{
+                                            width: '80px',
+                                            height: '80px',
+                                            borderRadius: '50%',
+                                            objectFit: 'cover',
+                                            border: '3px solid #fff',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                                        }}
+                                    />
+                                </div>
+                                
+                                <div style={{
+                                    flex: 1
+                                }}>
+                                    <TextView type="darkBold" text={selectedTransaction?.member_name ?? "No member name"} style={{marginBottom: '4px'}} />
+                                    <TextView type="subDark" text={selectedTransaction?.member_email ?? "No member email"} style={{marginBottom: '8px'}} />
+                                    <div className="button-row" style={{justifyContent: 'flex-start'}}>
+                                        <button className="circle-btn-light">
+                                            <FontAwesomeIcon icon={faPhone} />
+                                        </button>
+                                        <button className="circle-btn-light">
+                                            <FontAwesomeIcon icon={faLocationDot} />
+                                        </button>
+                                        <button className="circle-btn-light">
+                                            <FontAwesomeIcon icon={faExchangeAlt} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </DashboardBox>
+                </div>
+
+                {/* Member point redeem view */}
+                <div style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '5px'
+                }}>
+                    <DashboardBox>
+                        <div style={{
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            padding: '15px',
+                            gap: '15px'
+                        }}>
+                            {/* Header */}
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '0px',
+                            }}>
+                                <TextView type="darkBold" text="Member Point & Offer Check" />
+                            </div>
+
+                            {/* Input Fields */}
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '15px',
+                                borderRadius: '8px',
+                            }}>
+                                {/* Card Number Input */}
                                 <div style={{
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: '0px',
-                                    borderRadius: '8px',
                                 }}>
-                                    {/* Card Number Input */}
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <TextView type="subDark" text="Card Number" />
+                                        {formData.cardNumber && (
+                                            <div style={{
+                                                fontSize: '11px',
+                                                color: validateCardNumber(formData.cardNumber) ? '#28a745' : '#dc3545'
+                                            }}>
+                                                {validateCardNumber(formData.cardNumber) ? '✓ Valid' : '✗ Invalid'}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div style={{
+                                        width: '100%',
+                                        height: '50px',
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        padding: '0px',
+                                        gap: '10px',
+                                        borderBlock:'boxSizing',
+                                        marginTop:'5px'
+                                    }}>
+
+                                        <div 
+                                            style={{
+                                                width: '100%',
+                                                height: '50px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent:'center',
+                                                justifyItems: 'center',
+                                                paddingLeft:'0px',
+                                                paddingRight:'0px',
+                                                marginTop:'0px'
+                                        }}> 
+
+                                            <InputText
+                                            type="text"
+                                            placeholder="Enter card number"
+                                            name="cardNumber"
+                                            value={formData.cardNumber || ''}
+                                            onChange={handleChange}/>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Offer Code Input */}
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0px',
+                                }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <TextView type="subDark" text="Offer Code" />
+                                    </div>
+
+                                    <div style={{
+                                        width: '100%',
+                                        height: '50px',
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        padding: '0px',
+                                        gap: '10px',
+                                        borderBlock:'boxSizing',
+                                        marginTop:'5px'
+                                    }}>
+
+                                        <div 
+                                            style={{
+                                                width: '100%',
+                                                height: '50px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent:'center',
+                                                justifyItems: 'center',
+                                                paddingLeft:'0px',
+                                                paddingRight:'0px',
+                                                marginTop:'0px'
+                                        }}> 
+
+                                            <InputText
+                                            type="text"
+                                            placeholder="Enter offer code"
+                                            name="offerCode"
+                                            value={formData.offerCode || ''}
+                                            onChange={handleChange}/>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '10px',
+                                    marginTop: '10px',
+                                    padding:'0px',
+                                    margin:'0px'
+                                }}>
+                                    <button
+                                        onClick={handleOfferValidityCheck}
+                                        disabled={!formData.offerCode || offerValidityLoading}
+                                        style={{
+                                            backgroundColor: formData.offerCode ? 'var(--highlight-color)' : '#e0e0e0',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '20px',
+                                            padding: '12px 24px',
+                                            fontSize: '14px',
+                                            fontWeight: 'bold',
+                                            cursor: formData.offerCode ? 'pointer' : 'not-allowed',
+                                            transition: 'all 0.3s ease',
+                                            flex: 1,
+                                            margin:'0px',
+                                            height:'40px',
+                                            marginTop:'5px'
+                                        }}
+                                    >
+                                        {offerValidityLoading ? 'Checking...' : 'Check Offer'}
+                                    </button>
+                                    <button
+                                        onClick={handleMemberPointCheck}
+                                        disabled={!formData.cardNumber || memberPointLoading}
+                                        style={{
+                                            backgroundColor: formData.cardNumber ? 'var(--highlight-color)' : '#e0e0e0',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '20px',
+                                            padding: '12px 24px',
+                                            fontSize: '14px',
+                                            fontWeight: 'bold',
+                                            cursor: formData.cardNumber ? 'pointer' : 'not-allowed',
+                                            transition: 'all 0.3s ease',
+                                            flex: 1,
+                                            margin:'0px',
+                                            height:'40px',
+                                            marginTop:'5px'
+                                        }}
+                                    >
+                                        {memberPointLoading ? 'Checking...' : 'Check Points'}
+                                    </button>
+                                </div>
+                                    
+                                
+                              
+                            </div>
+
+                            {/* Results Display */}
+                            {memberPointLoading && (
+                                <div style={{
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: '12px',
+                                    padding: '20px',
+                                    border: '1px solid #e9ecef',
+                                    textAlign: 'center'
+                                }}>
+                                    <div className="spinner" style={{
+                                        borderColor: 'var(--highlight-color)',
+                                        borderTopColor: 'transparent',
+                                        margin: '0 auto 10px auto'
+                                    }}></div>
+                                    <TextView type="subDark" text="Checking member points and offers..." />
+                                </div>
+                            )}
+                            
+                            {memberPointResult && !memberPointLoading && (
+                                <div style={{
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: '12px',
+                                    padding: '15px',
+                                    border: '1px solid #e9ecef'
+                                }}>
+                                    <TextView type="darkBold" text="Member Information" style={{marginBottom: '10px'}} />
+                                    
+                                    {/* Member Details */}
                                     <div style={{
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        gap: '0px',
+                                        gap: '8px',
+                                        marginBottom: '15px'
                                     }}>
                                         <div style={{
                                             display: 'flex',
                                             justifyContent: 'space-between',
                                             alignItems: 'center'
                                         }}>
-                                            <TextView type="subDark" text="Card Number or Offer Code" />
-                                            {formData.cardNumber && (
-                                                <div style={{
-                                                    fontSize: '11px',
-                                                    color: validateCardNumber(formData.cardNumber) ? '#28a745' : '#dc3545'
-                                                }}>
-                                                    {validateCardNumber(formData.cardNumber) ? '✓ Valid' : '✗ Invalid'}
-                                                </div>
-                                            )}
+                                            <TextView type="subDark" text="Member Name:" />
+                                            <TextView type="dark" text={memberPointResult.memberName || 'N/A'} />
                                         </div>
-
-                                        <div style={{
-                                            width: '100%',
-                                            height: '50px',
-                                            display: 'flex',
-                                            flexDirection: 'row',
-                                            padding: '0px',
-                                            gap: '10px',
-                                            borderBlock:'boxSizing',
-                                            marginTop:'5px'
-                                        }}>
-
-                                            <div 
-                                                style={{
-                                                    width: '100%',
-                                                    height: '50px',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    justifyContent:'center',
-                                                    justifyItems: 'center',
-                                                    paddingLeft:'0px',
-                                                    paddingRight:'0px',
-                                                    marginTop:'0px'
-                                            }}> 
-
-                                                <InputText
-                                                type="text"
-                                                placeholder="Enter card number or offer code"
-                                                name="cardNumber"
-                                                value={formData.cardNumber || ''}
-                                                onChange={handleChange}/>
-
-                                            </div>
-                                            {/* Action Buttons */}
-                                            <div style={{
-                                                display: 'flex',
-                                                gap: '10px',
-                                                marginTop: '0px',
-                                                padding:'0px',
-                                                margin:'0px'
-                                            }}>
-                                                <button
-                                                    onClick={handleMemberPointCheck}
-                                                    disabled={!formData.cardNumber || memberPointLoading}
-                                                    style={{
-                                                        backgroundColor: formData.cardNumber ? 'var(--highlight-color)' : '#e0e0e0',
-                                                        color: 'white',
-                                                        border: 'none',
-                                                        borderRadius: '20px',
-                                                        padding: '12px 24px',
-                                                        fontSize: '14px',
-                                                        fontWeight: 'bold',
-                                                        cursor: formData.cardNumber ? 'pointer' : 'not-allowed',
-                                                        transition: 'all 0.3s ease',
-                                                        flex: 1,
-                                                        margin:'0px',
-                                                        height:'40px',
-                                                        marginTop:'5px'
-                                                    }}
-                                                >
-                                                    {memberPointLoading ? 'Checking...' : 'Offer'}
-                                                </button>
-                                            </div>
-
-                                            {/* Action Buttons */}
-                                            <div style={{
-                                                display: 'flex',
-                                                gap: '10px',
-                                                marginTop: '0px',
-                                                padding:'0px',
-                                                margin:'0px'
-                                            }}>
-                                                <button
-                                                    onClick={handleMemberPointCheck}
-                                                    disabled={!formData.cardNumber || memberPointLoading}
-                                                    style={{
-                                                        backgroundColor: formData.cardNumber ? 'var(--highlight-color)' : '#e0e0e0',
-                                                        color: 'white',
-                                                        border: 'none',
-                                                        borderRadius: '20px',
-                                                        padding: '12px 24px',
-                                                        fontSize: '14px',
-                                                        fontWeight: 'bold',
-                                                        cursor: formData.cardNumber ? 'pointer' : 'not-allowed',
-                                                        transition: 'all 0.3s ease',
-                                                        flex: 1,
-                                                        margin:'0px',
-                                                        height:'40px',
-                                                        marginTop:'5px'
-                                                    }}
-                                                >
-                                                    {memberPointLoading ? 'Checking...' : 'Point'}
-                                                </button>
-                                            </div>
-
-                                        </div>
-
-                                        
-                                    
-                                    </div>
-
-                                    
-
-                                    
-                                </div>
-
-                                {/* Results Display */}
-                                {memberPointLoading && (
-                                    <div style={{
-                                        backgroundColor: '#f8f9fa',
-                                        borderRadius: '12px',
-                                        padding: '20px',
-                                        border: '1px solid #e9ecef',
-                                        textAlign: 'center'
-                                    }}>
-                                        <div className="spinner" style={{
-                                            borderColor: 'var(--highlight-color)',
-                                            borderTopColor: 'transparent',
-                                            margin: '0 auto 10px auto'
-                                        }}></div>
-                                        <TextView type="subDark" text="Checking member points and offers..." />
-                                    </div>
-                                )}
-                                
-                                {memberPointResult && !memberPointLoading && (
-                                    <div style={{
-                                        backgroundColor: '#f8f9fa',
-                                        borderRadius: '12px',
-                                        padding: '15px',
-                                        border: '1px solid #e9ecef'
-                                    }}>
-                                        <TextView type="darkBold" text="Member Information" style={{marginBottom: '10px'}} />
-                                        
-                                        {/* Member Details */}
-                                        <div style={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '8px',
-                                            marginBottom: '15px'
-                                        }}>
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center'
-                                            }}>
-                                                <TextView type="subDark" text="Member Name:" />
-                                                <TextView type="dark" text={memberPointResult.memberName || 'N/A'} />
-                                            </div>
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center'
-                                            }}>
-                                                <TextView type="subDark" text="Card Status:" />
-                                                <div style={{
-                                                    padding: '4px 8px',
-                                                    backgroundColor: memberPointResult.cardStatus === 'Active' ? '#d4edda' : '#f8d7da',
-                                                    borderRadius: '12px',
-                                                    fontSize: '11px',
-                                                    color: memberPointResult.cardStatus === 'Active' ? '#155724' : '#721c24',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    {memberPointResult.cardStatus || 'N/A'}
-                                                </div>
-                                            </div>
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center'
-                                            }}>
-                                                <TextView type="subDark" text="Available Points:" />
-                                                <TextView type="darkBold" text={memberPointResult.availablePoints || '0'} style={{color: '#28a745'}} />
-                                            </div>
-                                        </div>
-
-                                        {/* Redeem Points Button */}
-                                        {memberPointResult.availablePoints > 0 && (
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                marginTop: '15px'
-                                            }}>
-                                                <button
-                                                    onClick={openPointRedeemPopup}
-                                                    style={{
-                                                        backgroundColor: 'var(--highlight-color)',
-                                                        color: 'white',
-                                                        border: 'none',
-                                                        borderRadius: '20px',
-                                                        padding: '12px 24px',
-                                                        fontSize: '14px',
-                                                        fontWeight: 'bold',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.3s ease',
-                                                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-                                                    }}
-                                                >
-                                                    Redeem Points
-                                                </button>
-                                            </div>
-                                        )}
-
-                                        {/* Offer Information */}
-                                        {formData.offerCode && (
-                                            <div style={{
-                                                borderTop: '1px solid #dee2e6',
-                                                paddingTop: '15px'
-                                            }}>
-                                                <TextView type="darkBold" text="Offer Information" style={{marginBottom: '10px'}} />
-                                                <div style={{
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    gap: '8px'
-                                                }}>
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'center'
-                                                    }}>
-                                                        <TextView type="subDark" text="Offer Code:" />
-                                                        <TextView type="dark" text={memberPointResult.offerCode || 'N/A'} />
-                                                    </div>
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'center'
-                                                    }}>
-                                                        <TextView type="subDark" text="Offer Status:" />
-                                                        <div style={{
-                                                            padding: '4px 8px',
-                                                            backgroundColor: memberPointResult.offerValid ? '#d4edda' : '#f8d7da',
-                                                            borderRadius: '12px',
-                                                            fontSize: '11px',
-                                                            color: memberPointResult.offerValid ? '#155724' : '#721c24',
-                                                            fontWeight: 'bold'
-                                                        }}>
-                                                            {memberPointResult.offerValid ? 'Valid' : 'Invalid'}
-                                                        </div>
-                                                    </div>
-                                                    {memberPointResult.offerValid && (
-                                                        <div style={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center'
-                                                        }}>
-                                                            <TextView type="subDark" text="Discount:" />
-                                                            <TextView type="darkBold" text={memberPointResult.offerDiscount || 'N/A'} style={{color: '#28a745'}} />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Error Message */}
-                                {memberPointError && (
-                                    <div style={{
-                                        backgroundColor: '#f8d7da',
-                                        color: '#721c24',
-                                        borderRadius: '8px',
-                                        padding: '12px',
-                                        border: '1px solid #f5c6cb',
-                                        fontSize: '14px'
-                                    }}>
-                                        {memberPointError}
-                                    </div>
-                                )}
-                            </div>
-                        </DashboardBox>
-                    </div>
-                    
-
-                    {/* Wallet detail view */}
-                    <div style={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        padding: '2px'
-                        }}>
-                        <DashboardBox>
-                            <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                padding: '15px',
-                                gap: '10px'
-                            }}>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginBottom: '5px'
-                                }}>
-                                    <TextView type="darkBold" text="Wallet" />
-                                    <div style={{
-                                        padding: '4px 8px',
-                                        backgroundColor: '#e3f2fd',
-                                        borderRadius: '12px',
-                                        fontSize: '11px',
-                                        color: '#1976d2',
-                                        fontWeight: 'bold'
-                                    }}>
-                                         {walletData?.card?.card_status === 1 ? 'Active' : 'Deactivated'}
-                                    </div>
-                                </div>
-
-                                {/* Wallet Card */}
-                                {walletLoading ? (
-                                    <div style={{
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        borderRadius: '12px',
-                                        padding: '15px',
-                                        color: 'white',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        height: '120px'
-                                    }}>
-                                        <div className="spinner" style={{borderColor: 'white', borderTopColor: 'transparent'}}></div>
-                                    </div>
-                                ) : walletData?.card ? (
-                                    <div style={{
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        borderRadius: '12px',
-                                        padding: '15px',
-                                        color: 'white',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
-                                    }}>
-                                        {/* Card Chip */}
-                                        <div style={{
-                                            width: '40px',
-                                            height: '30px',
-                                            backgroundColor: '#ffd700',
-                                            borderRadius: '4px',
-                                            marginBottom: '40px'
-
-                                        }}></div>
-
-                                        {/* Card Number */}
-                                        <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            marginBottom: '20px',
-                                            gap: '10px'
-                                        }}>
-                                            <div style={{
-                                                fontSize: '16px',
-                                                letterSpacing: '2px',
-                                                fontFamily: 'monospace',
-                                                lineHeight: '1'
-                                            }}>
-                                                {showCardNumber ? formatCardNumber(walletData?.card?.card_no) : '**** **** **** ' + formatCardNumber(walletData?.card?.card_no?.slice(-4))}
-                                            </div>
-                                            <button 
-                                                onClick={toggleCardNumber}
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    color: 'white',
-                                                    cursor: 'pointer',
-                                                    padding: '4px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                                    transition: 'background-color 0.2s',
-                                                    width: '24px',
-                                                    height: '24px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    marginTop: '2px'
-                                                }}
-                                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
-                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
-                                            >
-                                                <FontAwesomeIcon 
-                                                    icon={showCardNumber ? faEyeSlash : faEye} 
-                                                    style={{fontSize: '10px'}}
-                                                />
-                                            </button>
-                                        </div>
-
-                                        {/* Card Details */}
                                         <div style={{
                                             display: 'flex',
                                             justifyContent: 'space-between',
-                                            alignItems: 'flex-end'
+                                            alignItems: 'center'
                                         }}>
-                                            <div>
-                                                <div style={{
-                                                    fontSize: '10px',
-                                                    opacity: '0.8',
-                                                    marginBottom: '2px'
-                                                }}>
-                                                    CARD TYPE
-                                                </div>
-                                                <div style={{
-                                                    fontSize: '12px',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    {walletData?.card?.card_type}
-                                                </div>
-                                            </div>
-                                            <div>
+                                            <TextView type="subDark" text="Card Status:" />
                                             <div style={{
-                                                fontSize: '10px',
-                                                opacity: '0.8',
-                                                marginBottom: '2px'
-                                            }}>
-                                                EXPIRES
-                                            </div>
-                                            <div style={{
-                                                fontSize: '12px',
+                                                padding: '4px 8px',
+                                                backgroundColor: memberPointResult.cardStatus === 'Active' ? '#d4edda' : '#f8d7da',
+                                                borderRadius: '12px',
+                                                fontSize: '11px',
+                                                color: memberPointResult.cardStatus === 'Active' ? '#155724' : '#721c24',
                                                 fontWeight: 'bold'
                                             }}>
-                                                12/25
-                                            </div>
+                                                {memberPointResult.cardStatus || 'N/A'}
                                             </div>
                                         </div>
-
-                                        {/* Decorative Elements */}
                                         <div style={{
-                                            position: 'absolute',
-                                            top: '-20px',
-                                            right: '-20px',
-                                            width: '80px',
-                                            height: '80px',
-                                            borderRadius: '50%',
-                                            backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                                        }}></div>
-                                    </div>
-                                ) : (
-                                    <div style={{
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        borderRadius: '12px',
-                                        padding: '15px',
-                                        color: 'white',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        height: '120px'
-                                    }}>
-                                        <div style={{textAlign: 'center'}}>
-                                            <div style={{fontSize: '14px', marginBottom: '5px'}}>No Card Available</div>
-                                            <div style={{fontSize: '12px', opacity: '0.8'}}>Contact support to get a card</div>
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                        }}>
+                                            <TextView type="subDark" text="Available Points:" />
+                                            <TextView type="darkBold" text={memberPointResult.availablePoints || '0'} style={{color: '#28a745'}} />
                                         </div>
                                     </div>
-                                )}
 
-                                {/* Balance and Top-up Section */}
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '8px'
-                                }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        padding: '8px 0'
-                                    }}>
-                                        <TextView type="subDark" text="Available Balance" />
-                                        <TextView type="darkBold" text={`${walletData?.balance_point || 0} Points`} style={{color: '#2e7d32'}} />
-                                    </div>
+                                    {/* Redeem Points Button */}
+                                    {memberPointResult.availablePoints > 0 && (
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            marginTop: '15px'
+                                        }}>
+                                            <button
+                                                onClick={openPointRedeemPopup}
+                                                style={{
+                                                    backgroundColor: 'var(--highlight-color)',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '20px',
+                                                    padding: '12px 24px',
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.3s ease',
+                                                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                                                }}
+                                            >
+                                                Redeem Points
+                                            </button>
+                                        </div>
+                                    )}
 
-                                    <div style={{
-                                        display: 'flex',
-                                        gap: '8px'
-                                    }}>
-                                        <button 
-                                            onClick={handleTopUpClick}
-                                            style={{
-                                                flex: 1,
-                                                padding: '8px 12px',
-                                                backgroundColor: '#ffd700',
-                                                color: 'black',
-                                                border: 'none',
-                                                borderRadius: '6px',
-                                                fontSize: '12px',
-                                                fontWeight: 'bold',
-                                                cursor: 'pointer',
-                                                transition: 'background-color 0.2s'
-                                            }}
-                                            onMouseEnter={(e) => e.target.style.backgroundColor = '#ffed4e'}
-                                            onMouseLeave={(e) => e.target.style.backgroundColor = '#ffd700'}
-                                        >
-                                            Top Up
-                                        </button>
-                                        <button 
-                                            onClick={handleHistoryClick}
-                                            style={{
-                                                flex: 1,
-                                                padding: '8px 12px',
-                                                backgroundColor: 'transparent',
-                                                color: 'black',
-                                                border: '1px solid #ffd700',
-                                                borderRadius: '6px',
-                                                fontSize: '12px',
-                                                fontWeight: 'bold',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.target.style.backgroundColor = '#ffd700';
-                                                e.target.style.color = 'black';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.target.style.backgroundColor = 'transparent';
-                                                e.target.style.color = 'black';
-                                            }}
-                                        >
-                                            History
-                                        </button>
-                                    </div>
+                                    {/* Offer Information */}
+                                    {formData.offerCode && (
+                                        <div style={{
+                                            borderTop: '1px solid #dee2e6',
+                                            paddingTop: '15px'
+                                        }}>
+                                            <TextView type="darkBold" text="Offer Information" style={{marginBottom: '10px'}} />
+                                            <div style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '8px'
+                                            }}>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center'
+                                                }}>
+                                                    <TextView type="subDark" text="Offer Code:" />
+                                                    <TextView type="dark" text={memberPointResult.offerCode || 'N/A'} />
+                                                </div>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center'
+                                                }}>
+                                                    <TextView type="subDark" text="Offer Status:" />
+                                                    <div style={{
+                                                        padding: '4px 8px',
+                                                        backgroundColor: memberPointResult.offerValid ? '#d4edda' : '#f8d7da',
+                                                        borderRadius: '12px',
+                                                        fontSize: '11px',
+                                                        color: memberPointResult.offerValid ? '#155724' : '#721c24',
+                                                        fontWeight: 'bold'
+                                                    }}>
+                                                        {memberPointResult.offerValid ? 'Valid' : 'Invalid'}
+                                                    </div>
+                                                </div>
+                                                {memberPointResult.offerValid && (
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center'
+                                                    }}>
+                                                        <TextView type="subDark" text="Discount:" />
+                                                        <TextView type="darkBold" text={memberPointResult.offerDiscount || 'N/A'} style={{color: '#28a745'}} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        </DashboardBox>
-                    </div>
+                            )}
 
-                    
+                            {/* Error Message */}
+                            {memberPointError && (
+                                <div style={{
+                                    backgroundColor: '#f8d7da',
+                                    color: '#721c24',
+                                    borderRadius: '8px',
+                                    padding: '12px',
+                                    border: '1px solid #f5c6cb',
+                                    fontSize: '14px'
+                                }}>
+                                    {memberPointError}
+                                </div>
+                            )}
+                        </div>
+                    </DashboardBox>
                 </div>
 
-                <div style={{
-                  width: '35%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '5px',
-                  paddingBottom: '0px'
-                }}>
 
-                    {/* Member detail view */}
+                {/* History View */}
+                {showHistoryView && (
                     <div style={{
-                        width: '100%',
-                        height: '35%',
+                        position: 'fixed',
+                        top: 0,
+                        right: 0,
+                        width: '400px',
+                        height: '100%',
+                        backgroundColor: 'white',
+                        boxShadow: '-5px 0 15px rgba(0,0,0,0.1)',
+                        zIndex: 1000,
                         display: 'flex',
-                        flexDirection: 'column',
-                        padding: '2px'
+                        flexDirection: 'column'
+                    }}>
+                        {/* Header */}
+                        <div style={{
+                            padding: '20px',
+                            borderBottom: '1px solid #e0e0e0',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
                         }}>
-                        <DashboardBox>
+                            <TextView type="darkBold" text="Transaction History" />
+                            <button 
+                                onClick={handleCloseHistory}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '20px',
+                                    cursor: 'pointer',
+                                    color: '#666'
+                                }}
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        {/* History Content */}
+                        <div style={{
+                            flex: 1,
+                            padding: '20px',
+                            overflowY: 'auto'
+                        }}>
                             <div style={{
-                                height: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                padding: '15px',
                                 gap: '15px'
                             }}>
-                                {/* Header */}
+                                {/* Sample History Items */}
                                 <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginBottom: '30px'
-                                }}>
-                                    <TextView type="darkBold" text="Member Details" />
-                                    <div style={{
-                                        padding: '4px 12px',
-                                        backgroundColor: '#e8f5e8',
-                                        borderRadius: '20px',
-                                        fontSize: '11px',
-                                        color: '#2e7d32',
-                                        fontWeight: 'bold'
-                                    }}>
-                                        Active Member
-                                    </div>
-                                </div>
-
-                                {/* Member Profile Section */}
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '15px',
-                                    padding: '0px',
-                                    borderRadius: '12px',
-                                    marginTop: '0px'
-                                }}>
-                                    <div>
-                                        <img 
-                                            src={selectedTransaction?.member_image ? baseUrl+selectedTransaction?.member_image : "/dummy.jpg"} 
-                                            alt="Member" 
-                                            style={{
-                                                width: '80px',
-                                                height: '80px',
-                                                borderRadius: '50%',
-                                                objectFit: 'cover',
-                                                border: '3px solid #fff',
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                                            }}
-                                        />
-                                    </div>
-                                    
-                                    <div style={{
-                                        flex: 1
-                                    }}>
-                                        <TextView type="darkBold" text={selectedTransaction?.member_name ?? "No member name"} style={{marginBottom: '4px'}} />
-                                        <TextView type="subDark" text={selectedTransaction?.member_email ?? "No member email"} style={{marginBottom: '8px'}} />
-                                        <div className="button-row" style={{justifyContent: 'flex-start'}}>
-                                            <button className="circle-btn-light">
-                                                <FontAwesomeIcon icon={faPhone} />
-                                            </button>
-                                            <button className="circle-btn-light">
-                                                <FontAwesomeIcon icon={faLocationDot} />
-                                            </button>
-                                            <button className="circle-btn-light">
-                                                <FontAwesomeIcon icon={faExchangeAlt} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </DashboardBox>
-                    </div>
-
-                    <div style={{
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      padding: '5px',
-                      paddingBottom: '0px'
-                    }}> 
-
-                        <DashboardBox>
-                            {/* Transaction Details Card */}
-                            <div style={{
-                                height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                padding: '20px',
-                                gap: '15px',
-                            }}>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    borderBottom: '1px solid #e0e0e0',
-                                    paddingBottom: '10px'
-                                }}>
-                                    <TextView type="darkBold" text="Transaction Details" />
-                                    <div style={{
-                                        padding: '6px 12px',
-                                        borderRadius: '20px',
-                                        backgroundColor: selectedTransaction?.transaction_type === 1 ? '#e8f5e8' : '#ffe8e8',
-                                        color: selectedTransaction?.transaction_type === 1 ? '#2e7d32' : '#d32f2f',
-                                        fontSize: '12px',
-                                        fontWeight: 'bold'
-                                    }}>
-                                        {selectedTransaction?.transaction_type === 1 ? 'Credit' : 'Debit'}
-                                    </div>
-                                </div>
-
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '12px'
-                                }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <TextView type="subDark" text="Transaction ID" />
-                                        <TextView type="darkBold" text={baseId + (selectedTransaction?.transaction_id || 'N/A')} />
-                                    </div>
-
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <TextView type="subDark" text="Amount" />
-                                        <TextView type="darkBold" text={`${selectedTransaction?.transaction_type === 1 ? selectedTransaction?.transaction_cr : selectedTransaction?.transaction_dr || '0'} Points`} />
-                                    </div>
-
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <TextView type="subDark" text="Date" />
-                                        <TextView type="darkBold" text={selectedTransaction?.transaction_created_at ? new Date(selectedTransaction.transaction_created_at).toLocaleDateString("en-US", {
-                                            year: "numeric",
-                                            month: "short",
-                                            day: "numeric",
-                                            hour: "2-digit",
-                                            minute: "2-digit"
-                                        }) : 'N/A'} />
-                                    </div>
-
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <TextView type="subDark" text="Member" />
-                                        <TextView type="darkBold" text={selectedTransaction?.member_name || 'N/A'} />
-                                    </div>
-
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <TextView type="subDark" text="Vendor" />
-                                        <TextView type="darkBold" text={selectedTransaction?.vendor_name || 'N/A'} />
-                                    </div>
-
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <TextView type="subDark" text="Description" />
-                                        <TextView type="darkBold" text={selectedTransaction?.transaction_title || 'N/A'} />
-                                    </div>
-
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <TextView type="subDark" text="Transaction Charge" />
-                                        <TextView type="darkBold" text={`${selectedTransaction?.transaction_charge || '0'} Points`} style={{color: '#f57c00'}} />
-                                    </div>
-                                </div>
-
-                                <div style={{
-                                    marginTop: '20px',
                                     padding: '15px',
                                     backgroundColor: '#f8f9fa',
                                     borderRadius: '8px',
                                     border: '1px solid #e9ecef'
                                 }}>
-                                    <TextView type="subDarkBold" text="Transaction Summary" style={{marginBottom: '10px'}} />
                                     <div style={{
                                         display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '8px'
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '8px'
                                     }}>
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between'
-                                        }}>
-                                            <TextView type="subDark" text="Type" />
-                                            <TextView type="darkBold" text={selectedTransaction?.transaction_type === 1 ? 'Credit Transaction' : 'Debit Transaction'} />
-                                        </div>
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between'
-                                        }}>
-                                            <div style={{
-                                                    fontSize: '10px',
-                                                    opacity: '0.8',
-                                                    marginBottom: '2px'
-                                                }}>
-                                                    EXPIRES
-                                                </div>
-                                                <div style={{
-                                                    fontSize: '12px',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    12/25
-                                                </div>
-                                        </div>
+                                        <TextView type="darkBold" text="Top Up" style={{fontSize: '14px'}} />
+                                        <TextView type="darkBold" text="+500 Points" style={{color: '#2e7d32', fontSize: '14px'}} />
                                     </div>
+                                    <TextView type="subDark" text="2024-01-15 14:30" style={{fontSize: '12px'}} />
                                 </div>
-                            </div>
-                        </DashboardBox>
-                    
-                    </div>
 
-                    
-                    
-
-                    {/* History View */}
-                    {showHistoryView && (
-                        <div style={{
-                            position: 'fixed',
-                            top: 0,
-                            right: 0,
-                            width: '400px',
-                            height: '100%',
-                            backgroundColor: 'white',
-                            boxShadow: '-5px 0 15px rgba(0,0,0,0.1)',
-                            zIndex: 1000,
-                            display: 'flex',
-                            flexDirection: 'column'
-                        }}>
-                            {/* Header */}
-                            <div style={{
-                                padding: '20px',
-                                borderBottom: '1px solid #e0e0e0',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
-                            }}>
-                                <TextView type="darkBold" text="Transaction History" />
-                                <button 
-                                    onClick={handleCloseHistory}
-                                    style={{
-                                        background: 'none',
-                                        border: 'none',
-                                        fontSize: '20px',
-                                        cursor: 'pointer',
-                                        color: '#666'
-                                    }}
-                                >
-                                    ×
-                                </button>
-                            </div>
-
-                            {/* History Content */}
-                            <div style={{
-                                flex: 1,
-                                padding: '20px',
-                                overflowY: 'auto'
-                            }}>
                                 <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '15px'
+                                    padding: '15px',
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e9ecef'
                                 }}>
-                                    {/* Sample History Items */}
                                     <div style={{
-                                        padding: '15px',
-                                        backgroundColor: '#f8f9fa',
-                                        borderRadius: '8px',
-                                        border: '1px solid #e9ecef'
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '8px'
                                     }}>
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            marginBottom: '8px'
-                                        }}>
-                                            <TextView type="darkBold" text="Top Up" style={{fontSize: '14px'}} />
-                                            <TextView type="darkBold" text="+500 Points" style={{color: '#2e7d32', fontSize: '14px'}} />
-                                        </div>
-                                        <TextView type="subDark" text="2024-01-15 14:30" style={{fontSize: '12px'}} />
+                                        <TextView type="darkBold" text="Purchase" style={{fontSize: '14px'}} />
+                                        <TextView type="darkBold" text="-200 Points" style={{color: '#d32f2f', fontSize: '14px'}} />
                                     </div>
+                                    <TextView type="subDark" text="2024-01-14 10:15" style={{fontSize: '12px'}} />
+                                </div>
 
+                                <div style={{
+                                    padding: '15px',
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e9ecef'
+                                }}>
                                     <div style={{
-                                        padding: '15px',
-                                        backgroundColor: '#f8f9fa',
-                                        borderRadius: '8px',
-                                        border: '1px solid #e9ecef'
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '8px'
                                     }}>
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            marginBottom: '8px'
-                                        }}>
-                                            <TextView type="darkBold" text="Purchase" style={{fontSize: '14px'}} />
-                                            <TextView type="darkBold" text="-200 Points" style={{color: '#d32f2f', fontSize: '14px'}} />
-                                        </div>
-                                        <TextView type="subDark" text="2024-01-14 10:15" style={{fontSize: '12px'}} />
+                                        <TextView type="darkBold" text="Top Up" style={{fontSize: '14px'}} />
+                                        <TextView type="darkBold" text="+1000 Points" style={{color: '#2e7d32', fontSize: '14px'}} />
                                     </div>
+                                    <TextView type="subDark" text="2024-01-10 09:45" style={{fontSize: '12px'}} />
+                                </div>
 
+                                <div style={{
+                                    padding: '15px',
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e9ecef'
+                                }}>
                                     <div style={{
-                                        padding: '15px',
-                                        backgroundColor: '#f8f9fa',
-                                        borderRadius: '8px',
-                                        border: '1px solid #e9ecef'
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '8px'
                                     }}>
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            marginBottom: '8px'
-                                        }}>
-                                            <TextView type="darkBold" text="Top Up" style={{fontSize: '14px'}} />
-                                            <TextView type="darkBold" text="+1000 Points" style={{color: '#2e7d32', fontSize: '14px'}} />
-                                        </div>
-                                        <TextView type="subDark" text="2024-01-10 09:45" style={{fontSize: '12px'}} />
+                                        <TextView type="darkBold" text="Reward" style={{fontSize: '14px'}} />
+                                        <TextView type="darkBold" text="+150 Points" style={{color: '#2e7d32', fontSize: '14px'}} />
                                     </div>
-
-                                    <div style={{
-                                        padding: '15px',
-                                        backgroundColor: '#f8f9fa',
-                                        borderRadius: '8px',
-                                        border: '1px solid #e9ecef'
-                                    }}>
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            marginBottom: '8px'
-                                        }}>
-                                            <TextView type="darkBold" text="Reward" style={{fontSize: '14px'}} />
-                                            <TextView type="darkBold" text="+150 Points" style={{color: '#2e7d32', fontSize: '14px'}} />
-                                        </div>
-                                        <TextView type="subDark" text="2024-01-08 16:20" style={{fontSize: '12px'}} />
-                                    </div>
+                                    <TextView type="subDark" text="2024-01-08 16:20" style={{fontSize: '12px'}} />
                                 </div>
                             </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
+            </div>
 
 
         </div>
+
+
 
         {/* Top Up Popup */}
         {showTopUpPopup && (
@@ -1653,22 +1687,7 @@ function TransactionsVendor() {
                         textAlign: 'center',
                         boxShadow: '0 4px 15px rgba(40, 167, 69, 0.3)'
                     }}>
-                        <div style={{
-                            width: '70px',
-                            height: '70px',
-                            borderRadius: '50%',
-                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            margin: '0 auto 20px',
-                            color: 'white',
-                            fontSize: '28px',
-                            fontWeight: 'bold',
-                            border: '3px solid rgba(255, 255, 255, 0.3)'
-                        }}>
-                            💰
-                        </div>
+                        
                         <TextView 
                             type="darkBold" 
                             text="Redeem Member Points" 
@@ -2024,7 +2043,168 @@ function TransactionsVendor() {
                 
             </SimplePopup>
         )}
+
+        {/* Offer Validity Check Popup */}
+        {showOfferValidityPopup && (
+            <SimplePopup
+                isOpen={showOfferValidityPopup}
+                onClose={() => setShowOfferValidityPopup(false)}
+                title={offerValidityResult?.status === 1 ? "Offer Valid" : "Offer Invalid"}
+                size="medium"
+            >
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px',
+                    padding: '20px'
+                }}>
+                    {/* Message */}
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '20px',
+                        backgroundColor: offerValidityResult?.status === 1 ? '#d4edda' : '#f8d7da',
+                        borderRadius: '12px',
+                        border: `1px solid ${offerValidityResult?.status === 1 ? '#c3e6cb' : '#f5c6cb'}`
+                    }}>
+                        <TextView 
+                            type="darkBold" 
+                            text={offerValidityResult?.message || 'Unknown response'} 
+                            style={{
+                                color: offerValidityResult?.status === 1 ? '#155724' : '#721c24',
+                                fontSize: '16px'
+                            }}
+                        />
+                    </div>
+
+                    {/* Offer Details - Only show if successful */}
+                    {offerValidityResult?.status === 1 && offerValidityResult?.data && (
+                        <div style={{
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '12px',
+                            padding: '20px',
+                            border: '1px solid #e9ecef'
+                        }}>
+                            <TextView type="darkBold" text="Offer Details" style={{marginBottom: '15px'}} />
+                            
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '12px'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="Offer Title:" />
+                                    <TextView type="dark" text={offerValidityResult.data.offer_title || 'N/A'} />
+                                </div>
+                                
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="Discount:" />
+                                    <TextView type="darkBold" text={`${offerValidityResult.data.discount || 'N/A'}%`} style={{color: '#28a745'}} />
+                                </div>
+                                
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="Discount Code:" />
+                                    <TextView type="dark" text={offerValidityResult.data.discount_code || 'N/A'} />
+                                </div>
+                                
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="Vendor:" />
+                                    <TextView type="dark" text={offerValidityResult.data.vendor_name || 'N/A'} />
+                                </div>
+                                
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="Start Date:" />
+                                    <TextView type="dark" text={new Date(offerValidityResult.data.start_date).toLocaleDateString() || 'N/A'} />
+                                </div>
+                                
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="End Date:" />
+                                    <TextView type="dark" text={new Date(offerValidityResult.data.end_date).toLocaleDateString() || 'N/A'} />
+                                </div>
+                                
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <TextView type="subDark" text="Member:" />
+                                    <TextView type="dark" text={offerValidityResult.data.member_name || 'N/A'} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Error Details - Only show if failed */}
+                    {offerValidityResult?.status === 0 && offerValidityResult?.error && (
+                        <div style={{
+                            backgroundColor: '#f8f7da',
+                            borderRadius: '12px',
+                            padding: '20px',
+                            border: '1px solid #f5f5c6'
+                        }}>
+                            <TextView type="darkBold" text="Error Details" style={{marginBottom: '15px'}} />
+                            <TextView type="dark" text={offerValidityResult.error} style={{color: '#856404'}} />
+                        </div>
+                    )}
+
+                    {/* Close Button */}
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        marginTop: '10px'
+                    }}>
+                        <button 
+                            onClick={() => setShowOfferValidityPopup(false)}
+                            style={{
+                                padding: '14px 28px',
+                                backgroundColor: 'var(--highlight-color)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '12px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                transition: 'all 0.3s ease',
+                                minWidth: '120px'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.transform = 'translateY(-2px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </SimplePopup>
+        )}
     </div>
+    
     
 )}
 

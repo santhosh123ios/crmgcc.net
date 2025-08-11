@@ -8,7 +8,7 @@ import FileUpload from "../services/FileUpload.js";
 import { getDashboard } from "../controllers/vendor/Reports.js";
 import { addVendorCategory } from "../controllers/vendor/Brand.js";
 import { addProduct, deleteProduct, getProduct, updateProductDetails, updateProductImage, updateProductStatus } from "../controllers/vendor/product.js";
-import { addOffers, deleteOffer, getOffers, updateOfferDetails, updateOfferImage, updateOfferStatus } from "../controllers/vendor/offers.js";
+import { addOffers, deleteOffer, getOffers, updateOfferDetails, updateOfferImage, updateOfferStatus, offers_validity_check, markOfferAsUsed } from "../controllers/vendor/offers.js";
 
 const router = express.Router()
 
@@ -47,6 +47,8 @@ router.post("/update_offer_status", vendorAuth, updateOfferStatus)
 router.post("/update_offer_image", vendorAuth, updateOfferImage)
 router.post("/update_offer_details", vendorAuth, updateOfferDetails)
 router.post("/delete_offer", vendorAuth, deleteOffer)
+router.post("/offers_validity_check", vendorAuth, offers_validity_check)
+router.post("/mark_offer_as_used", vendorAuth, markOfferAsUsed)
 
 router.post("/create_lead_message", vendorAuth, createLeadMessage)
 router.post("/get_lead_message", vendorAuth, getLeadMessage)

@@ -283,3 +283,221 @@ export const deleteOffer = (req, res) => {
         res.status(500).json({ status: 0, message: "Server error", error: err.message });
     }
 }
+
+export const offers_validity_check = async (req, res) => {
+    try {
+        const { offer_code } = req.body;
+        
+        // Validate required parameters
+        if (!offer_code) {
+            return res.status(400).json({
+                status: 0,
+                message: "offer_code is required",
+                error: "Missing required parameter"
+            });
+        }
+
+        // Import encryptionHelper dynamically since it's not imported at the top
+        const encryptionHelper = (await import("../../utils/encryptionHelper.js")).default;
+
+        // Decrypt the offer code to get offer_id and user_id
+        let decryptedData;
+        try {
+            decryptedData = encryptionHelper.decryptReversibleOfferCode(offer_code);
+        } catch (decryptError) {
+            return res.status(400).json({
+                status: 0,
+                message: "Invalid offer code",
+                error: decryptError.message
+            });
+        }
+
+        const { offer_id, user_id } = decryptedData;
+
+        // Check if the offer exists and belongs to the current vendor
+        const current_vendor_id = req.user?.id;
+        const checkOfferQuery = `
+            SELECT o.*, v.name as vendor_name, m.name as member_name 
+            FROM offers o 
+            JOIN users v ON o.vendor_id = v.id 
+            JOIN users m ON m.id = ?
+            WHERE o.id = ? 
+            AND o.vendor_id = ?
+            AND o.status = '1' 
+            AND (o.end_date IS NULL OR o.end_date > NOW())
+            AND (o.start_date IS NULL OR o.start_date <= NOW())
+        `;
+
+        executeQuery({
+            query: checkOfferQuery,
+            data: [user_id, offer_id, current_vendor_id],
+            callback: (err, offerData) => {
+                if (err) {
+                    return res.status(500).json({
+                        status: 0,
+                        message: "Database error",
+                        error: err.message
+                    });
+                }
+
+                if (!offerData || offerData.length === 0) {
+                    return res.status(400).json({
+                        status: 0,
+                        message: "Invalid or expired offer",
+                        error: "Offer not found, inactive, expired, or doesn't belong to this vendor"
+                    });
+                }
+
+                const offer = offerData[0];
+
+                // Check if this offer has already been used by this user
+                const checkUsageQuery = `
+                    SELECT * FROM offer_redeem 
+                    WHERE offer_id = ? AND user_id = ? AND redeem_status = '1'
+                `;
+
+                executeQuery({
+                    query: checkUsageQuery,
+                    data: [offer_id, user_id],
+                    callback: (usageErr, usageData) => {
+                        if (usageErr) {
+                            return res.status(500).json({
+                                status: 0,
+                                message: "Database error checking offer usage",
+                                error: usageErr.message
+                            });
+                        }
+
+                        if (usageData && usageData.length > 0) {
+                            return res.status(400).json({
+                                status: 0,
+                                message: "This offer has already been used",
+                                error: "Offer cannot be used again by the same user"
+                            });
+                        }
+
+                        // Offer is valid and hasn't been used yet
+                        const result = {
+                            message: "Offer code is valid",
+                            status: 1,
+                            data: {
+                                offer_id: offer.id,
+                                user_id: user_id,
+                                member_name: offer.member_name,
+                                offer_title: offer.title,
+                                offer_description: offer.description,
+                                discount: offer.discount,
+                                discount_code: offer.discount_code,
+                                vendor_name: offer.vendor_name,
+                                start_date: offer.start_date,
+                                end_date: offer.end_date,
+                                is_valid: true
+                            }
+                        };
+
+                        return res.status(200).json({ error: [], result });
+                    }
+                });
+            }
+        });
+
+    } catch (err) {
+        console.error("Offer validity check error:", err);
+        res.status(500).json({ 
+            status: 0, 
+            message: "Server error", 
+            error: err.message 
+        });
+    }
+}
+
+export const markOfferAsUsed = (req, res) => {
+    try {
+        const { offer_id, user_id, notes } = req.body;
+        const current_vendor_id = req.user?.id;
+        
+        // Validate required parameters
+        if (!offer_id || !user_id) {
+            return res.status(400).json({
+                status: 0,
+                message: "offer_id and user_id are required",
+                error: "Missing required parameters"
+            });
+        }
+
+        // Check if offer is already marked as used
+        const checkExistingQuery = `
+            SELECT * FROM offer_redeem 
+            WHERE offer_id = ? AND user_id = ? AND redeem_status = '1'
+        `;
+
+        executeQuery({
+            query: checkExistingQuery,
+            data: [offer_id, user_id],
+            callback: (checkErr, checkData) => {
+                if (checkErr) {
+                    return res.status(500).json({
+                        status: 0,
+                        message: "Database error checking existing usage",
+                        error: checkErr.message
+                    });
+                }
+
+                if (checkData && checkData.length > 0) {
+                    return res.status(400).json({
+                        status: 0,
+                        message: "This offer has already been marked as used",
+                        error: "Offer cannot be used again"
+                    });
+                }
+
+                // Insert or update the offer_redeem record
+                const insertQuery = `
+                    INSERT INTO offer_redeem (offer_id, user_id, vendor_id, redeem_status, notes) 
+                    VALUES (?, ?, ?, 'used', ?)
+                    ON DUPLICATE KEY UPDATE 
+                    redeem_status = 'used', 
+                    notes = ?, 
+                    updated_at = NOW()
+                `;
+
+                executeQuery({
+                    query: insertQuery,
+                    data: [offer_id, user_id, current_vendor_id, notes || '', notes || ''],
+                    callback: (insertErr, insertData) => {
+                        if (insertErr) {
+                            return res.status(500).json({
+                                status: 0,
+                                message: "Database error marking offer as used",
+                                error: insertErr.message
+                            });
+                        }
+
+                        const result = {
+                            message: "Offer marked as used successfully",
+                            status: 1,
+                            data: {
+                                offer_id: offer_id,
+                                user_id: user_id,
+                                vendor_id: current_vendor_id,
+                                redeem_status: 'used',
+                                notes: notes || ''
+                            }
+                        };
+
+                        return res.status(200).json({ error: [], result });
+                    }
+                });
+            }
+        });
+
+    } catch (err) {
+        console.error("Mark offer as used error:", err);
+        res.status(500).json({ 
+            status: 0, 
+            message: "Server error", 
+            error: err.message 
+        });
+    }
+}
+

@@ -5,7 +5,7 @@ import FileUpload from "../services/FileUpload.js";
 import { addRedeem, getRedeem, getTransaction, getTransactionSettings, getWalletDetails } from "../controllers/member/Transaction.js";
 import { createComplaint, createComplaintMessage, getComplaintMessage, getComplaints } from "../controllers/member/Complaints.js";
 import { getProfile, updateProfile, updateProfileImage } from "../controllers/member/Profile.js";
-import { getAllOffers } from "../controllers/member/offers.js";
+import { getAllOffers, generateOfferCode, offers_validity_check, markOfferAsUsed } from "../controllers/member/offers.js";
 import { getAllProduct } from "../controllers/member/product.js";
 
 
@@ -31,6 +31,9 @@ router.post("/update_profile_image", memberAuth, updateProfileImage)
 router.get("/get_profile", memberAuth, getProfile)
 router.post("/update_profile", memberAuth, updateProfile)
 router.get("/get_all_offers", memberAuth, getAllOffers)
+router.post("/generate_offer_code", memberAuth, generateOfferCode)
+router.post("/offers_validity_check", memberAuth, offers_validity_check)
+router.post("/mark_offer_as_used", memberAuth, markOfferAsUsed)
 router.get("/get_all_product", memberAuth, getAllProduct)
 
 router.post("/create_lead_message", memberAuth, createLeadMessage)
