@@ -25,8 +25,7 @@ function TransactionsVendor() {
   const [selectedPosTr, setselectedPosTr] = useState(0);
   const [formData, setFormData] = useState({
         search: "",
-        cardNumber: "",
-        offerCode: ""
+        cardNumber: ""
   });
   const [showTopUpPopup, setShowTopUpPopup] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
@@ -138,7 +137,10 @@ function TransactionsVendor() {
           return;
       }
 
-      if (!validateCardNumber(formData.cardNumber)) {
+      // Check if the input looks like a card number (numeric) or offer code
+      const isCardNumber = /^\d+$/.test(formData.cardNumber);
+      
+      if (isCardNumber && !validateCardNumber(formData.cardNumber)) {
           setMemberPointError('Please enter a valid card number (8-19 digits)');
           return;
       }
@@ -160,7 +162,7 @@ function TransactionsVendor() {
                   memberName: response.result.data.member_name,
                   cardStatus: response.result.data.card_status === 1 ? 'Active' : 'Deactivated',
                   availablePoints: response.result.data.available_points,
-                  offerCode: formData.offerCode,
+                  offerCode: formData.cardNumber,
                   offerValid: response.result.data.offer_valid || false,
                   offerDiscount: response.result.data.offer_discount || null
               });
@@ -177,10 +179,10 @@ function TransactionsVendor() {
 
   // Offer Validity Check API
   const handleOfferValidityCheck = async () => {
-      if (!formData.offerCode) {
+      if (!formData.cardNumber) {
           setOfferValidityResult({
               status: 0,
-              message: 'Please enter an offer code'
+              message: 'Please enter a card number or offer code'
           });
           setShowOfferValidityPopup(true);
           return;
@@ -190,8 +192,10 @@ function TransactionsVendor() {
       setOfferValidityResult(null);
 
       try {
+          // Check if the input looks like an offer code (non-numeric or specific format)
+          // For now, we'll assume any input can be an offer code
           const requestData = {
-              offer_code: formData.offerCode
+              offer_code: formData.cardNumber
           };
 
           const response = await apiClient.post("/vendor/offers_validity_check", requestData);
@@ -945,7 +949,7 @@ function TransactionsVendor() {
                 {/* Member point redeem view */}
                 <div style={{
                     width: '100%',
-                    height: 'auto',
+                    height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '5px'
@@ -968,6 +972,8 @@ function TransactionsVendor() {
                                 <TextView type="darkBold" text="Member Point & Offer Check" />
                             </div>
 
+
+
                             {/* Input Fields */}
                             <div style={{
                                 display: 'flex',
@@ -975,7 +981,7 @@ function TransactionsVendor() {
                                 gap: '15px',
                                 borderRadius: '8px',
                             }}>
-                                {/* Card Number Input */}
+                                {/* Combined Input Field */}
                                 <div style={{
                                     display: 'flex',
                                     flexDirection: 'column',
@@ -986,7 +992,7 @@ function TransactionsVendor() {
                                         justifyContent: 'space-between',
                                         alignItems: 'center'
                                     }}>
-                                        <TextView type="subDark" text="Card Number" />
+                                        <TextView type="subDark" text="Card Number or Offer Code" />
                                         {formData.cardNumber && (
                                             <div style={{
                                                 fontSize: '11px',
@@ -1002,136 +1008,89 @@ function TransactionsVendor() {
                                         height: '50px',
                                         display: 'flex',
                                         flexDirection: 'row',
-                                        padding: '0px',
-                                        gap: '10px',
+                                        padding: '2px',
                                         borderBlock:'boxSizing',
-                                        marginTop:'5px'
-                                    }}>
+                                        gap: '10px'
+                                        }}>
 
-                                        <div 
-                                            style={{
-                                                width: '100%',
-                                                height: '50px',
+                                            <div style={{width: '100%',
+                                            height: '50px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent:'center',
+                                            justifyItems: 'center',
+                                            paddingLeft:'0px',
+                                            paddingRight:'0px'
+                                            }}> 
+
+                                    <InputText
+                                        type="text"
+                                        placeholder="Enter card number or offer code"
+                                        name="cardNumber"
+                                        value={formData.cardNumber || ''}
+                                        onChange={handleChange}
+                                    />
+
+                                            </div>
+
+                                            {/* Action Buttons - Same Line */}
+                                            <div style={{
                                                 display: 'flex',
-                                                flexDirection: 'column',
-                                                justifyContent:'center',
-                                                justifyItems: 'center',
-                                                paddingLeft:'0px',
-                                                paddingRight:'0px',
-                                                marginTop:'0px'
-                                        }}> 
+                                                gap: '10px',
+                                                marginTop: '5px',
+                                                padding:'0px',
+                                                margin:'0px'
+                                            }}>
+                                                <button
+                                                    onClick={handleOfferValidityCheck}
+                                                    disabled={!formData.cardNumber || offerValidityLoading}
+                                                    style={{
+                                                        backgroundColor: formData.cardNumber ? 'var(--highlight-color)' : '#e0e0e0',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '20px',
+                                                        padding: '12px 24px',
+                                                        fontSize: '14px',
+                                                        fontWeight: 'bold',
+                                                        cursor: formData.cardNumber ? 'pointer' : 'not-allowed',
+                                                        transition: 'all 0.3s ease',
+                                                        flex: 1,
+                                                        margin:'0px',
+                                                        height:'40px',
+                                                        marginTop:'0px'
+                                                    }}
+                                                >
+                                                    {offerValidityLoading ? 'Checking...' : 'Offer'}
+                                                </button>
+                                                <button
+                                                    onClick={handleMemberPointCheck}
+                                                    disabled={!formData.cardNumber || memberPointLoading}
+                                                    style={{
+                                                        backgroundColor: formData.cardNumber ? 'var(--highlight-color)' : '#e0e0e0',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '20px',
+                                                        padding: '12px 24px',
+                                                        fontSize: '14px',
+                                                        fontWeight: 'bold',
+                                                        cursor: formData.cardNumber ? 'pointer' : 'not-allowed',
+                                                        transition: 'all 0.3s ease',
+                                                        flex: 1,
+                                                        margin:'0px',
+                                                        height:'40px',
+                                                        marginTop:'0px'
+                                                    }}
+                                                >
+                                                    {memberPointLoading ? 'Checking...' : 'Points'}
+                                                </button>
+                                            </div>
 
-                                            <InputText
-                                            type="text"
-                                            placeholder="Enter card number"
-                                            name="cardNumber"
-                                            value={formData.cardNumber || ''}
-                                            onChange={handleChange}/>
-
-                                        </div>
                                     </div>
+
+                                    
                                 </div>
 
-                                {/* Offer Code Input */}
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '0px',
-                                }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <TextView type="subDark" text="Offer Code" />
-                                    </div>
-
-                                    <div style={{
-                                        width: '100%',
-                                        height: '50px',
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        padding: '0px',
-                                        gap: '10px',
-                                        borderBlock:'boxSizing',
-                                        marginTop:'5px'
-                                    }}>
-
-                                        <div 
-                                            style={{
-                                                width: '100%',
-                                                height: '50px',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                justifyContent:'center',
-                                                justifyItems: 'center',
-                                                paddingLeft:'0px',
-                                                paddingRight:'0px',
-                                                marginTop:'0px'
-                                        }}> 
-
-                                            <InputText
-                                            type="text"
-                                            placeholder="Enter offer code"
-                                            name="offerCode"
-                                            value={formData.offerCode || ''}
-                                            onChange={handleChange}/>
-
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div style={{
-                                    display: 'flex',
-                                    gap: '10px',
-                                    marginTop: '10px',
-                                    padding:'0px',
-                                    margin:'0px'
-                                }}>
-                                    <button
-                                        onClick={handleOfferValidityCheck}
-                                        disabled={!formData.offerCode || offerValidityLoading}
-                                        style={{
-                                            backgroundColor: formData.offerCode ? 'var(--highlight-color)' : '#e0e0e0',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '20px',
-                                            padding: '12px 24px',
-                                            fontSize: '14px',
-                                            fontWeight: 'bold',
-                                            cursor: formData.offerCode ? 'pointer' : 'not-allowed',
-                                            transition: 'all 0.3s ease',
-                                            flex: 1,
-                                            margin:'0px',
-                                            height:'40px',
-                                            marginTop:'5px'
-                                        }}
-                                    >
-                                        {offerValidityLoading ? 'Checking...' : 'Check Offer'}
-                                    </button>
-                                    <button
-                                        onClick={handleMemberPointCheck}
-                                        disabled={!formData.cardNumber || memberPointLoading}
-                                        style={{
-                                            backgroundColor: formData.cardNumber ? 'var(--highlight-color)' : '#e0e0e0',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '20px',
-                                            padding: '12px 24px',
-                                            fontSize: '14px',
-                                            fontWeight: 'bold',
-                                            cursor: formData.cardNumber ? 'pointer' : 'not-allowed',
-                                            transition: 'all 0.3s ease',
-                                            flex: 1,
-                                            margin:'0px',
-                                            height:'40px',
-                                            marginTop:'5px'
-                                        }}
-                                    >
-                                        {memberPointLoading ? 'Checking...' : 'Check Points'}
-                                    </button>
-                                </div>
+                                
                                     
                                 
                               
@@ -1233,56 +1192,7 @@ function TransactionsVendor() {
                                         </div>
                                     )}
 
-                                    {/* Offer Information */}
-                                    {formData.offerCode && (
-                                        <div style={{
-                                            borderTop: '1px solid #dee2e6',
-                                            paddingTop: '15px'
-                                        }}>
-                                            <TextView type="darkBold" text="Offer Information" style={{marginBottom: '10px'}} />
-                                            <div style={{
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: '8px'
-                                            }}>
-                                                <div style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center'
-                                                }}>
-                                                    <TextView type="subDark" text="Offer Code:" />
-                                                    <TextView type="dark" text={memberPointResult.offerCode || 'N/A'} />
-                                                </div>
-                                                <div style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center'
-                                                }}>
-                                                    <TextView type="subDark" text="Offer Status:" />
-                                                    <div style={{
-                                                        padding: '4px 8px',
-                                                        backgroundColor: memberPointResult.offerValid ? '#d4edda' : '#f8d7da',
-                                                        borderRadius: '12px',
-                                                        fontSize: '11px',
-                                                        color: memberPointResult.offerValid ? '#155724' : '#721c24',
-                                                        fontWeight: 'bold'
-                                                    }}>
-                                                        {memberPointResult.offerValid ? 'Valid' : 'Invalid'}
-                                                    </div>
-                                                </div>
-                                                {memberPointResult.offerValid && (
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'center'
-                                                    }}>
-                                                        <TextView type="subDark" text="Discount:" />
-                                                        <TextView type="darkBold" text={memberPointResult.offerDiscount || 'N/A'} style={{color: '#28a745'}} />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
+                                    
                                 </div>
                             )}
 
