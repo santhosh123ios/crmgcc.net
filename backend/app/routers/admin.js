@@ -10,6 +10,7 @@ import { updateUserStatus } from "../controllers/admin/Users.js";
 import { complaintsStatusUpdate, createComplaintMessage, getComplaintMessage, getComplaints } from "../controllers/admin/Complaints.js";
 import { getDashboard } from "../controllers/admin/Reports.js";
 import { createCategory, editCategory, getCategorys, updateCategory } from "../controllers/admin/category.js";
+import { getAllOffers, getAllProduct, updateOfferStatus, updateProductStatus } from "../controllers/admin/product.js";
 
 const router = express.Router()
 
@@ -52,6 +53,12 @@ router.post("/get_lead_message", adminAuth, getLeadMessage)
 
 router.post("/create_complaint_message", adminAuth, createComplaintMessage)
 router.post("/get_complaint_message", adminAuth, getComplaintMessage)
+
+router.get("/get_all_product", adminAuth, getAllProduct)
+router.get("/get_all_offers", adminAuth, getAllOffers)
+router.post("/update_offer_status", adminAuth, updateOfferStatus)
+router.post("/update_product_status", adminAuth, updateProductStatus)
+
 
 
 router.post('/upload', adminAuth, FileUpload.single('file'), (req, res) => {

@@ -328,7 +328,7 @@ function VendorPage() {
                             <DashboardBox>
                                 <div className="comp-item-inside">
                                     {/* Tab Bar */}
-                                    <div className="vendor-tab-bar">
+                                    <div className="vendor-tab-bar-member">
                                         <button 
                                             className={`vendor-tab ${activeTab === 'offers' ? 'active' : ''}`}
                                             onClick={() => handleTabClick('offers')}

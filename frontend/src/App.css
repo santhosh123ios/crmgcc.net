@@ -2865,6 +2865,19 @@ hr {
   width: 100%;
 }
 
+.vendor-tab-bar-member {
+  display: flex;
+  margin-bottom: 0px;
+  background-color: #fff;
+  border-radius: 25px;
+  overflow: hidden;
+  width: fit-content;
+  justify-content: flex-start;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
 .vendor-tab {
   display: flex;
   align-items: center;

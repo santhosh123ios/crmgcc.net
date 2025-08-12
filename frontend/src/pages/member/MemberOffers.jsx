@@ -2,12 +2,8 @@ import React,{useEffect,useState} from 'react'
 import DashboardBox from '../../componants/Main/DashboardBox'
 import apiClient from '../../utils/ApiClient';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import InputText from '../../componants/Main/InputText';
 import TextView from '../../componants/Main/TextView';
 import SimplePopup from '../../componants/Main/SimplePopup';
-import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
-import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
-import { faPhone } from '@fortawesome/free-solid-svg-icons';
 import { faGift, faBox, faCopy } from '@fortawesome/free-solid-svg-icons';
 import { QRCodeCanvas } from "qrcode.react";
 
@@ -285,7 +281,7 @@ function MemberOffers() {
                             <DashboardBox>
                                 <div className="comp-item-inside">
                                     {/* Tab Bar */}
-                                    <div className="vendor-tab-bar">
+                                    <div className="vendor-tab-bar-member">
                                         <button 
                                             className={`vendor-tab ${activeTab === 'offers' ? 'active' : ''}`}
                                             onClick={() => handleTabClick('offers')}
