@@ -13,7 +13,7 @@ The `offer_redeem` table has been created with the following structure:
 | `user_id` | int(11) | Foreign key to users table (member) |
 | `vendor_id` | int(11) | Foreign key to users table (vendor) |
 | `redeemed_at` | timestamp | When the offer was redeemed |
-| `redeem_status` | enum | Status: 'active', 'used', 'expired', 'cancelled' |
+| `redeem_status` | enum | Status: '0'=active, '1'=used, '2'=expired, '3'=cancelled |
 | `notes` | text | Optional notes about the redemption |
 | `created_at` | timestamp | Record creation timestamp |
 | `updated_at` | timestamp | Last update timestamp |

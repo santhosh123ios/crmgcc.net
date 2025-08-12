@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS `offer_redeem` (
   `offer_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `redeemed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `redeem_status` enum('active','used','expired','cancelled') NOT NULL DEFAULT 'active',
+  `redeem_status` enum('0','1','2','3') NOT NULL DEFAULT '0' COMMENT '0=active, 1=used, 2=expired, 3=cancelled',
   `vendor_id` int(11) NOT NULL,
   `notes` text,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -56,6 +56,12 @@ function TransactionsVendor() {
   const [redeemError, setRedeemError] = useState('');
   const [redeemSuccess, setRedeemSuccess] = useState(false);
 
+  // PIN Popup states
+  const [showPinPopup, setShowPinPopup] = useState(false);
+  const [pinCode, setPinCode] = useState('');
+  const [pinLoading, setPinLoading] = useState(false);
+  const [pinError, setPinError] = useState('');
+
   // Helper function to format card number with 4-digit separation
   const formatCardNumber = (cardNumber) => {
     if (!cardNumber) return '';
@@ -72,11 +78,83 @@ function TransactionsVendor() {
     return /^\d{8,19}$/.test(cleanNumber); // Most card numbers are 8-19 digits
   };
 
+  // PIN submission handler
+  const handlePinSubmit = async () => {
+    if (pinCode.length !== 4) {
+      setPinError('Please enter a 4-digit PIN');
+      return;
+    }
+
+    setPinLoading(true);
+    setPinError('');
+
+    try {
+      // Call the mark_offer_as_used API
+      const response = await apiClient.post("/vendor/mark_offer_as_used", {
+        offer_id: offerValidityResult?.data?.offer_id,
+        user_id: offerValidityResult?.data?.member_id || offerValidityResult?.data?.user_id,
+        notes: `Offer applied via PIN verification on ${new Date().toLocaleString()}`
+      });
+
+      if (response?.result?.status === 1) {
+        // API call successful
+        setPinLoading(false);
+        setShowPinPopup(false);
+        setPinCode('');
+        
+        // Show success message
+        setResponseMessage('PIN verified successfully! Offer marked as used.');
+        setResponseType('success');
+        setShowResponsePopup(true);
+        
+        // Close the offer validity popup as well
+        setShowOfferValidityPopup(false);
+      } else {
+        // API call failed
+        setPinLoading(false);
+        setPinError(response?.result?.message || 'Failed to mark offer as used. Please try again.');
+      }
+      
+    } catch (error) {
+      setPinLoading(false);
+      setPinError('Network error. Please check your connection and try again.');
+      console.error('Error calling mark_offer_as_used API:', error);
+    }
+  };
+
+  // Handle Apply button click
+  const handleApplyOffer = () => {
+    setShowPinPopup(true);
+    setPinCode('');
+    setPinError('');
+  };
+
   useEffect(() => {
     fetchTransaction();
     fetchTransactionSettings();
     fetchWalletData();
   },[]);
+
+  // Spinner animation effect
+  useEffect(() => {
+    let spinnerInterval;
+    if (pinLoading) {
+      let rotation = 0;
+      spinnerInterval = setInterval(() => {
+        rotation += 30;
+        const spinnerElement = document.querySelector('.pin-spinner');
+        if (spinnerElement) {
+          spinnerElement.style.transform = `rotate(${rotation}deg)`;
+        }
+      }, 100);
+    }
+    
+    return () => {
+      if (spinnerInterval) {
+        clearInterval(spinnerInterval);
+      }
+    };
+  }, [pinLoading]);
 
 
   ///API CALLING
@@ -210,8 +288,8 @@ function TransactionsVendor() {
           } else {
               setOfferValidityResult({
                   status: 0,
-                  message: response?.result?.message || 'Failed to check offer validity',
-                  error: response?.result?.error || 'Unknown error'
+                  message: response?.message || 'Failed to check offer validity',
+                  error: response?.error || 'Unknown error'
               });
           }
           setShowOfferValidityPopup(true);
@@ -2080,14 +2158,39 @@ function TransactionsVendor() {
                         </div>
                     )}
 
-                    {/* Close Button */}
+                    {/* Action Buttons */}
                     <div style={{
                         display: 'flex',
                         justifyContent: 'center',
-                        marginTop: '10px'
+                        gap: '15px',
+                        marginTop: '20px'
                     }}>
                         <button 
                             onClick={() => setShowOfferValidityPopup(false)}
+                            style={{
+                                padding: '14px 28px',
+                                backgroundColor: '#6c757d',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '12px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                transition: 'all 0.3s ease',
+                                minWidth: '120px'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.transform = 'translateY(-2px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            Close
+                        </button>
+                        
+                        <button 
+                            onClick={handleApplyOffer}
                             style={{
                                 padding: '14px 28px',
                                 backgroundColor: 'var(--highlight-color)',
@@ -2107,10 +2210,176 @@ function TransactionsVendor() {
                                 e.target.style.transform = 'translateY(0)';
                             }}
                         >
-                            Close
+                            Apply
                         </button>
                     </div>
                 </div>
+            </SimplePopup>
+        )}
+
+                {/* PIN Submission Popup */}
+        {showPinPopup && (
+            <SimplePopup
+                isOpen={showPinPopup}
+                onClose={() => setShowPinPopup(false)}
+                title="Enter 4-Digit PIN"
+                size="small"
+            >
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px',
+                    padding: '20px',
+                    alignItems: 'center'
+                }}>
+                    <TextView 
+                        type="dark" 
+                        text="Please enter your 4-digit PIN to apply this offer" 
+                        style={{textAlign: 'center', marginBottom: '10px'}}
+                    />
+                    
+                    {/* PIN Input */}
+                    <div style={{
+                        display: 'flex',
+                        gap: '10px',
+                        justifyContent: 'center'
+                    }}>
+                        {[0, 1, 2, 3].map((index) => (
+                            <input
+                                key={index}
+                                type="text"
+                                maxLength="1"
+                                value={pinCode[index] || ''}
+                                onChange={(e) => {
+                                    const newPin = pinCode.split('');
+                                    newPin[index] = e.target.value;
+                                    setPinCode(newPin.join(''));
+                                    
+                                    // Auto-focus to next input
+                                    if (e.target.value && index < 3) {
+                                        e.target.nextElementSibling?.focus();
+                                    }
+                                }}
+                                onKeyDown={(e) => {
+                                    // Handle backspace
+                                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                                        e.target.previousElementSibling?.focus();
+                                    }
+                                }}
+                                style={{
+                                    width: '50px',
+                                    height: '50px',
+                                    fontSize: '24px',
+                                    textAlign: 'center',
+                                    border: '2px solid #ddd',
+                                    borderRadius: '8px',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s ease'
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = 'var(--highlight-color)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = '#ddd';
+                                }}
+                            />
+                        ))}
+                    </div>
+                    
+                    {/* Loading State */}
+                    {pinLoading && (
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            color: 'var(--highlight-color)',
+                            fontSize: '14px'
+                        }}>
+                            <div 
+                                className="pin-spinner"
+                                style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    border: '2px solid #f3f3f3',
+                                    borderTop: '2px solid var(--highlight-color)',
+                                    borderRadius: '50%',
+                                    transform: 'rotate(0deg)',
+                                    transition: 'transform 0.1s linear'
+                                }}
+                            ></div>
+                            Calling API...
+                        </div>
+                    )}
+                    
+                    {/* Error Message */}
+                    {pinError && (
+                        <TextView 
+                            type="dark" 
+                            text={pinError} 
+                            style={{color: '#dc3545', fontSize: '14px', textAlign: 'center'}}
+                        />
+                    )}
+                    
+                    {/* Action Buttons */}
+                    <div style={{
+                        display: 'flex',
+                        gap: '15px',
+                        marginTop: '10px'
+                    }}>
+                        <button 
+                            onClick={() => setShowPinPopup(false)}
+                            style={{
+                                padding: '12px 24px',
+                                backgroundColor: '#6c757d',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                transition: 'all 0.3s ease',
+                                minWidth: '100px'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.transform = 'translateY(-2px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            Cancel
+                        </button>
+                        
+                        <button 
+                            onClick={handlePinSubmit}
+                            disabled={pinCode.length !== 4 || pinLoading}
+                            style={{
+                                padding: '12px 24px',
+                                backgroundColor: pinCode.length === 4 && !pinLoading ? 'var(--highlight-color)' : '#ccc',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: pinCode.length === 4 && !pinLoading ? 'pointer' : 'not-allowed',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                transition: 'all 0.3s ease',
+                                minWidth: '100px'
+                            }}
+                            onMouseEnter={(e) => {
+                                if (pinCode.length === 4 && !pinLoading) {
+                                    e.target.style.transform = 'translateY(-2px)';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            {pinLoading ? 'Verifying...' : 'Submit'}
+                        </button>
+                    </div>
+                </div>
+                
+
             </SimplePopup>
         )}
     </div>

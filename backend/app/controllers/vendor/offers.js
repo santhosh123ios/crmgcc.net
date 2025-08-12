@@ -1,4 +1,5 @@
 import { executeQuery } from "../../utils/run_query.js";
+import { OFFER_REDEEM_STATUS, OFFER_STATUS, MESSAGES, STATUS_CODES } from "../../utils/offerConstants.js";
 
 export const addOffers = (req, res) => {
     console.log("SANTHOSH IS IS : ");
@@ -112,7 +113,7 @@ export const updateOfferStatus = (req, res) => {
                     }
                     else
                     {
-                        const query = "UPDATE offers SET status = ?, updated_at = NOW() WHERE id = ?";
+                        const query = "UPDATE offers SET status = ?, created_at = NOW() WHERE id = ?";
                         executeQuery({
                                     query,
                                     data: [status,id],
@@ -165,7 +166,7 @@ export const updateOfferImage = (req, res) => {
                     }
                     else
                     {
-                        const query = "UPDATE offers SET image = ?, updated_at = NOW() WHERE id = ?";
+                        const query = "UPDATE offers SET image = ?, created_at = NOW() WHERE id = ?";
                         executeQuery({
                                     query,
                                     data: [image,id],
@@ -219,7 +220,7 @@ export const updateOfferDetails = (req, res) => {
                     }
                     else
                     {
-                        const query = "UPDATE offers SET title = ?, description = ?, discount = ?, discount_code = ?, start_date = ?, end_date = ?, updated_at = NOW() WHERE id = ?";
+                        const query = "UPDATE offers SET title = ?, description = ?, discount = ?, discount_code = ?, start_date = ?, end_date = ?, created_at = NOW() WHERE id = ?";
                         executeQuery({
                                     query,
                                     data: [title,description, discount, discount_code, start_date, end_date, id],
@@ -323,14 +324,14 @@ export const offers_validity_check = async (req, res) => {
             JOIN users m ON m.id = ?
             WHERE o.id = ? 
             AND o.vendor_id = ?
-            AND o.status = '1' 
+            AND o.status = ? 
             AND (o.end_date IS NULL OR o.end_date > NOW())
             AND (o.start_date IS NULL OR o.start_date <= NOW())
         `;
 
         executeQuery({
             query: checkOfferQuery,
-            data: [user_id, offer_id, current_vendor_id],
+            data: [user_id, offer_id, current_vendor_id, OFFER_STATUS.ACTIVE],
             callback: (err, offerData) => {
                 if (err) {
                     return res.status(500).json({
@@ -436,6 +437,7 @@ export const markOfferAsUsed = (req, res) => {
             data: [offer_id, user_id],
             callback: (checkErr, checkData) => {
                 if (checkErr) {
+                    console.log("Database error checking existing usage")
                     return res.status(500).json({
                         status: 0,
                         message: "Database error checking existing usage",
@@ -444,6 +446,7 @@ export const markOfferAsUsed = (req, res) => {
                 }
 
                 if (checkData && checkData.length > 0) {
+                    console.log("This offer has already been marked as used")
                     return res.status(400).json({
                         status: 0,
                         message: "This offer has already been marked as used",
@@ -454,25 +457,27 @@ export const markOfferAsUsed = (req, res) => {
                 // Insert or update the offer_redeem record
                 const insertQuery = `
                     INSERT INTO offer_redeem (offer_id, user_id, vendor_id, redeem_status, notes) 
-                    VALUES (?, ?, ?, 'used', ?)
+                    VALUES (?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE 
-                    redeem_status = 'used', 
+                    redeem_status = ?, 
                     notes = ?, 
-                    updated_at = NOW()
+                    created_at = NOW()
                 `;
 
                 executeQuery({
                     query: insertQuery,
-                    data: [offer_id, user_id, current_vendor_id, notes || '', notes || ''],
+                    data: [offer_id, user_id, current_vendor_id, 1, notes || '', 1, notes || ''],
                     callback: (insertErr, insertData) => {
                         if (insertErr) {
+                            console.log("TDatabase error marking offer as used")
+                            console.log(insertErr.message)
                             return res.status(500).json({
                                 status: 0,
                                 message: "Database error marking offer as used",
                                 error: insertErr.message
                             });
                         }
-
+                        console.log("Offer marked as used successfully")
                         const result = {
                             message: "Offer marked as used successfully",
                             status: 1,
@@ -480,7 +485,7 @@ export const markOfferAsUsed = (req, res) => {
                                 offer_id: offer_id,
                                 user_id: user_id,
                                 vendor_id: current_vendor_id,
-                                redeem_status: 'used',
+                                redeem_status: 1,
                                 notes: notes || ''
                             }
                         };
@@ -492,6 +497,7 @@ export const markOfferAsUsed = (req, res) => {
         });
 
     } catch (err) {
+        console.log("Mark offer as used error")
         console.error("Mark offer as used error:", err);
         res.status(500).json({ 
             status: 0, 

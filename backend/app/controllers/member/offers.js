@@ -1,5 +1,6 @@
 import { executeQuery } from "../../utils/run_query.js";
 import encryptionHelper from "../../utils/encryptionHelper.js";
+import { OFFER_REDEEM_STATUS, OFFER_STATUS, MESSAGES, STATUS_CODES } from "../../utils/offerConstants.js";
 
 export const getAllOffers = (req, res) => {
 
@@ -49,14 +50,14 @@ export const generateOfferCode = (req, res) => {
         const checkOfferQuery = `
             SELECT * FROM offers 
             WHERE id = ? 
-            AND status = '1' 
+            AND status = ? 
             AND (end_date IS NULL OR end_date > NOW())
             AND (start_date IS NULL OR start_date <= NOW())
         `;
 
         executeQuery({
             query: checkOfferQuery,
-            data: [offer_id],
+            data: [offer_id, OFFER_STATUS.ACTIVE],
             callback: (err, offerData) => {
                 if (err) {
                     return res.status(500).json({
@@ -134,14 +135,14 @@ export const offers_validity_check = (req, res) => {
             FROM offers o 
             JOIN vendors v ON o.vendor_id = v.id 
             WHERE o.id = ? 
-            AND o.status = '1' 
+            AND o.status = ? 
             AND (o.end_date IS NULL OR o.end_date > NOW())
             AND (o.start_date IS NULL OR o.start_date <= NOW())
         `;
 
         executeQuery({
             query: checkOfferQuery,
-            data: [offer_id],
+            data: [offer_id, OFFER_STATUS.ACTIVE],
             callback: (err, offerData) => {
                 if (err) {
                     return res.status(500).json({
@@ -174,7 +175,7 @@ export const offers_validity_check = (req, res) => {
                 // Check if this offer has already been used by this user
                 const checkUsageQuery = `
                     SELECT * FROM offer_redeem 
-                    WHERE offer_id = ? AND user_id = ? AND redeem_status = 'used'
+                    WHERE offer_id = ? AND user_id = ? AND redeem_status = '1'
                 `;
 
                 executeQuery({
@@ -257,7 +258,7 @@ export const markOfferAsUsed = (req, res) => {
         // Check if offer is already marked as used
         const checkExistingQuery = `
             SELECT * FROM offer_redeem 
-            WHERE offer_id = ? AND user_id = ? AND redeem_status = 'used'
+            WHERE offer_id = ? AND user_id = ? AND redeem_status = '1'
         `;
 
         executeQuery({
@@ -283,16 +284,16 @@ export const markOfferAsUsed = (req, res) => {
                 // Insert or update the offer_redeem record
                 const insertQuery = `
                     INSERT INTO offer_redeem (offer_id, user_id, vendor_id, redeem_status, notes) 
-                    VALUES (?, ?, ?, 'used', ?)
+                    VALUES (?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE 
-                    redeem_status = 'used', 
+                    redeem_status = ?, 
                     notes = ?, 
                     updated_at = NOW()
                 `;
 
                 executeQuery({
                     query: insertQuery,
-                    data: [offer_id, user_id, vendor_id, notes || '', notes || ''],
+                    data: [offer_id, user_id, vendor_id, 1, notes || '', 1, notes || ''],
                     callback: (insertErr, insertData) => {
                         if (insertErr) {
                             return res.status(500).json({
@@ -309,7 +310,7 @@ export const markOfferAsUsed = (req, res) => {
                                 offer_id: offer_id,
                                 user_id: user_id,
                                 vendor_id: vendor_id,
-                                redeem_status: 'used',
+                                redeem_status: 1,
                                 notes: notes || ''
                             }
                         };
