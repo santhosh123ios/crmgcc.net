@@ -6,6 +6,7 @@ import { createCard, getCardDetails } from "../controllers/admin/Card.js";
 import { addAdminTopup, getAllRedeem, getAllTransaction, redeemStatusUpdate, getTransactionSettings, updateTransactionSettings, get_wallet } from "../controllers/admin/Transaction.js";
 import { getLeads, leadStatusUpdate, createLeadMessage, getLeadMessage } from "../controllers/admin/Leads.js";
 import { getProfile, memberList, updateProfile, updateProfileImage, vendorList } from "../controllers/admin/Profile.js";
+import { updateUserStatus } from "../controllers/admin/Users.js";
 import { complaintsStatusUpdate, createComplaintMessage, getComplaintMessage, getComplaints } from "../controllers/admin/Complaints.js";
 import { getDashboard } from "../controllers/admin/Reports.js";
 import { createCategory, editCategory, getCategorys, updateCategory } from "../controllers/admin/category.js";
@@ -44,6 +45,7 @@ router.post("/create_category", adminAuth, createCategory)
 router.get("/get_categorys", adminAuth, getCategorys)
 router.post("/update_category", adminAuth, updateCategory)
 router.post("/edit_category", adminAuth, editCategory)
+router.post("/update_user_status", adminAuth, updateUserStatus)
 
 router.post("/create_lead_message", adminAuth, createLeadMessage)
 router.post("/get_lead_message", adminAuth, getLeadMessage)

@@ -1085,6 +1085,19 @@ hr {
   right: -2px;
   width: 18px;
   height: 18px;
+  background: #ff4757;
+  border: 3px solid var(--primary-color);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: pulse 2s infinite;
+}
+
+.member-status-indicator-active {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
   background: #4CAF50;
   border: 3px solid var(--primary-color);
   border-radius: 50%;
@@ -1323,6 +1336,7 @@ hr {
   max-height: calc(100vh - 200px);
   overflow-y: auto;
   padding-right: 4px;
+  padding-top: 10px;
 }
 
 .member-list-container::-webkit-scrollbar {
@@ -1452,8 +1466,19 @@ hr {
   justify-content: center;
 }
 
-.member-status-badge {
+.member-status-badge-active {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.member-status-badge {
+  background: linear-gradient(135deg, #dc3545 0%, #e55967 100%);
   color: white;
   padding: 4px 12px;
   border-radius: 12px;
@@ -1526,7 +1551,8 @@ hr {
 .member-details-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0px;
+
 }
 
 .member-details-section-title {
@@ -2836,6 +2862,7 @@ hr {
   padding: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
+  width: 100%;
 }
 
 .vendor-tab {
@@ -3088,4 +3115,48 @@ hr {
   .product-card {
     margin-bottom: 10px;
   }
+}
+
+/* Status Toggle Button Styles */
+.member-detail-action-btn.activate {
+  background-color: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.member-detail-action-btn.activate:hover {
+  background-color: #218838;
+  border-color: #218838;
+}
+
+.member-detail-action-btn.deactivate {
+  background-color: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.member-detail-action-btn.deactivate:hover {
+  background-color: #c82333;
+  border-color: #c82333;
+}
+
+/* Status Toggle Switch Styles */
+.status-toggle-switch {
+  user-select: none;
+}
+
+.status-toggle-switch:hover {
+  transform: scale(1.05);
+}
+
+.status-toggle-switch:active {
+  transform: scale(0.95);
+}
+
+.status-toggle-switch.active {
+  background-color: #28a745 !important;
+}
+
+.status-toggle-switch.inactive {
+  background-color: #dc3545 !important;
 }

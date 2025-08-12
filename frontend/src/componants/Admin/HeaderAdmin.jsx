@@ -37,7 +37,7 @@ function HeaderAdmin({ selected, setSelected }) {
   
                  <div className={selected === 'members' ? 'div-tab-selected' : 'div-tab'}
           onClick={() => setSelected('members')}>
-                  Members
+                  Users
                 </div>
     
                 {/* <div className={selected === 'vendor' ? 'div-tab-selected' : 'div-tab'}
