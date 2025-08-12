@@ -3160,3 +3160,101 @@ hr {
 .status-toggle-switch.inactive {
   background-color: #dc3545 !important;
 }
+
+/* Card Admin Styles */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.card-admin-search-input {
+  width: 100%;
+  height: 40px;
+  padding: 10px 40px 10px 40px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  font-size: 14px;
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.card-admin-search-input:focus {
+  outline: none;
+  border-color: var(--highlight-color);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(248, 211, 7, 0.1);
+}
+
+.card-admin-search-input::placeholder {
+  color: #6c757d;
+}
+
+.card-item-hover {
+  transition: all 0.2s ease;
+}
+
+.card-item-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-item-selected {
+  transform: scale(1.02);
+  border-color: var(--highlight-color);
+  background-color: #fffef7;
+  box-shadow: 0 4px 20px rgba(248, 211, 7, 0.15);
+}
+
+.card-admin-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-bottom: 1px solid #e9ecef;
+}
+
+.card-admin-title {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-admin-title-accent {
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(180deg, var(--highlight-color) 0%, #f0c800 100%);
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(248, 211, 7, 0.3);
+}
+
+.card-admin-add-button {
+  transition: all 0.2s ease;
+}
+
+.card-admin-add-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(248, 211, 7, 0.4);
+}
+
+.card-item-animate {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-detail-row {
+  transition: all 0.2s ease;
+}
+
+.card-detail-row:hover {
+  background-color: #e9ecef !important;
+  transform: translateX(4px);
+}
