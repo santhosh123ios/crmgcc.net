@@ -35,15 +35,15 @@ function HeaderAdmin({ selected, setSelected }) {
                   Wallet
                 </div>
   
-                 {/* <div className={selected === 'members' ? 'div-tab-selected' : 'div-tab'}
+                 <div className={selected === 'members' ? 'div-tab-selected' : 'div-tab'}
           onClick={() => setSelected('members')}>
                   Members
-                </div> */}
+                </div>
     
-                <div className={selected === 'vendor' ? 'div-tab-selected' : 'div-tab'}
+                {/* <div className={selected === 'vendor' ? 'div-tab-selected' : 'div-tab'}
           onClick={() => setSelected('vendor')}>
                   Vendor
-                </div>
+                </div> */}
     
                 <div className={selected === 'complaints' ? 'div-tab-selected' : 'div-tab'}
           onClick={() => setSelected('complaints')}>
