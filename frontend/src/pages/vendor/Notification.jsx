@@ -1,382 +1,382 @@
-import React, { useState, useEffect } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBell, faEnvelope, faExclamationTriangle, faCheckCircle, faInfoCircle, faTimes, faEye, faTrash, faFilter, faSearch } from '@fortawesome/free-solid-svg-icons'
-import TextView from '../../componants/Main/TextView'
-import '../member/Notification.css'
-
-// Mock notification data for vendors - replace with actual API calls
-const mockNotifications = [
-  {
-    id: 1,
-    type: 'success',
-    title: 'Lead Assigned Successfully',
-    message: 'A new lead has been assigned to you. Please review and take action within 24 hours.',
-    timestamp: '2024-01-15T10:30:00Z',
-    isRead: false,
-    category: 'leads',
-    priority: 'high'
-  },
-  {
-    id: 2,
-    type: 'info',
-    title: 'New Commission Rate',
-    message: 'Your commission rate has been updated to 15% for all successful transactions.',
-    timestamp: '2024-01-15T09:15:00Z',
-    isRead: false,
-    category: 'commission',
-    priority: 'medium'
-  },
-  {
-    id: 3,
-    type: 'warning',
-    title: 'Profile Update Required',
-    message: 'Please update your business profile information to continue receiving leads.',
-    timestamp: '2024-01-14T16:45:00Z',
-    isRead: true,
-    category: 'profile',
-    priority: 'high'
-  },
-  {
-    id: 4,
-    type: 'success',
-    title: 'Transaction Completed',
-    message: 'Transaction #TRX-2024-001 has been completed successfully. Commission credited.',
-    timestamp: '2024-01-14T14:20:00Z',
-    isRead: true,
-    category: 'transactions',
-    priority: 'medium'
-  },
-  {
-    id: 5,
-    type: 'info',
-    title: 'Weekly Performance Report',
-    message: 'Your weekly performance report is ready. Check your dashboard for details.',
-    timestamp: '2024-01-14T08:00:00Z',
-    isRead: true,
-    category: 'reports',
-    priority: 'low'
-  },
-  {
-    id: 6,
-    type: 'warning',
-    title: 'Payment Method Expiring',
-    message: 'Your payment method will expire in 30 days. Please update it to continue receiving payments.',
-    timestamp: '2024-01-13T12:30:00Z',
-    isRead: false,
-    category: 'billing',
-    priority: 'high'
-  }
-]
+import React, { useState } from 'react'
 
 function Notification() {
-  const [notifications, setNotifications] = useState(mockNotifications)
-  const [selectedNotification, setSelectedNotification] = useState(null)
-  const [showDetail, setShowDetail] = useState(false)
-  const [filter, setFilter] = useState('all')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState('timestamp')
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      title: "New Reward Points Added",
+      message: "You've earned 50 points for your recent purchase!",
+      type: "reward",
+      timestamp: "2024-01-15T10:30:00Z",
+      isRead: false,
+      priority: "high"
+    },
+    {
+      id: 2,
+      title: "Special Offer Available",
+      message: "20% off on all electronics this weekend only!",
+      type: "offer",
+      timestamp: "2024-01-15T09:15:00Z",
+      isRead: false,
+      priority: "medium"
+    },
+    {
+      id: 3,
+      title: "Account Verification Complete",
+      message: "Your account has been successfully verified.",
+      type: "account",
+      timestamp: "2024-01-14T16:45:00Z",
+      isRead: true,
+      priority: "low"
+    },
+    {
+      id: 4,
+      title: "Payment Successful",
+      message: "Your payment of $25.99 has been processed successfully.",
+      type: "payment",
+      timestamp: "2024-01-14T14:20:00Z",
+      isRead: true,
+      priority: "medium"
+    },
+    {
+      id: 5,
+      title: "Welcome to Reward Club!",
+      message: "Thank you for joining our loyalty program. Start earning points today!",
+      type: "welcome",
+      timestamp: "2024-01-13T11:00:00Z",
+      isRead: true,
+      priority: "low"
+    }
+  ]);
 
-  // Filter and sort notifications
-  const filteredNotifications = notifications
-    .filter(notification => {
-      const matchesFilter = filter === 'all' || notification.category === filter
-      const matchesSearch = notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           notification.message.toLowerCase().includes(searchTerm.toLowerCase())
-      return matchesFilter && matchesSearch
-    })
-    .sort((a, b) => {
-      if (sortBy === 'timestamp') {
-        return new Date(b.timestamp) - new Date(a.timestamp)
-      } else if (sortBy === 'priority') {
-        const priorityOrder = { high: 3, medium: 2, low: 1 }
-        return priorityOrder[b.priority] - priorityOrder[a.priority]
-      }
-      return 0
-    })
-
-  const unreadCount = notifications.filter(n => !n.isRead).length
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   const markAsRead = (id) => {
     setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, isRead: true } : n)
-    )
-  }
+      prev.map(notif => 
+        notif.id === id ? { ...notif, isRead: true } : notif
+      )
+    );
+  };
 
   const markAllAsRead = () => {
     setNotifications(prev => 
-      prev.map(n => ({ ...n, isRead: true }))
-    )
-  }
-
-  const deleteNotification = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id))
-    if (selectedNotification?.id === id) {
-      setSelectedNotification(null)
-      setShowDetail(false)
-    }
-  }
+      prev.map(notif => ({ ...notif, isRead: true }))
+    );
+  };
 
   const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'success': return faCheckCircle
-      case 'warning': return faExclamationTriangle
-      case 'info': return faInfoCircle
-      default: return faBell
+    switch(type) {
+      case 'reward': return '🎁';
+      case 'offer': return '🏷️';
+      case 'account': return '👤';
+      case 'payment': return '💳';
+      case 'welcome': return '👋';
+      default: return '📢';
     }
-  }
-
-  const getNotificationColor = (type) => {
-    switch (type) {
-      case 'success': return '#10B981'
-      case 'warning': return '#F59E0B'
-      case 'info': return '#3B82F6'
-      default: return '#6B7280'
-    }
-  }
+  };
 
   const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high': return '#EF4444'
-      case 'medium': return '#F59E0B'
-      case 'low': return '#10B981'
-      default: return '#6B7280'
+    switch(priority) {
+      case 'high': return '#ff4757';
+      case 'medium': return '#ffa502';
+      case 'low': return '#2ed573';
+      default: return '#747d8c';
     }
-  }
+  };
 
   const formatTimestamp = (timestamp) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffInHours = (now - date) / (1000 * 60 * 60)
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
     
-    if (diffInHours < 1) return 'Just now'
-    if (diffInHours < 24) return `${Math.floor(diffInHours)}h ago`
-    if (diffInHours < 48) return 'Yesterday'
-    return date.toLocaleDateString()
-  }
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 48) return 'Yesterday';
+    return date.toLocaleDateString();
+  };
 
-  const getCategoryLabel = (category) => {
-    const labels = {
-      leads: 'Leads',
-      commission: 'Commission',
-      profile: 'Profile',
-      transactions: 'Transactions',
-      reports: 'Reports',
-      billing: 'Billing'
-    }
-    return labels[category] || category
-  }
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <div className="notification-container">
-      {/* Header */}
-      <div className="notification-header">
-        <div className="header-left">
-          <div className="header-icon">
-            <FontAwesomeIcon icon={faBell} />
-            {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
+    <div className='content-view'>
+
+      <div style={{
+          width: '100%',
+          height: '10%',
+          display: 'flex',
+          flexDirection: 'row',
+      }}>
+
+        {/* Notification Header */}
+        <div style={{
+          width: '100%',
+          height: '100%',
+          backgroundColor: '#f8f9fa', 
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 20px',
+          borderBottom: '1px solid #e9ecef',
+          borderRadius: '10px 10px 0 0',
+          marginBottom: '10px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h2 style={{ margin: 0, color: '#2c3e50' }}>Notifications</h2>
+            {unreadCount > 0 && (
+              <span style={{
+                backgroundColor: '#e74c3c',
+                color: 'white',
+                borderRadius: '50%',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                width: '30px',
+                height: '30px',
+                textAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {unreadCount}
+              </span>
+            )}
           </div>
-          <div>
-            <TextView type="darkBold" text="Notifications" className="header-title" />
-            <TextView type="subDark" text={`${unreadCount} unread`} className="header-subtitle" />
-          </div>
+          
         </div>
-        <div className="header-actions">
-          <button 
-            className="action-btn secondary"
-            onClick={markAllAsRead}
-            disabled={unreadCount === 0}
-          >
-            Mark all as read
-          </button>
-        </div>
+
       </div>
 
-      {/* Search and Filter */}
-      <div className="notification-controls">
-        <div className="search-container">
-          <FontAwesomeIcon icon={faSearch} className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search notifications..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-        <div className="filter-container">
-          <select 
-            value={filter} 
-            onChange={(e) => setFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Categories</option>
-            <option value="leads">Leads</option>
-            <option value="commission">Commission</option>
-            <option value="profile">Profile</option>
-            <option value="transactions">Transactions</option>
-            <option value="reports">Reports</option>
-            <option value="billing">Billing</option>
-          </select>
-          <select 
-            value={sortBy} 
-            onChange={(e) => setSortBy(e.target.value)}
-            className="filter-select"
-          >
-            <option value="timestamp">Latest First</option>
-            <option value="priority">Priority</option>
-          </select>
-        </div>
-      </div>
 
-      <div className="notification-content">
+      <div style={{
+          width: '100%',
+          height: '90%',
+          display: 'flex',
+          flexDirection: 'row',
+          borderRadius: '0px 0px 10px 10px',
+          overflow: 'hidden'
+      }}>
         {/* Notification List */}
-        <div className="notification-list">
-          {filteredNotifications.length === 0 ? (
-            <div className="empty-state">
-              <FontAwesomeIcon icon={faBell} className="empty-icon" />
-              <TextView type="darkBold" text="No notifications found" />
-              <TextView type="subDark" text="Try adjusting your search or filter criteria" />
+        <div style={{
+          width: '40%',
+          height: '100%',
+          backgroundColor: '#ffffff', 
+          display: 'flex',
+          flexDirection: 'column',
+          borderRight: '1px solid #e9ecef',
+          overflowY: 'auto'
+        }}>
+          {notifications.length === 0 ? (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              color: '#6c757d'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔔</div>
+              <div style={{ fontSize: '18px', fontWeight: '500' }}>No notifications</div>
+              <div style={{ fontSize: '14px' }}>You're all caught up!</div>
             </div>
           ) : (
-            filteredNotifications.map(notification => (
-              <div 
+            notifications.map((notification) => (
+              <div
                 key={notification.id}
-                className={`notification-item ${!notification.isRead ? 'unread' : ''} ${selectedNotification?.id === notification.id ? 'selected' : ''}`}
                 onClick={() => {
-                  setSelectedNotification(notification)
-                  setShowDetail(true)
+                  setSelectedNotification(notification);
                   if (!notification.isRead) {
-                    markAsRead(notification.id)
+                    markAsRead(notification.id);
                   }
                 }}
+                style={{
+                  padding: '16px',
+                  borderBottom: '1px solid #f1f3f4',
+                  cursor: 'pointer',
+                  backgroundColor: selectedNotification?.id === notification.id ? '#f8f9fa' : 'white',
+                  transition: 'background-color 0.2s ease',
+                  position: 'relative'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f8f9fa';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = selectedNotification?.id === notification.id ? '#f8f9fa' : 'white';
+                }}
               >
-                <div className="notification-icon">
-                  <FontAwesomeIcon 
-                    icon={getNotificationIcon(notification.type)} 
-                    style={{ color: getNotificationColor(notification.type) }}
-                  />
-                </div>
-                <div className="notification-content">
-                  <div className="notification-header-row">
-                    <TextView 
-                      type="darkBold" 
-                      text={notification.title}
-                      className="notification-title"
-                    />
-                    <div className="notification-meta">
-                      <span 
-                        className="priority-badge"
-                        style={{ backgroundColor: getPriorityColor(notification.priority) }}
-                      >
-                        {notification.priority}
-                      </span>
-                      <span className="timestamp">{formatTimestamp(notification.timestamp)}</span>
+                {/* Unread indicator */}
+                {!notification.isRead && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '16px',
+                    right: '16px',
+                    width: '8px',
+                    height: '8px',
+                    backgroundColor: '#007bff',
+                    borderRadius: '50%'
+                  }} />
+                )}
+                
+                {/* Priority indicator */}
+                <div style={{
+                  position: 'absolute',
+                  top: '16px',
+                  left: '16px',
+                  width: '4px',
+                  height: '40px',
+                  backgroundColor: getPriorityColor(notification.priority),
+                  borderRadius: '2px'
+                }} />
+                
+                <div style={{ marginLeft: '20px' }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    marginBottom: '8px'
+                  }}>
+                    <span style={{ fontSize: '20px' }}>
+                      {getNotificationIcon(notification.type)}
+                    </span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: '14px',
+                        fontWeight: notification.isRead ? '400' : '600',
+                        color: notification.isRead ? '#6c757d' : '#2c3e50',
+                        marginBottom: '4px',
+                        lineHeight: '1.3'
+                      }}>
+                        {notification.title}
+                      </div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#6c757d',
+                        lineHeight: '1.4'
+                      }}>
+                        {notification.message}
+                      </div>
                     </div>
                   </div>
-                  <TextView 
-                    type="subDark" 
-                    text={notification.message}
-                    className="notification-message"
-                  />
-                  <div className="notification-footer">
-                    <span className="category-tag">{getCategoryLabel(notification.category)}</span>
-                    {!notification.isRead && <span className="unread-indicator" />}
+                  
+                  <div style={{
+                    fontSize: '11px',
+                    color: '#adb5bd',
+                    textAlign: 'right'
+                  }}>
+                    {formatTimestamp(notification.timestamp)}
                   </div>
-                </div>
-                <div className="notification-actions">
-                  <button 
-                    className="action-icon-btn"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setSelectedNotification(notification)
-                      setShowDetail(true)
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faEye} />
-                  </button>
-                  <button 
-                    className="action-icon-btn delete"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      deleteNotification(notification.id)
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
                 </div>
               </div>
             ))
           )}
         </div>
 
-        {/* Notification Detail */}
-        {showDetail && selectedNotification && (
-          <div className="notification-detail">
-            <div className="detail-header">
-              <TextView type="darkBold" text="Notification Details" className="detail-title" />
-              <button 
-                className="close-btn"
-                onClick={() => setShowDetail(false)}
-              >
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
-            </div>
-            
-            <div className="detail-content">
-              <div className="detail-icon">
-                <FontAwesomeIcon 
-                  icon={getNotificationIcon(selectedNotification.type)} 
-                  style={{ color: getNotificationColor(selectedNotification.type) }}
-                />
+        {/* Notification Details */}  
+        <div style={{
+          width: '60%',
+          height: '100%',
+          backgroundColor: '#f8f9fa', 
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '20px',
+          boxSizing: 'border-box'
+        }}>
+          {selectedNotification ? (
+            <div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                marginBottom: '24px'
+              }}>
+                <span style={{ fontSize: '32px' }}>
+                  {getNotificationIcon(selectedNotification.type)}
+                </span>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', color: '#2c3e50' }}>
+                    {selectedNotification.title}
+                  </h3>
+                  <div style={{
+                    fontSize: '14px',
+                    color: '#6c757d'
+                  }}>
+                    {formatTimestamp(selectedNotification.timestamp)}
+                  </div>
+                </div>
               </div>
               
-              <div className="detail-info">
-                <TextView 
-                  type="darkBold" 
-                  text={selectedNotification.title}
-                  className="detail-notification-title"
-                />
-                
-                <div className="detail-meta">
-                  <span className="detail-category">{getCategoryLabel(selectedNotification.category)}</span>
-                  <span 
-                    className="detail-priority"
-                    style={{ backgroundColor: getPriorityColor(selectedNotification.priority) }}
-                  >
-                    {selectedNotification.priority} Priority
-                  </span>
-                  <span className="detail-timestamp">
-                    {new Date(selectedNotification.timestamp).toLocaleString()}
-                  </span>
+              <div style={{
+                backgroundColor: 'white',
+                padding: '20px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                marginBottom: '20px'
+              }}>
+                <p style={{
+                  fontSize: '16px',
+                  lineHeight: '1.6',
+                  color: '#2c3e50',
+                  margin: '0'
+                }}>
+                  {selectedNotification.message}
+                </p>
+              </div>
+              
+              <div style={{
+                display: 'flex',
+                gap: '12px'
+              }}>
+                <div style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'white',
+                  borderRadius: '6px',
+                  border: '1px solid #e9ecef',
+                  fontSize: '14px',
+                  color: '#6c757d'
+                }}>
+                  Type: {selectedNotification.type}
                 </div>
-                
-                <div className="detail-message">
-                  <TextView type="subDark" text={selectedNotification.message} />
+                <div style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'white',
+                  borderRadius: '6px',
+                  border: '1px solid #e9ecef',
+                  fontSize: '14px',
+                  color: '#6c757d'
+                }}>
+                  Priority: {selectedNotification.priority}
                 </div>
-                
-                <div className="detail-actions">
-                  <button 
-                    className="action-btn primary"
-                    onClick={() => {
-                      if (!selectedNotification.isRead) {
-                        markAsRead(selectedNotification.id)
-                      }
-                    }}
-                    disabled={selectedNotification.isRead}
-                  >
-                    {selectedNotification.isRead ? 'Already Read' : 'Mark as Read'}
-                  </button>
-                  <button 
-                    className="action-btn secondary"
-                    onClick={() => deleteNotification(selectedNotification.id)}
-                  >
-                    Delete
-                  </button>
+                <div style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'white',
+                  borderRadius: '6px',
+                  border: '1px solid #e9ecef',
+                  fontSize: '14px',
+                  color: selectedNotification.isRead ? '#28a745' : '#dc3545'
+                }}>
+                  Status: {selectedNotification.isRead ? 'Read' : 'Unread'}
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              color: '#6c757d'
+            }}>
+              <div style={{ fontSize: '64px', marginBottom: '24px' }}>📋</div>
+              <div style={{ fontSize: '20px', fontWeight: '500', marginBottom: '8px' }}>
+                Select a notification
+              </div>
+              <div style={{ fontSize: '14px' }}>
+                Choose a notification from the list to view details
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -162,7 +162,34 @@ function VendorProfile() {
                     display: 'flex',
                     }}>
                       <DashboardBox>
-                        <img className='img-profile-dash' src={formData?.profile_img ? baseUrl+formData?.profile_img : "/dummy.jpg"} alt="Remote Image" onClick={() =>  setShowImagePopup(true)}/>
+                        <div className="profile-image-container" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setShowImagePopup(true)}>
+                          <img className='img-profile-dash' src={formData?.profile_img ? baseUrl+formData?.profile_img : "/dummy.jpg"} alt="Remote Image" />
+                          <div className="profile-overlay" style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            borderRadius: '8px'
+                          }}>
+                            <button style={{
+                              backgroundColor: 'var(--highlight-color)',
+                              color: 'white',
+                              border: 'none',
+                              padding: '8px 16px',
+                              borderRadius: '4px',
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              cursor: 'pointer'
+                            }}>
+                              Change Profile
+                            </button>
+                          </div>
+                        </div>
                         <div className="blur-box">
                             <div style={{padding:'10px'}}>
                                 <p className="title-text-light">{formData?.name}</p>

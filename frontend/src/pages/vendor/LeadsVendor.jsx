@@ -1246,7 +1246,6 @@ function LeadsVendor() {
                                     gap: '12px',
                                     marginTop: '20px',
                                     paddingTop: '0px',
-                                    borderTop: '1px solid #f0f0f0'
                                 }}>
                                     <button style={{
                                         flex: 1,
@@ -1262,7 +1261,8 @@ function LeadsVendor() {
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         gap: '8px',
-                                        transition: 'all 0.3s ease'
+                                        transition: 'all 0.3s ease',
+                                        marginTop: '0px'
                                     }}
                                     onMouseEnter={(e) => e.target.style.backgroundColor = '#e6c200'}
                                     onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--highlight-color)'}
@@ -1284,7 +1284,8 @@ function LeadsVendor() {
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         gap: '8px',
-                                        transition: 'all 0.3s ease'
+                                        transition: 'all 0.3s ease',
+                                        marginTop: '0px'
                                     }}
                                     onMouseEnter={(e) => {
                                         e.target.style.backgroundColor = '#f5f5f5';
@@ -1396,7 +1397,7 @@ function LeadsVendor() {
                                         padding: '20px',
                                         gap: '16px',
                                         maxHeight: 'calc(100vh - 300px)',
-                                        minHeight: '470px'
+                                        minHeight: 'calc(100vh - 300px)'
                                     }}
                                 >
                                     {loadingMessages ? (

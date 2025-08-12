@@ -1163,7 +1163,7 @@ function LeadsMember() {
                                 <div style={{
                                     display: 'flex',
                                     gap: '12px',
-                                    marginTop: '20px',
+                                    marginTop: '40px',
                                     paddingTop: '0px',
                                     borderTop: '1px solid #f0f0f0'
                                 }}>
@@ -1248,7 +1248,7 @@ function LeadsMember() {
                                 justifyContent: 'start',
                                 padding: '0px',
                                 maxHeight: 'calc(100vh - 300px)',
-                                minHeight: '480px'
+                                minHeight: 'calc(100vh - 200px)'
                             }}>
                                 {/* Chat Header */}
                                 <div style={{
@@ -1315,7 +1315,7 @@ function LeadsMember() {
                                         padding: '20px',
                                         gap: '16px',
                                         maxHeight: 'calc(100vh - 300px)',
-                                        minHeight: '440px'
+                                        minHeight: 'calc(100vh - 300px)',
                                     }}
                                 >
                                     {loadingMessages ? (

@@ -1886,6 +1886,19 @@ hr {
   overflow-y: auto;
 }
 
+.grid-container-product {
+  max-height: calc(100vh - 165px);
+  min-height: 150px;
+
+  display: grid;
+  /* grid-template-columns: repeat(auto-fill , minmax(220px, 1fr)); */
+  grid-template-columns: repeat(auto-fit, minmax(220px, max-content));
+  /* grid-auto-rows: 1fr; */
+  gap: 10px;
+  padding: 0px;
+  overflow-y: auto;
+}
+
 .grid-item {
   height: 300px;
   background-color: #dff0ff;
@@ -1934,7 +1947,8 @@ hr {
 
 .prod-image {
   width: 100%;
-  /* max-width: 200px; */
+  
+  max-height: 200px;
   display: block;
   aspect-ratio: 1 / 1;
   object-fit: cover;
@@ -1948,7 +1962,7 @@ hr {
   position: relative;
   display: flex;
   flex-direction: column;
-  margin: 0px;
+  margin: 20px;
   overflow: hidden;
 }
 

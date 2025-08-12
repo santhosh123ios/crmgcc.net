@@ -809,7 +809,7 @@ function ComplaintsMember() {
                                 justifyContent: 'start',
                                 padding: '0px',
                                 maxHeight: 'calc(100vh - 300px)',
-                                minHeight: '480px'
+                                minHeight: 'calc(100vh - 200px)'
                             }}>
                                 {/* Chat Header */}
                                 <div style={{
@@ -876,7 +876,7 @@ function ComplaintsMember() {
                                         padding: '20px',
                                         gap: '16px',
                                         maxHeight: 'calc(100vh - 300px)',
-                                        minHeight: '440px'
+                                        minHeight: 'calc(100vh - 300px)'
                                     }}
                                 >
                                     {loadingMessages ? (
