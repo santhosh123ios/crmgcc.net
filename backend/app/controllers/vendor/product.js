@@ -134,7 +134,6 @@ export const updateProductStatus = (req, res) => {
 
                 }
             })
-
     } 
     catch (err) {
         console.error("Upload error:", err);
