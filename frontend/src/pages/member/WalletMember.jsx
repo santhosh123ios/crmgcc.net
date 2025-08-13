@@ -628,7 +628,7 @@ function WalletMember() {
                 position: 'relative',
                 flex: 1
               }}>
-                <FontAwesomeIcon 
+                {/* <FontAwesomeIcon 
                   icon={faSearch} 
                   style={{ 
                     position: 'absolute', 
@@ -639,7 +639,7 @@ function WalletMember() {
                     fontSize: '14px',
                     zIndex: 1
                   }} 
-                />
+                /> */}
                 <InputText 
                   type="text"
                   placeholder={`Search ${activeTab === 'transactions' ? 'transactions' : 'redeem requests'}...`}
@@ -705,7 +705,7 @@ function WalletMember() {
               overflow: 'hidden' 
             }}>
               
-                            {/* List Section */}
+              {/* List Section */}
               <div style={{ 
                 overflow: 'auto',
                 height: 'calc(100vh - 210px)',

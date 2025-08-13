@@ -304,17 +304,33 @@ export const get_wallet = (req, res) => {
                                         .json({ error: [{ message: err }], result: {} });
                                 }
 
-                                const result = {
-                                    message: "Get wallet details successful",
-                                    status: 1,
-                                    data: {
-                                        card: cardData[0] || null,
-                                        balance_point: balanceData[0]?.balance_point || 0,
-                                        total_point_sum: totalPointsData[0]?.total_point_sum || 0
-                                    }
-                                };
+                                // Get admin topup summary (sum of credits from Admin Topup transactions)
+                                const adminTopupQuery = "SELECT SUM(transaction_cr) AS admin_topup_sum FROM transaction WHERE transaction_title = 'Admin Topup' AND user_id = ?";
+                                
+                                executeQuery({
+                                    query: adminTopupQuery,
+                                    data: [user_id],
+                                    callback: (err, adminTopupData) => {
+                                        if (err) {
+                                            return res
+                                                .status(500)
+                                                .json({ error: [{ message: err }], result: {} });
+                                        }
 
-                                return res.status(200).json({ error: [], result });
+                                        const result = {
+                                            message: "Get wallet details successful",
+                                            status: 1,
+                                            data: {
+                                                card: cardData[0] || null,
+                                                balance_point: balanceData[0]?.balance_point || 0,
+                                                total_point_sum: totalPointsData[0]?.total_point_sum || 0,
+                                                admin_topup_sum: adminTopupData[0]?.admin_topup_sum || 0
+                                            }
+                                        };
+
+                                        return res.status(200).json({ error: [], result });
+                                    }
+                                });
                             }
                         });
                     }
@@ -328,4 +344,93 @@ export const get_wallet = (req, res) => {
     }
 }
 
+
+export const add_redeem_transaction = (req, res) => {
+
+    try {
+       const { transaction_title, transaction_point, to_id } = req.body;
+       const user_id = req.user?.id;
+        
+        if (!transaction_point || !to_id)
+        return res
+          .status(404)
+          .json({ error: [{ message: "Input data missing" }], result: {} });
+
+            const balanceQuery = "SELECT COALESCE(SUM(transaction_cr), 0) - COALESCE(SUM(transaction_dr), 0) AS user_balance FROM transaction WHERE user_id = ?";
+            executeQuery({
+                query: balanceQuery,
+                data: [to_id],
+                callback: (err, balanceData) => {
+                    if (err)
+                        return res
+                        .status(500)
+                        .json({ error: [{ message: err }], result: {} });
+
+                    const currentBalance = parseFloat(balanceData[0]?.user_balance || 0);
+                    const requiredPoints = parseFloat(transaction_point);
+                    
+                    console.log("Balance check - Available:", currentBalance, "Required:", requiredPoints, "Type - Available:", typeof currentBalance, "Required:", typeof requiredPoints);
+                    
+                    if (currentBalance < requiredPoints) {
+                        console.log("Insufficient points. Available: ", currentBalance, "Required: ", requiredPoints)
+                        return res
+                        .status(400)
+                        .json({ 
+                            error: [{ 
+                                message: `Insufficient points. Available: ${currentBalance}, Required: ${requiredPoints}` 
+                            }], 
+                            result: {} 
+                        });
+                    }
+                    // Proceed with transaction if enough points
+                    transactionDR();
+                }
+            });
+
+        function transactionDR() {
+           
+            const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
+                            card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+            executeQuery({
+                        query,
+                        data: [ 2, 0, transaction_point, transaction_title,to_id,to_id,user_id,to_id],
+                        callback: (err, trData) => {
+                        if (err)
+                            return res
+                            .status(500)
+                            .json({ error: [{ message: err }], result: {} });
+
+                            transactionCR()
+                        
+                        }
+            });
+        }
+
+        function transactionCR() {
+            
+            const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
+                            card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+            executeQuery({
+                        query,
+                        data: [ 1, transaction_point, 0, transaction_title,user_id,to_id,user_id,user_id],
+                        callback: (err, trData) => {
+                        if (err)
+                            return res
+                            .status(500)
+                            .json({ error: [{ message: err }], result: {} });
+
+                            const result = {
+                                message: "add transaction successful",
+                                status: 1
+                            };
+                            return res.status(200).json({ error: [], result });
+                        }
+            });
+        }
+    } 
+    catch (err) {
+        console.error("Upload error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+}  
 
