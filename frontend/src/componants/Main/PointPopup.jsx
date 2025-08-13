@@ -8,10 +8,46 @@ function PointPopup({ onClose, onSubmit, userType = 'vendor' }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isValid, setIsValid] = useState(true);
+    const [apiResponse, setApiResponse] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [autoCloseTimer, setAutoCloseTimer] = useState(null);
 
     useEffect(() => {
         fetchAvailablePoints();
     }, [userType]);
+
+    // Auto-close timer for successful responses
+    useEffect(() => {
+        if (apiResponse?.result?.status === 1) {
+            // Clear any existing timer
+            if (autoCloseTimer) {
+                clearTimeout(autoCloseTimer);
+            }
+            
+            // Set new timer to auto-close after 3 seconds
+            const timer = setTimeout(() => {
+                handleClose();
+            }, 3000);
+            
+            setAutoCloseTimer(timer);
+            
+            // Cleanup timer on unmount
+            return () => {
+                if (timer) {
+                    clearTimeout(timer);
+                }
+            };
+        }
+    }, [apiResponse]);
+
+    // Cleanup timer on component unmount
+    useEffect(() => {
+        return () => {
+            if (autoCloseTimer) {
+                clearTimeout(autoCloseTimer);
+            }
+        };
+    }, []);
 
     const fetchAvailablePoints = async () => {
         setLoading(true);
@@ -49,7 +85,7 @@ function PointPopup({ onClose, onSubmit, userType = 'vendor' }) {
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const numPoints = parseInt(points) || 0;
         if (numPoints <= 0) {
             setError('Please enter a valid number of points');
@@ -59,13 +95,157 @@ function PointPopup({ onClose, onSubmit, userType = 'vendor' }) {
             setError(`Insufficient balance. Available: ${availablePoints} points`);
             return;
         }
-        onSubmit(points);
+
+        setIsSubmitting(true);
+        setApiResponse(null);
+        
+        try {
+            console.log('PointPopup: Calling onSubmit with points:', points);
+            // Call the onSubmit function passed from parent
+            const response = await onSubmit(points);
+            console.log('PointPopup: Received response:', response);
+            
+            // Set the API response
+            setApiResponse(response);
+            console.log('PointPopup: Set apiResponse to:', response);
+            
+            // If successful, you might want to refresh available points
+            if (response?.result?.status === 1) {
+                await fetchAvailablePoints();
+            }
+        } catch (error) {
+            console.error("PointPopup: Submission error:", error);
+            setApiResponse({
+                result: {
+                    status: 0,
+                    message: error.message || 'An error occurred during submission'
+                }
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
+
+    const handleClose = () => {
+        // Clear auto-close timer
+        if (autoCloseTimer) {
+            clearTimeout(autoCloseTimer);
+            setAutoCloseTimer(null);
+        }
+        setApiResponse(null);
+        onClose();
+    };
+
+    const handleNewSubmission = () => {
+        // Clear auto-close timer
+        if (autoCloseTimer) {
+            clearTimeout(autoCloseTimer);
+            setAutoCloseTimer(null);
+        }
+        setApiResponse(null);
+        setPoints('');
+        setError('');
+        setIsValid(true);
+    };
+
+    // Show API response if available
+    if (apiResponse) {
+        const isSuccess = apiResponse?.result?.status === 1;
+        return (
+            <div className="popup-overlay">
+                <div className="popup-container">
+                    <TextView 
+                        type="darkBold" 
+                        text={isSuccess ? "Success!" : "Response"}
+                        style={{ color: isSuccess ? '#2e7d32' : '#d32f2f' }}
+                    />
+                    
+                    {isSuccess && (
+                        <TextView 
+                            type="subDark" 
+                            text="This popup will close automatically in a few seconds..."
+                            style={{ 
+                                color: '#666',
+                                fontSize: '12px',
+                                textAlign: 'center',
+                                marginTop: '5px',
+                                fontStyle: 'italic'
+                            }}
+                        />
+                    )}
+                    
+                    <div style={{ 
+                        marginTop: '20px',
+                        padding: '15px', 
+                        backgroundColor: isSuccess ? '#f1f8e9' : '#ffebee', 
+                        borderRadius: '8px',
+                        border: `2px solid ${isSuccess ? '#4caf50' : '#f44336'}`
+                    }}>
+                        <TextView 
+                            type="subDark" 
+                            text={apiResponse?.result?.message || 'No message available'}
+                            style={{ 
+                                color: isSuccess ? '#2e7d32' : '#d32f2f',
+                                textAlign: 'center',
+                                marginBottom: '10px'
+                            }}
+                        />
+                        
+                        {apiResponse?.result?.data && (
+                            <div style={{ 
+                                marginTop: '10px',
+                                padding: '10px',
+                                backgroundColor: '#ffffff',
+                                borderRadius: '5px',
+                                border: '1px solid #e0e0e0'
+                            }}>
+                                <TextView 
+                                    type="subDark" 
+                                    text="Response Data:"
+                                    style={{ fontWeight: 'bold', marginBottom: '5px' }}
+                                />
+                                <pre style={{ 
+                                    fontSize: '12px', 
+                                    overflow: 'auto',
+                                    margin: 0,
+                                    color: '#666'
+                                }}>
+                                    {JSON.stringify(apiResponse.result.data, null, 2)}
+                                </pre>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="popup-actions" style={{ marginTop: '20px' }}>
+                        {isSuccess ? (
+                            <>
+                                <button onClick={handleNewSubmission} className="popup-button-submit">
+                                    Another
+                                </button>
+                                <button onClick={handleClose} className="popup-button-cancel">
+                                    Close
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button onClick={handleNewSubmission} className="popup-button-submit">
+                                    Try Again
+                                </button>
+                                <button onClick={handleClose} className="popup-button-cancel">
+                                    Close
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="popup-overlay">
             <div className="popup-container">
-                <TextView type="darkBold" text={"Enter Points"}/>
+                <TextView type="darkBold" text={"Enter d Points"}/>
                 
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '20px' }}>
@@ -128,13 +308,13 @@ function PointPopup({ onClose, onSubmit, userType = 'vendor' }) {
                             <button 
                                 onClick={handleSubmit} 
                                 className="popup-button-submit"
-                                disabled={!isValid || !points.trim()}
+                                disabled={!isValid || !points.trim() || isSubmitting}
                                 style={{ 
-                                    opacity: (!isValid || !points.trim()) ? 0.6 : 1,
-                                    cursor: (!isValid || !points.trim()) ? 'not-allowed' : 'pointer'
+                                    opacity: (!isValid || !points.trim() || isSubmitting) ? 0.6 : 1,
+                                    cursor: (!isValid || !points.trim() || isSubmitting) ? 'not-allowed' : 'pointer'
                                 }}
                             >
-                                Submit
+                                {isSubmitting ? 'Submitting...' : 'Submit'}
                             </button>
                         </div>
                     </>

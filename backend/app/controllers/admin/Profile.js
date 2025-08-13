@@ -248,3 +248,57 @@ export const updateProfile = (req, res) => {
         res.status(500).json({ status: 0, message: "Server error", error: err.message });
     }
 }
+
+export const userBankInfo = (req, res) => {
+    try {
+
+        const {user_id} = req.body;
+        
+        if (!user_id) {
+            return res
+                .status(404)
+                .json({ error: [{ message: "User ID not found" }], result: {} });
+        }
+
+        const query = "SELECT ac_no, iban_no, bank_name FROM member_info WHERE user_id = ?";
+        executeQuery({
+            query,
+            data: [user_id],
+            callback: (err, bankData) => {
+                if (err) {
+                    return res
+                        .status(500)
+                        .json({ error: [{ message: err }], result: {} });
+                }
+
+                let bankInfo = {
+                    ac_no: null,
+                    iban_no: null,
+                    bank_name: null,
+                    has_bank_info: false
+                };
+
+                if (bankData && bankData.length > 0) {
+                    const data = bankData[0];
+                    bankInfo = {
+                        ac_no: data.ac_no || null,
+                        iban_no: data.iban_no || null,
+                        bank_name: data.bank_name || null,
+                        has_bank_info: !!(data.ac_no && data.iban_no && data.bank_name)
+                    };
+                }
+
+                const result = {
+                    message: "Bank information status retrieved successfully",
+                    status: 1,
+                    data: bankInfo
+                };
+
+                return res.status(200).json({ error: [], result });
+            }
+        });
+    } catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+};

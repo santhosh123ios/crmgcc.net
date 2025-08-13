@@ -1163,7 +1163,7 @@ function LeadsMember() {
                                 <div style={{
                                     display: 'flex',
                                     gap: '12px',
-                                    marginTop: '40px',
+                                    marginTop: '20px',
                                     paddingTop: '0px',
                                     borderTop: '1px solid #f0f0f0'
                                 }}>
@@ -1248,7 +1248,7 @@ function LeadsMember() {
                                 justifyContent: 'start',
                                 padding: '0px',
                                 maxHeight: 'calc(100vh - 300px)',
-                                minHeight: 'calc(100vh - 200px)'
+                                minHeight: 'calc(100vh - 300px)'
                             }}>
                                 {/* Chat Header */}
                                 <div style={{

@@ -324,6 +324,20 @@ function LeadsVendor() {
     };
 
     const addTransaction = async (point) => {
+        console.log('LeadsVendor: addTransaction called with point:', point);
+        console.log('LeadsVendor: selectedLead:', selectedLead);
+
+        // Check if selectedLead exists
+        if (!selectedLead) {
+            const errorResponse = {
+                result: {
+                    status: 0,
+                    message: 'No lead selected. Please select a lead first.'
+                }
+            };
+            console.log('LeadsVendor: No selectedLead, returning error:', errorResponse);
+            return errorResponse;
+        }
 
         //(true); // Show loader
         try {
@@ -333,8 +347,9 @@ function LeadsVendor() {
                 transaction_title: selectedLead.lead_name,
                 to_id: selectedLead.user_id
             };
-            //console.log("SANTHOSH Vendor ID:", payload);
+            console.log("LeadsVendor: API payload:", payload);
             const data = await apiClient.post("/vendor/add_transaction", payload);
+            console.log("LeadsVendor: API response:", data);
 
             //if (data && data.result?.data.status === 1) {
             if (data?.result?.status === 1) {
@@ -343,8 +358,12 @@ function LeadsVendor() {
                 // fetchLeads();
                 updateLeadStatus(selectedLead.id,3)
             }
+            
+            console.log('LeadsVendor: Returning data:', data);
+            return data; // Return the API response
         } catch (err) {
-            console.error("Something went wrong fetching vendors", err);
+            console.error("LeadsVendor: Something went wrong fetching vendors", err);
+            throw err; // Re-throw the error so it can be caught by the calling function
         }
         finally {
             //setisLoading(false); // Hide loader
@@ -474,10 +493,11 @@ function LeadsVendor() {
         
     };
 
-    const handlePopupSubmit = (points) => {
-       console.log('Submitted Points:', points);
-       addTransaction(points)
-
+    const handlePopupSubmit = async (points) => {
+       console.log('LeadsVendor: handlePopupSubmit called with points:', points);
+       const result = await addTransaction(points);
+       console.log('LeadsVendor: addTransaction returned:', result);
+       return result;
     };
 
   return (

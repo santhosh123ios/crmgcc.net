@@ -11,6 +11,7 @@ import DateWithIcon from '../../componants/Main/DateWithIcon';
 import TextView from '../../componants/Main/TextView';
 import RoundButton from '../../componants/Main/RoundButton';
 import RedeemPopup from '../../componants/Main/RedeemPopup';
+import BankDetailsPopup from '../../componants/Main/BankDetailsPopup';
 import StatusBadge from '../../componants/Main/StatusBadge';
 
 const baseId = import.meta.env.VITE_ID_BASE;
@@ -33,6 +34,9 @@ function WalletMember() {
   const [selectedPosTr, setselectedPosTr] = useState(0);
   const [availablePoint, setAvailablePoint] = useState(1000);
   const [showRedeemPopup, setShowRedeemPopup] = useState(false);
+  const [showBankDetailsPopup, setShowBankDetailsPopup] = useState(false);
+  const [bankInfo, setBankInfo] = useState(null);
+  const [loadingBankInfo, setLoadingBankInfo] = useState(true);
   const [redeems, setredeems] = useState([]);
   const [selectedReadeem, setSelectedRedeem] = useState(null);
   const [selectedPosRedeem, setselectedPosReadeem] = useState(0);
@@ -52,6 +56,7 @@ function WalletMember() {
     fetchTransaction();
     fetchRedeem();
     fetchWallet();
+    fetchBankInfo();
   },[]);
 
   // Filter data when search term changes
@@ -151,6 +156,26 @@ function WalletMember() {
       }
   };
 
+  const fetchBankInfo = async () => {
+      setLoadingBankInfo(true);
+      try {
+          const response = await apiClient.get("/member/bank_info_status");
+          if (response?.result?.status === 1) {
+              console.warn("Bank info status retrieved successfully");
+              setBankInfo(response.result.data);
+              return response; // Return response for callback usage
+          } else {
+              console.warn("Failed to get bank info status");
+              return null;
+          }
+      } catch (error) {
+          console.error("Failed to fetch bank info status:", error);
+          return null;
+      } finally {
+          setLoadingBankInfo(false);
+      }
+  };
+
   const fetchWallet = async () => {
       setLoadingWallet(true);
       try {
@@ -231,6 +256,24 @@ function WalletMember() {
       console.log("Clicked index:", index);
       console.log("Clicked Sttaus:", selectedTransaction.lead_status);
       setSelectedTransaction(selectedTransaction)
+  };
+
+  const handleRedeemClick = () => {
+      if (bankInfo?.has_bank_info) {
+          setShowRedeemPopup(true);
+      } else {
+          setShowBankDetailsPopup(true);
+      }
+  };
+
+  const handleBankDetailsSubmit = () => {
+      setShowBankDetailsPopup(false);
+      // Refresh bank info and then show redeem popup
+      fetchBankInfo().then((response) => {
+          if (response?.result?.data?.has_bank_info) {
+              setShowRedeemPopup(true);
+          }
+      });
   };
 
   const handleRedeemPopupSubmit = (points,notes) => {
@@ -326,7 +369,7 @@ function WalletMember() {
                     </div>
                     <RoundButton 
                         icon={faPlus} 
-                        onClick={() => setShowRedeemPopup(true)}
+                        onClick={handleRedeemClick}
                         style={{
                             backgroundColor: 'var(--highlight-color)',
                             color: '#333',
@@ -685,7 +728,7 @@ function WalletMember() {
               {activeTab === 'redeems' && (
                 <RoundButton 
                   icon={faPlus} 
-                  onClick={() => setShowRedeemPopup(true)}
+                  onClick={handleRedeemClick}
                   style={{
                     backgroundColor: 'var(--highlight-color)',
                     color: '#333',
@@ -1166,6 +1209,13 @@ function WalletMember() {
           point={wallet?.available_point?.user_balance}
             onClose={() => setShowRedeemPopup(false)}
             onSubmit={handleRedeemPopupSubmit}
+            />
+        )}
+
+        {showBankDetailsPopup && (
+            <BankDetailsPopup
+                onClose={() => setShowBankDetailsPopup(false)}
+                onSubmit={handleBankDetailsSubmit}
             />
         )}
     </div>

@@ -320,6 +320,20 @@ function AdminLeads() {
     };
 
     const addTransaction = async (point) => {
+        console.log('AdminLeads: addTransaction called with point:', point);
+        console.log('AdminLeads: selectedLead:', selectedLead);
+
+        // Check if selectedLead exists
+        if (!selectedLead) {
+            const errorResponse = {
+                result: {
+                    status: 0,
+                    message: 'No lead selected. Please select a lead first.'
+                }
+            };
+            console.log('AdminLeads: No selectedLead, returning error:', errorResponse);
+            return errorResponse;
+        }
 
         //(true); // Show loader
         try {
@@ -327,20 +341,26 @@ function AdminLeads() {
             const payload = {
                 transaction_point: point,
                 transaction_title: selectedLead.lead_name,
-                to_id: selectedLead.user_id
+                to_id: selectedLead.user_id,
+                user_id: selectedLead.vendor_id,
             };
-            //console.log("SANTHOSH Vendor ID:", payload);
+            console.log("AdminLeads: API payload:", payload);
             const data = await apiClient.post("/admin/add_transaction", payload);
+            console.log("AdminLeads: API response:", data);
 
             //if (data && data.result?.data.status === 1) {
             if (data?.result?.status === 1) {
-                // setVendors(data.result.data);
+                // setVendors(data result.data);
                 // setShowPopup(false)
                 // fetchLeads();
                 updateLeadStatus(selectedLead.id,3)
             }
+            
+            console.log('AdminLeads: Returning data:', data);
+            return data; // Return the API response
         } catch (err) {
-            console.error("Something went wrong fetching vendors", err);
+            console.error("AdminLeads: Something went wrong fetching vendors", err);
+            throw err; // Re-throw the error so it can be caught by the calling function
         }
         finally {
             //setisLoading(false); // Hide loader
@@ -470,10 +490,11 @@ function AdminLeads() {
         
     };
 
-    const handlePopupSubmit = (points) => {
-       console.log('Submitted Points:', points);
-       addTransaction(points)
-
+    const handlePopupSubmit = async (points) => {
+       console.log('AdminLeads: handlePopupSubmit called with points:', points);
+       const result = await addTransaction(points);
+       console.log('AdminLeads: addTransaction returned:', result);
+       return result;
     };
 
   return (
@@ -1623,7 +1644,7 @@ function AdminLeads() {
             <PointPopup
             onClose={() => setShowPointsPopup(false)}
             onSubmit={handlePopupSubmit}
-            userType="vendor"
+            userType="admin"
             />
         )}
 

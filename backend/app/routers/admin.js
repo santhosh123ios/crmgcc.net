@@ -3,9 +3,9 @@ import adminAuth from "../middleware/admin/authMiddleware.js";
 import { sendEmailVerification, register, login, emailVerification, addCard, sendEmailResetPassword, resetPassword } from "../controllers/main/Auth.js";
 import FileUpload from "../services/FileUpload.js";
 import { createCard, getCardDetails } from "../controllers/admin/Card.js";
-import { addAdminTopup, getAllRedeem, getAllTransaction, redeemStatusUpdate, getTransactionSettings, updateTransactionSettings, get_wallet, add_redeem_transaction } from "../controllers/admin/Transaction.js";
+import { addAdminTopup, getAllRedeem, getAllTransaction, redeemStatusUpdate, getTransactionSettings, updateTransactionSettings, get_wallet, add_redeem_transaction, addTransaction } from "../controllers/admin/Transaction.js";
 import { getLeads, leadStatusUpdate, createLeadMessage, getLeadMessage } from "../controllers/admin/Leads.js";
-import { getProfile, memberList, updateProfile, updateProfileImage, vendorList } from "../controllers/admin/Profile.js";
+import { getProfile, memberList, updateProfile, updateProfileImage, vendorList, userBankInfo } from "../controllers/admin/Profile.js";
 import { updateUserStatus } from "../controllers/admin/Users.js";
 import { complaintsStatusUpdate, createComplaintMessage, getComplaintMessage, getComplaints } from "../controllers/admin/Complaints.js";
 import { getDashboard } from "../controllers/admin/Reports.js";
@@ -33,6 +33,8 @@ router.get("/get_transaction_settings", adminAuth, getTransactionSettings)
 router.post("/update_transaction_settings", adminAuth, updateTransactionSettings)
 router.get("/get_wallet", adminAuth, get_wallet)
 router.post("/add_redeem_transaction", adminAuth, add_redeem_transaction)
+router.post("/user_bank_info", adminAuth, userBankInfo)
+router.post("/add_transaction", adminAuth, addTransaction)
 
 router.get("/get_leads", adminAuth, getLeads)
 router.post("/lead_status_update", adminAuth, leadStatusUpdate)

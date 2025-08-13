@@ -50,6 +50,8 @@ function WalletAdmin() {
   const [pointNote, setPointNote] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [isCompletingRedeem, setIsCompletingRedeem] = useState(false);
+  const [bankInfo, setBankInfo] = useState(null);
+  const [loadingBankInfo, setLoadingBankInfo] = useState(false);
 
 
   const [activeTab, setActiveTab] = useState('transactions'); // 'transactions' or 'redeems'
@@ -138,6 +140,25 @@ function WalletAdmin() {
           console.error("Failed to fetch wallet data:", error);
       } finally {
           setWalletLoading(false);
+      }
+  };
+
+  const fetchBankInfo = async (memberId) => {
+      setLoadingBankInfo(true);
+      try {
+          const response = await apiClient.post(`/admin/user_bank_info`, { user_id: memberId });
+          if (response?.result?.status === 1) {
+              console.warn("Bank info retrieved successfully");
+              setBankInfo(response.result.data);
+          } else {
+              console.warn("Failed to get bank info");
+              setBankInfo(null);
+          }
+      } catch (error) {
+          console.error("Failed to fetch bank info:", error);
+          setBankInfo(null);
+      } finally {
+          setLoadingBankInfo(false);
       }
   };
 
@@ -281,6 +302,7 @@ function WalletAdmin() {
 
           if (data?.result?.status === 1) {
                 setShowRedeemPopup(false)
+                setBankInfo(null);
                 fetchRedeem();
           }
       } catch (err) {
@@ -357,6 +379,11 @@ function WalletAdmin() {
       
       if (newStatus === 1) {
           // If status is Approved, show popup for point note
+          // Fetch bank info for the member
+          const memberId = selectedReadeem?.member_id || selectedReadeem?.user_id || selectedReadeem?.id || selectedReadeem?.redeem_id;
+          if (memberId) {
+              fetchBankInfo(memberId);
+          }
           setShowRedeemPopup(true);
       } else {
           // For other statuses, update directly
@@ -369,6 +396,7 @@ function WalletAdmin() {
       updateRedeemStatus(selectedReadeem.redeem_id, 1, note);
       setShowRedeemPopup(false);
       setPointNote('');
+      setBankInfo(null);
   };
 
   const handleCompleteRedeemRequest = async (note) => {
@@ -550,6 +578,7 @@ function WalletAdmin() {
               await updateRedeemStatus(selectedReadeem.redeem_id, 1, note);
               setShowRedeemPopup(false);
               setPointNote('');
+              setBankInfo(null);
               
               // Refresh wallet data and transactions to show updated balance
               fetchWalletData();
@@ -595,6 +624,7 @@ function WalletAdmin() {
   const handleRedeemPopupCancel = () => {
       setShowRedeemPopup(false);
       setPointNote('');
+      setBankInfo(null);
   };
 
   const fetchWallet = async () => {
@@ -1956,7 +1986,8 @@ function WalletAdmin() {
                         padding: '15px 20px',
                         borderBottom: '1px solid #e0e0e0',
                         borderRadius: '8px 8px 0 0',
-                        height: '10px'
+                        justifyContent: 'center',
+                        height: '10px',
                     }}>
                         <TextView type="darkBold" text="Complete Redeem Request" style={{ fontSize: '18px' }} />
                     </div>
@@ -1984,8 +2015,111 @@ function WalletAdmin() {
                                 value={pointNote}
                                 onChange={(e) => setPointNote(e.target.value)}
                                 placeholder="Enter any additional notes..."
-                                style={{ width: '100%' }}
+                                style={{ 
+                                    width: '100%',
+                                    border: '2px solid #e0e0e0',
+                                    borderRadius: '12px',
+                                    padding: '15px 18px',
+                                    fontSize: '14px',
+                                    backgroundColor: '#ffffff',
+                                    color: '#333',
+                                    transition: 'all 0.3s ease',
+                                    outline: 'none',
+                                    boxSizing: 'border-box',
+                                    fontFamily: 'inherit',
+                                    lineHeight: '1.5',
+                                    resize: 'vertical',
+                                    minHeight: '60px'
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = '#007bff';
+                                    e.target.style.boxShadow = '0 0 0 3px rgba(0, 123, 255, 0.1)';
+                                    e.target.style.backgroundColor = '#fafbfc';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = '#e0e0e0';
+                                    e.target.style.boxShadow = 'none';
+                                    e.target.style.backgroundColor = '#ffffff';
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (document.activeElement !== e.target) {
+                                        e.target.style.borderColor = '#d0d0d0';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (document.activeElement !== e.target) {
+                                        e.target.style.borderColor = '#e0e0e0';
+                                    }
+                                }}
                             />
+                        </div>
+
+                        {/* Bank Information Section */}
+                        <div style={{ marginTop: '20px' }}>
+                            <TextView type="darkBold" text="Member Bank Details" style={{ marginBottom: '15px' }} />
+                            
+                            {loadingBankInfo ? (
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    padding: '20px',
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: '8px'
+                                }}>
+                                    <div className="spinner" style={{ width: '20px', height: '20px' }}></div>
+                                    <span style={{ marginLeft: '10px', color: '#666' }}>Loading bank details...</span>
+                                </div>
+                            ) : bankInfo ? (
+                                <div style={{
+                                    padding: '15px',
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e0e0e0'
+                                }}>
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: '1fr 1fr',
+                                        gap: '15px',
+                                        marginBottom: '15px'
+                                    }}>
+                                        <div>
+                                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Account Number</div>
+                                            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333' }}>
+                                                {bankInfo.ac_no || 'N/A'}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>IBAN Number</div>
+                                            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333' }}>
+                                                {bankInfo.iban_no || 'N/A'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Bank Name</div>
+                                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333' }}>
+                                            {bankInfo.bank_name || 'N/A'}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{
+                                    padding: '15px',
+                                    backgroundColor: '#fff3e0',
+                                    borderRadius: '8px',
+                                    border: '1px solid #ff9800',
+                                    textAlign: 'center',
+                                    color: '#e65100'
+                                }}>
+                                    <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '5px' }}>
+                                        ⚠️ No Bank Information
+                                    </div>
+                                    <div style={{ fontSize: '12px' }}>
+                                        Member has not provided bank details yet.
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
