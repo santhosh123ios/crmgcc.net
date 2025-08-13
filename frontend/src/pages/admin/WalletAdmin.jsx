@@ -903,9 +903,9 @@ function WalletAdmin() {
                                     <div style={{
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        gap: '8px',
+                                        gap: '0px',
                                         marginTop: '10px',
-                                        padding: '10px',
+                                        padding: '0px',
                                         backgroundColor: '#f8f9fa',
                                         borderRadius: '8px',
                                         border: '1px solid #e9ecef'
@@ -923,7 +923,7 @@ function WalletAdmin() {
                                         
                                         {/* Balance Review Section */}
                                         <div style={{
-                                            marginTop: '15px',
+                                            marginTop: '0px',
                                             padding: '12px',
                                             backgroundColor: '#f8f9fa',
                                             borderRadius: '8px',
@@ -1066,7 +1066,7 @@ function WalletAdmin() {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: '8px',
-                                    marginTop: '0px'
+                                    marginTop: '20px'
                                 }}>
                                     <div style={{
                                         display: 'flex',

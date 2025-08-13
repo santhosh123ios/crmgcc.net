@@ -25,10 +25,10 @@ function HeaderAdmin({ selected, setSelected }) {
                   Leads
                 </div>
 
-                <div className={selected === 'transaction' ? 'div-tab-selected' : 'div-tab'}
+                {/* <div className={selected === 'transaction' ? 'div-tab-selected' : 'div-tab'}
           onClick={() => setSelected('transaction')}>
                   Transactions
-                </div>
+                </div> */}
 
                 <div className={selected === 'wallet' ? 'div-tab-selected' : 'div-tab'}
           onClick={() => setSelected('wallet')}>
