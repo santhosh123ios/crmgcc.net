@@ -114,225 +114,338 @@ export const login = (req, res) => {
   
 	
       const query = "SELECT * FROM users WHERE email = ? AND password = ?";
-  
       executeQuery({
         query,
         data: [email, password],
-        callback: (err, userData) => {
+        callback: (err, userDataAvailable) => {
           console.log("santhosh C");
             // if (err) return res.status(500).json(err)
-            console.log(userData[0])
-            if (userData[0]) {
-              console.log("USER", userData[0].id);
+            console.log(userDataAvailable[0])
+            if (userDataAvailable[0]) {
+              console.log("USER", userDataAvailable[0].id);
 
-              const query = "SELECT * FROM users WHERE email = ? AND email_verification = ?";
+              const query = "SELECT * FROM users WHERE email = ? AND status = 1";
               executeQuery({
                 query,
-                data: [email, 1],
+                data: [email],
                 callback: (err, userData) => {
+                  console.log("santhosh C");
                     // if (err) return res.status(500).json(err)
-                    console.log(userData)
-                    let token;
+                    console.log(userData[0])
                     if (userData[0]) {
-                      console.log("USER ID", userData[0].id);
-                      console.log("USER type", userData[0].user_type);
+                      console.log("USER", userData[0].id);
 
-                      switch (userData[0].user_type) {
-                        case 1:
-                          token = Jwt.sign(
-                            { user_id: userData[0].id, user_type: userData[0].user_type },
-                            process.env.ADMIN_SECRET_KEY,
-                            { expiresIn: "30h" }
-                          );
-                          break;
+                      const query = "SELECT * FROM users WHERE email = ? AND email_verification = ?";
+                      executeQuery({
+                        query,
+                        data: [email, 1],
+                        callback: (err, userData) => {
+                            // if (err) return res.status(500).json(err)
+                            console.log(userData)
+                            let token;
+                            if (userData[0]) {
+                              console.log("USER ID", userData[0].id);
+                              console.log("USER type", userData[0].user_type);
 
-                        case 2:
-                          token = Jwt.sign(
-                            { user_id: userData[0].id, user_type: userData[0].user_type },
-                            process.env.MEMBER_SECRET_KEY,
-                            { expiresIn: "30h" }
-                          );
-                          break;
+                              switch (userData[0].user_type) {
+                                case 1:
+                                  token = Jwt.sign(
+                                    { user_id: userData[0].id, user_type: userData[0].user_type },
+                                    process.env.ADMIN_SECRET_KEY,
+                                    { expiresIn: "30h" }
+                                  );
+                                  break;
 
-                        case 3:
-                          token = Jwt.sign(
-                            { user_id: userData[0].id, user_type: userData[0].user_type },
-                            process.env.VENDOR_SECRET_KEY,
-                            { expiresIn: "30h" }
-                          );
-                          break;
+                                case 2:
+                                  token = Jwt.sign(
+                                    { user_id: userData[0].id, user_type: userData[0].user_type },
+                                    process.env.MEMBER_SECRET_KEY,
+                                    { expiresIn: "30h" }
+                                  );
+                                  break;
 
-                        default:
-                          token = Jwt.sign(
-                            { user_id: userData[0].id, user_type: userData[0].user_type },
-                            process.env.ADMIN_SECRET_KEY,
-                            { expiresIn: "30h" }
-                          );
-                      }
-                      const user_id = userData[0].id;
-                      const user_type = userData[0].user_type;
+                                case 3:
+                                  token = Jwt.sign(
+                                    { user_id: userData[0].id, user_type: userData[0].user_type },
+                                    process.env.VENDOR_SECRET_KEY,
+                                    { expiresIn: "30h" }
+                                  );
+                                  break;
 
-                      if (userData[0].user_type === 2 || userData[0].user_type === 3 || userData[0].user_type === 1)
-                      {
-                          const query = "SELECT * FROM cards WHERE user_id = ?";
-                          executeQuery({
-                            query,
-                            data: [user_id],
-                            callback: (err, userCardData) => {
-                              // if (err) return res.status(500).json(err)
-                              //console.log(userCardData)
-                              if (userCardData[0]) {
-                                  console.log("SANRHOSH CARD AVAILABLE")
-                                  const result = {
-                                  message: "login successful",
-                                  token,
-                                  status: 1,
-                                  // data: userData
-                                  data: userData[0],
-                                  };
-                                return res.status(200).json({ error: [], result });
+                                default:
+                                  token = Jwt.sign(
+                                    { user_id: userData[0].id, user_type: userData[0].user_type },
+                                    process.env.ADMIN_SECRET_KEY,
+                                    { expiresIn: "30h" }
+                                  );
                               }
-                              else
+                              const user_id = userData[0].id;
+                              const user_type = userData[0].user_type;
+
+                              if (userData[0].user_type === 2 || userData[0].user_type === 3 || userData[0].user_type === 1)
                               {
-                                  console.log("SANRHOSH CARD NOT AVAILABLE")
-                                  const query = "SELECT * FROM card_type WHERE default_card = ?";
+                                  const query = "SELECT * FROM cards WHERE user_id = ?";
                                   executeQuery({
                                     query,
-                                    data: [1],
-                                    callback: (err, cardTypeData) => {
-                                      console.log(cardTypeData)
-                                      if (cardTypeData[0]) {
-                                          const card_type_id = cardTypeData[0].card_type_id;
-                                          const card_no = generateCardNumber();
-
-                                          const query = "INSERT INTO cards (user_id, user_type, card_type_id, card_no) VALUES (?, ?, ?, ?)";
+                                    data: [user_id],
+                                    callback: (err, userCardData) => {
+                                      // if (err) return res.status(500).json(err)
+                                      //console.log(userCardData)
+                                      if (userCardData[0]) {
+                                          console.log("SANRHOSH CARD AVAILABLE")
+                                          const result = {
+                                          message: "login successful",
+                                          token,
+                                          status: 1,
+                                          // data: userData
+                                          data: userData[0],
+                                          };
+                                        return res.status(200).json({ error: [], result });
+                                      }
+                                      else
+                                      {
+                                          console.log("SANRHOSH CARD NOT AVAILABLE")
+                                          const query = "SELECT * FROM card_type WHERE default_card = ?";
                                           executeQuery({
-                                              query,
-                                              data: [user_id, user_type, card_type_id, card_no],
-                                              callback: (err, cardData) => {
-                                                // if (err) return res.status(500).json(err)
-                                                if (err)
-                                                    return res
-                                                    .status(500)
-                                                    .json({ error: [{ message: err }], result: {} });
+                                            query,
+                                            data: [1],
+                                            callback: (err, cardTypeData) => {
+                                              console.log(cardTypeData)
+                                              if (cardTypeData[0]) {
+                                                  const card_type_id = cardTypeData[0].card_type_id;
+                                                  const card_no = generateCardNumber();
+
+                                                  const query = "INSERT INTO cards (user_id, user_type, card_type_id, card_no) VALUES (?, ?, ?, ?)";
+                                                  executeQuery({
+                                                      query,
+                                                      data: [user_id, user_type, card_type_id, card_no],
+                                                      callback: (err, cardData) => {
+                                                        // if (err) return res.status(500).json(err)
+                                                        if (err)
+                                                            return res
+                                                            .status(500)
+                                                            .json({ error: [{ message: err }], result: {} });
 
 
-                                                    if (userData[0].user_type === 2)
-                                                      {
-                                                        const query = "SELECT * FROM cards WHERE user_id = ?";
-                                                        executeQuery({
-                                                          query,
-                                                          data: [user_id],
-                                                          callback: (err, allCardData) => {
-                                                            console.log(allCardData)
-                                                            if (allCardData[0]) 
-                                                            {
-                                                              console.log("SANTHOSH CARD DATA");
-                                                                                                                            // Calculate expiry date for welcome points
-                                                              const currentDate = new Date();
-                                                              const expiryDate = new Date(currentDate.getTime() + (30 * 24 * 60 * 60 * 1000)); // Default 30 days for welcome points
-                                                              const formattedExpiryDate = expiryDate.toISOString().split('T')[0];
-                                                              
-                                                              const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
-                                                              card_id,card_no,expire_on ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no, ? FROM cards c WHERE c.user_id = ? LIMIT 1;`;
-                                                              executeQuery({
-                                                                        query,
-                                                                        data: [ 1, cardTypeData[0].card_type_w_point, 0, "Welcome",user_id,1,user_id, formattedExpiryDate, user_id],
-                                                                        //data: [ 0, cardTypeData[0].card_type_w_point, "Welcome",user_id, 0, allCardData[0].card_id, allCardData[0].card_no],
-                                                                        callback: (err, data) => {
-                                                                          // if (err) return res.status(500).json(err)
-                                                                          //console.log("SANTHOSH CARD F TRANSACTION");
-                                                                          if (err)
-                                                                          {
-                                                                            console.log(err);
-                                                                            return res
-                                                                            .status(500)
-                                                                            .json({ error: [{ message: err }], result: {} });
+                                                            if (userData[0].user_type === 2)
+                                                              {
+                                                                const query = "SELECT * FROM cards WHERE user_id = ?";
+                                                                executeQuery({
+                                                                  query,
+                                                                  data: [user_id],
+                                                                  callback: (err, allCardData) => {
+                                                                    console.log(allCardData)
+                                                                    if (allCardData[0]) 
+                                                                    {
+                                                                      console.log("SANTHOSH CARD DATA");
+                                                                                                                                    // Calculate expiry date for welcome points
+                                                                      const currentDate = new Date();
+                                                                      const expiryDate = new Date(currentDate.getTime() + (30 * 24 * 60 * 60 * 1000)); // Default 30 days for welcome points
+                                                                      const formattedExpiryDate = expiryDate.toISOString().split('T')[0];
+                                                                      
+                                                                      // const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
+                                                                      // card_id,card_no,expire_on ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no, ? FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+                                      
+
+                                                                      ///data: [ 1, cardTypeData[0].card_type_w_point, 0, "Welcome",user_id,1,user_id, formattedExpiryDate, user_id],
+
+
+                                                                      const balanceQuery = "SELECT COALESCE(SUM(transaction_cr), 0) - COALESCE(SUM(transaction_dr), 0) AS user_balance FROM transaction WHERE user_id = ?";
+                                                                      executeQuery({
+                                                                          query: balanceQuery,
+                                                                          data: [process.env.ADMIN_ID_DEFAULT],
+                                                                          callback: (err, balanceData) => {
+                                                                              if (err)
+                                                                                  return res
+                                                                                  .status(500)
+                                                                                  .json({ error: [{ message: err }], result: {} });
+
+                                                                              const currentBalance = parseFloat(balanceData[0]?.user_balance || 0);
+                                                                              const requiredPoints = parseFloat(cardTypeData[0].card_type_w_point);
+                                                                              
+                                                                              console.log("Balance check - Available:", currentBalance, "Required:", requiredPoints, "Type - Available:", typeof currentBalance, "Required:", typeof requiredPoints);
+                                                                              
+                                                                              if (currentBalance < requiredPoints) {
+                                                                                  console.log("Insufficient points. Available: ", currentBalance, "Required: ", requiredPoints)
+                                                                                  // return res
+                                                                                  // .status(400)
+                                                                                  // .json({ 
+                                                                                  //     error: [{ 
+                                                                                  //         message: `Insufficient points. Available: ${currentBalance}, Required: ${requiredPoints}` 
+                                                                                  //     }], 
+                                                                                  //     result: {} 
+                                                                                  // });
+                                                                                  loginSuccess()
+                                                                              }
+                                                                              // Proceed with transaction if enough points
+                                                                              transactionDR();
                                                                           }
-                                                                          else
-                                                                          {
-                                                                            const result = {
-                                                                                message: "login successful",
-                                                                                token,
-                                                                                status: 1,
-                                                                                // data: userData
-                                                                                data: userData[0],
-                                                                                };
-                                                                            return res.status(200).json({ error: [], result });
-                                                                          }
+                                                                      });
+
+                                                                      function transactionDR() {
+           
+                                                                        const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
+                                                                                        card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+                                                                        executeQuery({
+                                                                                    query,
+                                                                                    data: [ 2, 0, cardTypeData[0].card_type_w_point, "Welcome Points",process.env.ADMIN_ID_DEFAULT,process.env.ADMIN_ID_DEFAULT,user_id,process.env.ADMIN_ID_DEFAULT],
+                                                                                    callback: (err, trData) => {
+                                                                                    if (err)
+                                                                                        return res
+                                                                                        .status(500)
+                                                                                        .json({ error: [{ message: err }], result: {} });
+                                                            
+                                                                                        transactionCR()
+                                                                                    
+                                                                                    }
+                                                                        });
+                                                                    }
+                                                            
+                                                                    function transactionCR() {
                                                                         
-                                                                        }
-                                                              });
+                                                                        const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
+                                                                                        card_id,card_no,expire_on ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no,? FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+                                                                        executeQuery({
+                                                                                    query,
+                                                                                    data: [ 1, cardTypeData[0].card_type_w_point, 0, "Welcome Points",user_id,process.env.ADMIN_ID_DEFAULT,user_id,formattedExpiryDate,user_id],
+                                                                                    callback: (err, trData) => {
+                                                                                    if (err)
+                                                                                        return res
+                                                                                        .status(500)
+                                                                                        .json({ error: [{ message: err }], result: {} });
+                                                            
+                                                                                        loginSuccess()
+                                                                                    }
+                                                                        });
+                                                                    }
 
-                                                            }
-                                                            else
-                                                            {
-                                                                return res
-                                                                .status(404)
-                                                                .json({
-                                                                  error: [{ message: "Unknown error, Please try again..." }],
-                                                                  result: {},
+                                                                    function loginSuccess() {
+                                                                      
+                                                                      const result = {
+                                                                          message: "login successful",
+                                                                          token,
+                                                                          status: 1,
+                                                                          // data: userData
+                                                                          data: userData[0],
+                                                                          };
+                                                                      return res.status(200).json({ error: [], result });
+                                                                    }
+
+
+
+
+                                                                      // executeQuery({
+                                                                      //           query,
+                                                                      //           data: [ 1, cardTypeData[0].card_type_w_point, 0, "Welcome",user_id,1,user_id, formattedExpiryDate, user_id],
+                                                                      //           //data: [ 0, cardTypeData[0].card_type_w_point, "Welcome",user_id, 0, allCardData[0].card_id, allCardData[0].card_no],
+                                                                      //           callback: (err, data) => {
+                                                                      //             // if (err) return res.status(500).json(err)
+                                                                      //             //console.log("SANTHOSH CARD F TRANSACTION");
+                                                                      //             if (err)
+                                                                      //             {
+                                                                      //               console.log(err);
+                                                                      //               return res
+                                                                      //               .status(500)
+                                                                      //               .json({ error: [{ message: err }], result: {} });
+                                                                      //             }
+                                                                      //             else
+                                                                      //             {
+                                                                      //               const result = {
+                                                                      //                   message: "login successful",
+                                                                      //                   token,
+                                                                      //                   status: 1,
+                                                                      //                   // data: userData
+                                                                      //                   data: userData[0],
+                                                                      //                   };
+                                                                      //               return res.status(200).json({ error: [], result });
+                                                                      //             }
+                                                                                
+                                                                      //           }
+                                                                      // });
+
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        return res
+                                                                        .status(404)
+                                                                        .json({
+                                                                          error: [{ message: "Unknown error, Please try again..." }],
+                                                                          result: {},
+                                                                        });
+                                                                    }
+                                                                  }
                                                                 });
-                                                            }
-                                                          }
-                                                        });
-                                                      }
-                                                      else
-                                                      {
-                                                        const result = {
-                                                          message: "login successful",
-                                                          token,
-                                                          status: 1,
-                                                          // data: userData
-                                                          data: userData[0],
-                                                          };
-                                                        return res.status(200).json({ error: [], result });
-                                                      }
+                                                              }
+                                                              else
+                                                              {
+                                                                const result = {
+                                                                  message: "login successful",
+                                                                  token,
+                                                                  status: 1,
+                                                                  // data: userData
+                                                                  data: userData[0],
+                                                                  };
+                                                                return res.status(200).json({ error: [], result });
+                                                              }
 
 
-                                                      
-                                              }
-                                          });   
-                                        }
-                                        else
-                                        {
-                                          return res
-                                          .status(404)
-                                          .json({
-                                            error: [{ message: "Unknown error, Please try again..." }],
-                                            result: {},
+                                                              
+                                                      }
+                                                  });   
+                                                }
+                                                else
+                                                {
+                                                  return res
+                                                  .status(404)
+                                                  .json({
+                                                    error: [{ message: "Unknown error, Please try again..." }],
+                                                    result: {},
+                                                  });
+                                                }
+                                            }
                                           });
-                                        }
+                                      }
                                     }
                                   });
                               }
+                              else
+                              {
+                                  const result = {
+                                    message: "login successful",
+                                    token,
+                                    status: 1,
+                                    // data: userData
+                                    data: userData[0],
+                                    };
+                                  return res.status(200).json({ error: [], result });
+                              }
+                              
                             }
-                          });
-                      }
-                      else
-                      {
-                          const result = {
-                            message: "login successful",
-                            token,
-                            status: 1,
-                            // data: userData
-                            data: userData[0],
-                            };
-                          return res.status(200).json({ error: [], result });
-                      }
-                      
-                    }
+                            else 
+                            {
+                              return res
+                                .status(404)
+                                .json({
+                                  error: [{ message: "Please verify your email..." }],
+                                  result: {},
+                                });
+                            }
+                        }
+                      });
+
+                    } 
                     else 
                     {
                       return res
                         .status(404)
                         .json({
-                          error: [{ message: "Please verify your email..." }],
+                          error: [{ message: "The user access denied the system" }],
                           result: {},
                         });
                     }
-                }
+                },
               });
+          
 
             } 
             else 

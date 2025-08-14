@@ -162,12 +162,7 @@ function WalletAdmin() {
       }
   };
 
-  // Calculate transaction charge based on API settings
-  const calculateTransactionCharge = (amount) => {
-      if (!amount || amount <= 0 || !transactionSettings) return 0;
-      const chargeRate = transactionSettings.transaction_charges || 0;
-      return parseFloat((parseFloat(amount) * chargeRate / 100).toFixed(2));
-  };
+
 
   ///CLICKS FUNCTION
 //   const handleChange = (e) => {
@@ -1814,7 +1809,7 @@ function WalletAdmin() {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         marginBottom: '30px',
-                        padding: '15px 20px',
+                        padding: '25px 0px',
                         borderBottom: '1px solid #e0e0e0',
                         borderRadius: '8px 8px 0 0',
                         height: '10px'
@@ -1876,42 +1871,22 @@ function WalletAdmin() {
                             }}
                         />
                         
-                        {/* Transaction Charge Display */}
+                        {/* Top-up Amount Display */}
                         {topUpAmount && topUpAmount > 0 && (
                             <div style={{
                                 marginTop: '15px',
                                 padding: '12px',
-                                backgroundColor: '#fff3e0',
+                                backgroundColor: '#e8f5e8',
                                 borderRadius: '6px',
-                                border: '1px solid #ffb74d'
+                                border: '1px solid #4caf50'
                             }}>
                                 <div style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginBottom: '8px'
+                                    alignItems: 'center'
                                 }}>
                                     <TextView type="subDark" text="Top-up Amount:" />
-                                    <TextView type="darkBold" text={`${topUpAmount} Points`} />
-                                </div>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginBottom: '8px'
-                                }}>
-                                    <TextView type="subDark" text="Transaction Charge:" />
-                                    <TextView type="darkBold" text={`${calculateTransactionCharge(topUpAmount)} Points`} style={{color: '#f57c00'}} />
-                                </div>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    borderTop: '1px solid #ffb74d',
-                                    paddingTop: '8px'
-                                }}>
-                                    <TextView type="subDarkBold" text="Total Amount:" />
-                                    <TextView type="darkBold" text={`${parseInt(topUpAmount) + calculateTransactionCharge(topUpAmount)} Points`} style={{color: '#2e7d32'}} />
+                                    <TextView type="darkBold" text={`${topUpAmount} Points`} style={{color: '#2e7d32'}} />
                                 </div>
                             </div>
                         )}
