@@ -228,11 +228,16 @@ export const login = (req, res) => {
                                                             if (allCardData[0]) 
                                                             {
                                                               console.log("SANTHOSH CARD DATA");
+                                                                                                                            // Calculate expiry date for welcome points
+                                                              const currentDate = new Date();
+                                                              const expiryDate = new Date(currentDate.getTime() + (30 * 24 * 60 * 60 * 1000)); // Default 30 days for welcome points
+                                                              const formattedExpiryDate = expiryDate.toISOString().split('T')[0];
+                                                              
                                                               const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
-                                                              card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+                                                              card_id,card_no,expire_on ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no, ? FROM cards c WHERE c.user_id = ? LIMIT 1;`;
                                                               executeQuery({
                                                                         query,
-                                                                        data: [ 1, cardTypeData[0].card_type_w_point, 0, "Welcome",user_id,1,user_id,user_id],
+                                                                        data: [ 1, cardTypeData[0].card_type_w_point, 0, "Welcome",user_id,1,user_id, formattedExpiryDate, user_id],
                                                                         //data: [ 0, cardTypeData[0].card_type_w_point, "Welcome",user_id, 0, allCardData[0].card_id, allCardData[0].card_no],
                                                                         callback: (err, data) => {
                                                                           // if (err) return res.status(500).json(err)
@@ -247,12 +252,12 @@ export const login = (req, res) => {
                                                                           else
                                                                           {
                                                                             const result = {
-                                                                              message: "login successful",
-                                                                              token,
-                                                                              status: 1,
-                                                                              // data: userData
-                                                                              data: userData[0],
-                                                                              };
+                                                                                message: "login successful",
+                                                                                token,
+                                                                                status: 1,
+                                                                                // data: userData
+                                                                                data: userData[0],
+                                                                                };
                                                                             return res.status(200).json({ error: [], result });
                                                                           }
                                                                         
@@ -520,10 +525,15 @@ export const addCard = (req, res) => {
                                       if (allCardData[0]) 
                                       {
                                         console.log("SANTHOSH CARD DATA");
-                                        const query = "INSERT INTO transaction (transaction_type, transaction_cr, transaction_title,user_id,card_id,card_no ) VALUES (?, ?, ?, ?, ?, ?)";
+                                        // Calculate expiry date for welcome points
+                                        const currentDate = new Date();
+                                        const expiryDate = new Date(currentDate.getTime() + (30 * 24 * 60 * 60 * 1000)); // Default 30 days for welcome points
+                                        const formattedExpiryDate = expiryDate.toISOString().split('T')[0];
+                                        
+                                        const query = "INSERT INTO transaction (transaction_type, transaction_cr, transaction_title, user_id, card_id, card_no, expire_on) VALUES (?, ?, ?, ?, ?, ?, ?)";
                                         executeQuery({
                                                   query,
-                                                  data: [ 0, cardTypeData[0].card_type_w_point, "Welcome",user_id,allCardData[0].card_id,allCardData[0].card_no],
+                                                  data: [ 0, cardTypeData[0].card_type_w_point, "Welcome", user_id, allCardData[0].card_id, allCardData[0].card_no, formattedExpiryDate],
                                                   callback: (err, trData) => {
                                                     // if (err) return res.status(500).json(err)
                                                     if (err)

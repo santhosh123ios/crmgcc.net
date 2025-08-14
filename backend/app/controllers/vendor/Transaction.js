@@ -60,63 +60,83 @@ export const addTransaction = (req, res) => {
           .status(404)
           .json({ error: [{ message: "Input data missing" }], result: {} });
 
-            const balanceQuery = "SELECT COALESCE(SUM(transaction_cr), 0) - COALESCE(SUM(transaction_dr), 0) AS user_balance FROM transaction WHERE user_id = ?";
-            executeQuery({
-                query: balanceQuery,
-                data: [user_id],
-                callback: (err, balanceData) => {
-                    if (err)
-                        return res
-                        .status(500)
-                        .json({ error: [{ message: err }], result: {} });
-
-                    const currentBalance = parseFloat(balanceData[0]?.user_balance || 0);
-                    const requiredPoints = parseFloat(transaction_point);
-                    
-                    console.log("Balance check - Available:", currentBalance, "Required:", requiredPoints, "Type - Available:", typeof currentBalance, "Required:", typeof requiredPoints);
-                    
-                    if (currentBalance < requiredPoints) {
-                        console.log("Insufficient points. Available: ", currentBalance, "Required: ", requiredPoints)
-                        return res
-                        .status(400)
-                        .json({ 
-                            error: [{ 
-                                message: `Insufficient points. Available: ${currentBalance}, Required: ${requiredPoints}` 
-                            }], 
-                            result: {} 
-                        });
-                    }
-                    // Proceed with transaction if enough points
-                    transactionDR();
+        // First get transaction settings to calculate expiry date
+        const settingsQuery = "SELECT transaction_expiry_time FROM transaction_settings ORDER BY id DESC LIMIT 1";
+        executeQuery({
+            query: settingsQuery,
+            data: [],
+            callback: (err, settingsData) => {
+                if (err) {
+                    return res
+                    .status(500)
+                    .json({ error: [{ message: err }], result: {} });
                 }
-            });
 
-        function transactionDR() {
+                const expiryDays = settingsData[0]?.transaction_expiry_time || 30; // Default to 30 days if not set
+                const currentDate = new Date();
+                const expiryDate = new Date(currentDate.getTime() + (expiryDays * 24 * 60 * 60 * 1000));
+                const formattedExpiryDate = expiryDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+                // Check balance and proceed with transaction
+                const balanceQuery = "SELECT COALESCE(SUM(transaction_cr), 0) - COALESCE(SUM(transaction_dr), 0) AS user_balance FROM transaction WHERE user_id = ?";
+                executeQuery({
+                    query: balanceQuery,
+                    data: [user_id],
+                    callback: (err, balanceData) => {
+                        if (err)
+                            return res
+                            .status(500)
+                            .json({ error: [{ message: err }], result: {} });
+
+                        const currentBalance = parseFloat(balanceData[0]?.user_balance || 0);
+                        const requiredPoints = parseFloat(transaction_point);
+                        
+                        console.log("Balance check - Available:", currentBalance, "Required:", requiredPoints, "Type - Available:", typeof currentBalance, "Required:", typeof requiredPoints);
+                        
+                        if (currentBalance < requiredPoints) {
+                            console.log("Insufficient points. Available: ", currentBalance, "Required: ", requiredPoints)
+                            return res
+                            .status(400)
+                            .json({ 
+                                error: [{ 
+                                    message: `Insufficient points. Available: ${currentBalance}, Required: ${requiredPoints}` 
+                                }], 
+                                result: {} 
+                            });
+                        }
+                        // Proceed with transaction if enough points
+                        transactionDR(formattedExpiryDate);
+                    }
+                });
+            }
+        });
+
+        function transactionDR(expiryDate) {
            
             const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
                             card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no FROM cards c WHERE c.user_id = ? LIMIT 1;`;
             executeQuery({
                         query,
-                        data: [ 2, 0, transaction_point, transaction_title,user_id,user_id,to_id,user_id],
+                        data: [ 2, 0, transaction_point, transaction_title,user_id,user_id,to_id, user_id],
                         callback: (err, trData) => {
                         if (err)
                             return res
                             .status(500)
                             .json({ error: [{ message: err }], result: {} });
 
-                            transactionCR()
+                            transactionCR(expiryDate)
                         
                         }
             });
         }
 
-        function transactionCR() {
+        function transactionCR(expiryDate) {
             
             const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
-                            card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+                            card_id,card_no,expire_on ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no, ? FROM cards c WHERE c.user_id = ? LIMIT 1;`;
             executeQuery({
                         query,
-                        data: [ 1, transaction_point, 0, transaction_title,to_id,user_id,to_id,to_id],
+                        data: [ 1, transaction_point, 0, transaction_title,to_id,user_id,to_id, expiryDate, to_id],
                         callback: (err, trData) => {
                         if (err)
                             return res
@@ -282,67 +302,87 @@ export const add_vendor_topup = (req, res) => {
          return res
            .status(404)
            .json({ error: [{ message: "Input data missing" }], result: {} });
- 
-                          const balanceQuery = "SELECT COALESCE(SUM(transaction_cr), 0) - COALESCE(SUM(transaction_dr), 0) AS user_balance FROM transaction WHERE user_id = ?";
-             executeQuery({
-                 query: balanceQuery,
-                 data: [1],
-                 callback: (err, balanceData) => {
-                     if (err)
-                         return res
-                         .status(500)
-                         .json({ error: [{ message: err }], result: {} });
 
-                     const currentBalance = parseFloat(balanceData[0]?.user_balance || 0);
-                     const requiredPoints = parseFloat(transaction_point);
-                     
-                     if (currentBalance < requiredPoints) {
-                         return res
-                         .status(400)
-                         .json({ 
-                             error: [{ 
-                                 message: `Insufficient points. Available: ${currentBalance}, Required: ${requiredPoints}` 
-                             }], 
-                             result: {} 
-                         });
-                     }
-                     // Proceed with transaction if enough points
-                     transactionDR();
-                 }
-             });
+        // First get transaction settings to calculate expiry date
+        const settingsQuery = "SELECT transaction_expiry_time FROM transaction_settings ORDER BY id DESC LIMIT 1";
+        executeQuery({
+            query: settingsQuery,
+            data: [],
+            callback: (err, settingsData) => {
+                if (err) {
+                    return res
+                    .status(500)
+                    .json({ error: [{ message: err }], result: {} });
+                }
+
+                const expiryDays = settingsData[0]?.transaction_expiry_time || 30; // Default to 30 days if not set
+                const currentDate = new Date();
+                const expiryDate = new Date(currentDate.getTime() + (expiryDays * 24 * 60 * 60 * 1000));
+                const formattedExpiryDate = expiryDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+                // Check balance and proceed with transaction
+                const balanceQuery = "SELECT COALESCE(SUM(transaction_cr), 0) - COALESCE(SUM(transaction_dr), 0) AS user_balance FROM transaction WHERE user_id = ?";
+                executeQuery({
+                    query: balanceQuery,
+                    data: [1],
+                    callback: (err, balanceData) => {
+                        if (err)
+                            return res
+                            .status(500)
+                            .json({ error: [{ message: err }], result: {} });
+
+                        const currentBalance = parseFloat(balanceData[0]?.user_balance || 0);
+                        const requiredPoints = parseFloat(transaction_point);
+                        
+                        if (currentBalance < requiredPoints) {
+                            return res
+                            .status(400)
+                            .json({ 
+                                error: [{ 
+                                    message: `Insufficient points. Available: ${currentBalance}, Required: ${requiredPoints}` 
+                                }], 
+                                result: {} 
+                            });
+                        }
+                        // Proceed with transaction if enough points
+                        transactionDR(formattedExpiryDate);
+                    }
+                });
+            }
+        });
  
-         function transactionDR() {
+        function transactionDR(expiryDate) {
             
              const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
-                             card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+                             card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no, ? FROM cards c WHERE c.user_id = ? LIMIT 1;`;
              executeQuery({
                          query,
-                         data: [ 2, 0, transaction_point, "Vendor Topup",1,1,user_id,1],
+                         data: [ 2, 0, transaction_point, "Vendor Topup",1,1,user_id, 1],
                          callback: (err, trData) => {
                          if (err)
                              return res
                              .status(500)
                              .json({ error: [{ message: err }], result: {} });
- 
-                             transactionCR()
+
+                             transactionCR(expiryDate)
                          
                          }
              });
-         }
+        }
  
-         function transactionCR() {
+                  function transactionCR(expiryDate) {
              
              const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
-                             card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+                             card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no, ? FROM cards c WHERE c.user_id = ? LIMIT 1;`;
              executeQuery({
                          query,
-                         data: [ 1, transaction_point, 0, "Vendor Topup",user_id,1,user_id,user_id],
+                         data: [ 1, transaction_point, 0, "Vendor Topup",user_id,1,user_id, user_id],
                          callback: (err, trData) => {
                          if (err)
                              return res
                              .status(500)
                              .json({ error: [{ message: err }], result: {} });
- 
+
                              const result = {
                                  message: "add transaction successful",
                                  status: 1

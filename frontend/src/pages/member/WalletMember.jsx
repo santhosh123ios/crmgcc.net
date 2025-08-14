@@ -3,7 +3,7 @@ import DashboardBox from '../../componants/Main/DashboardBox'
 import apiClient from '../../utils/ApiClient';
 import QRCode from 'qrcode';
 
-import { faExchangeAlt, faWallet, faHistory, faGift, faPlus, faEye, faEyeSlash, faInbox, faSearch, faPhone, faLocationDot, faCreditCard, faCoins } from '@fortawesome/free-solid-svg-icons'
+import { faExchangeAlt, faWallet, faHistory, faGift, faPlus, faEye, faEyeSlash, faInbox, faSearch, faPhone, faLocationDot, faCreditCard, faCoins, faClock, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import InputText from '../../componants/Main/InputText';
@@ -51,6 +51,31 @@ function WalletMember() {
   const qrCanvasRef = useRef(null);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [filteredRedeems, setFilteredRedeems] = useState([]);
+  const [expiringPoints, setExpiringPoints] = useState([]);
+
+  // Calculate expiring points
+  const calculateExpiringPoints = () => {
+    if (!transactions || transactions.length === 0) return [];
+    
+    const now = new Date();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(now.getDate() + 30);
+    
+    const expiring = transactions
+      .filter(transaction => 
+        transaction.expire_on && 
+        transaction.transaction_type === 1 && // Only credit transactions
+        new Date(transaction.expire_on) > now && // Not expired yet
+        new Date(transaction.expire_on) <= thirtyDaysFromNow // Expiring within 30 days
+      )
+      .map(transaction => ({
+        ...transaction,
+        daysUntilExpiry: Math.ceil((new Date(transaction.expire_on) - now) / (1000 * 60 * 60 * 24))
+      }))
+      .sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
+    
+    setExpiringPoints(expiring);
+  };
 
   useEffect(() => {
     fetchTransaction();
@@ -58,6 +83,11 @@ function WalletMember() {
     fetchWallet();
     fetchBankInfo();
   },[]);
+
+  // Calculate expiring points when transactions change
+  useEffect(() => {
+    calculateExpiringPoints();
+  }, [transactions]);
 
   // Filter data when search term changes
   useEffect(() => {
@@ -325,7 +355,9 @@ function WalletMember() {
       {/* Main Content */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1fr 2fr',
+        // gridTemplateColumns: '1.5fr 1.2fr 2.5fr',
+        gridTemplateColumns: expiringPoints.length > 0? '1.5fr 1.2fr 2.5fr': '1fr 2fr',
+        
         gap: '20px',
         flex: 1,
         padding: '20px',
@@ -535,6 +567,8 @@ function WalletMember() {
             </div>
           </DashboardBox>
 
+          
+
           {/* Redeem Request Button */}
           <DashboardBox style={{ padding: '0', overflow: 'hidden' }}>
             <div style={{
@@ -613,7 +647,131 @@ function WalletMember() {
 
         </div>
 
-                {/* Second Column - Merged List & Details */}
+        {/* Point Expiry Awareness Section */}
+        {expiringPoints.length > 0 && (
+          <DashboardBox style={{ padding: '0', overflow: 'hidden' }}>
+            <div style={{
+              padding: '20px',
+              backgroundColor: '#fff3cd',
+              borderRadius: '12px',
+              border: '1px solid #ffeaa7',
+              height: '100%'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '15px'
+              }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ffc107',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <FontAwesomeIcon icon={faExclamationTriangle} style={{ fontSize: '18px', color: '#856404' }} />
+                </div>
+                <div>
+                  <TextView type="darkBold" text="Points Expiring Soon!" style={{ fontSize: '16px', color: '#856404' }} />
+                  <TextView type="subDark" text="Some of your points will expire soon. Use them before they're gone!" style={{ fontSize: '13px', color: '#856404', opacity: 0.8 }} />
+                </div>
+              </div>
+
+              <div style={{
+                // maxHeight: '120px',
+                height: 'calc(100vh - 350px)',
+                overflow: 'auto',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#ffc107 #fff3cd'
+              }}>
+                {expiringPoints.map((point, index) => (
+                  <div key={index} style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '10px',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    borderRadius: '8px',
+                    marginBottom: '8px',
+                    border: '1px solid rgba(255, 193, 7, 0.3)'
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '4px'
+                      }}>
+                        <FontAwesomeIcon icon={faClock} style={{ fontSize: '12px', color: '#856404' }} />
+                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#856404' }}>
+                          {point.transaction_title}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#856404', opacity: 0.8 }}>
+                        Expires: {new Date(point.expire_on).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <div style={{
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        color: '#856404'
+                      }}>
+                        {point.transaction_cr} pts
+                      </div>
+                      <div style={{
+                        padding: '4px 8px',
+                        backgroundColor: point.daysUntilExpiry <= 7 ? '#dc3545' : 
+                                        point.daysUntilExpiry <= 14 ? '#fd7e14' : '#ffc107',
+                        color: 'white',
+                        borderRadius: '12px',
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        minWidth: '40px',
+                        textAlign: 'center'
+                      }}>
+                        {point.daysUntilExpiry === 1 ? '1 day' : 
+                          point.daysUntilExpiry === 0 ? 'Today' : 
+                          `${point.daysUntilExpiry} days`}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{
+                marginTop: '15px',
+                padding: '12px',
+                backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 193, 7, 0.4)'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '6px'
+                }}>
+                  <FontAwesomeIcon icon={faGift} style={{ fontSize: '14px', color: '#856404' }} />
+                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#856404' }}>
+                    Quick Action
+                  </span>
+                </div>
+                <TextView type="subDark" text="Consider redeeming these points or using them for purchases before they expire!" style={{ fontSize: '12px', color: '#856404', opacity: 0.9 }} />
+              </div>
+            </div>
+          </DashboardBox>
+        )}
+
+        {/* Second Column - Merged List & Details */}
         <DashboardBox style={{ overflow: 'hidden' }}>
           <div style={{
             display: 'flex',
