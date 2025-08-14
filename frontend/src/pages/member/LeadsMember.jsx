@@ -564,7 +564,7 @@ function LeadsMember() {
                                                 gap: '12px'
                                             }}>
                                                 <div style={{ flex: 1, minWidth: 0,boxSizing:'border-box' }}>
-                                                    <div className="lead-item-title" style={{width:'100%',maxWidth:'200px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                                                    <div className="lead-item-title" style={{width:'100%',maxWidth:'170px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                                                         {leadsItems.lead_name}
                                                     </div>
                                                 </div>

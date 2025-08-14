@@ -489,6 +489,7 @@ function LeadsVendor() {
         {
              console.log("Selected Status Noooooo:", e.target.value);
             //updateLeadStatus(selectedLead.id,e.target.value)
+            updateLeadStatus(selectedLead.id,e.target.value)
         }
         
     };
@@ -653,10 +654,13 @@ function LeadsVendor() {
                                                 display: 'flex', 
                                                 justifyContent: 'space-between', 
                                                 alignItems: 'flex-start', 
-                                                gap: '12px'
+                                                gap: '12px',
+                                                boxSizing:'border-box',
+                                                width:'100%',
+                                                overflow:'hidden'
                                             }}>
-                                                <div style={{ flex: 1, minWidth: 0,boxSizing:'border-box' }}>
-                                                    <div className="lead-item-title" style={{width:'100%',maxWidth:'200px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                                                <div style={{ flex: 1, minWidth: 0,boxSizing:'border-box' ,overflow:'hidden'}}>
+                                                    <div className="lead-item-title" style={{width:'100%', maxWidth:'170px', overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                                                         {leadsItems.lead_name}
                                                     </div>
                                                 </div>
