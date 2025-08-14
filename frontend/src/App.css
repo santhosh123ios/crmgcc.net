@@ -745,6 +745,7 @@ button:focus {
   flex-direction: column;
   background-color: transparent;
   gap: 8px;
+  box-sizing: border-box;
 }
 
 /* Enhanced lead list item styles */

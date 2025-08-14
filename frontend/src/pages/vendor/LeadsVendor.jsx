@@ -534,7 +534,7 @@ function LeadsVendor() {
                                 justifyContent:'center',
                                 justifyItems: 'center',
                                 paddingLeft:'10px',
-                                paddingRight:'5px'
+                                paddingRight:'10px'
                                 }}> 
 
                                    <InputText 
@@ -547,7 +547,7 @@ function LeadsVendor() {
 
                                 </div>
 
-                                <div style={{
+                                {/* <div style={{
                                 width: '55px',
                                 height: '60px',
                                 display: 'flex',
@@ -556,7 +556,7 @@ function LeadsVendor() {
                                 paddingRight:'10px',
                                 paddingLeft:'0px'}}> 
                                     <RoundButton icon={faPlus} onClick={() => setShowPopup(true)}/>
-                                </div>  
+                                </div>   */}
 
 
                                 
@@ -636,7 +636,7 @@ function LeadsVendor() {
                                                     height: '50px',
                                                     borderRadius: '12px',
                                                     objectFit: 'cover',
-                                                    border: '2px solid #f0f0f0'
+                                                    border: '2px solid #f0f0f0',
                                                 }}
                                             />
                                             {/* Status indicator dot */}
@@ -655,8 +655,8 @@ function LeadsVendor() {
                                                 alignItems: 'flex-start', 
                                                 gap: '12px'
                                             }}>
-                                                <div style={{ flex: 1, minWidth: 0 }}>
-                                                    <div className="lead-item-title">
+                                                <div style={{ flex: 1, minWidth: 0,boxSizing:'border-box' }}>
+                                                    <div className="lead-item-title" style={{width:'100%',maxWidth:'200px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                                                         {leadsItems.lead_name}
                                                     </div>
                                                 </div>
@@ -728,7 +728,7 @@ function LeadsVendor() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', padding: '0px', margin: '0px',height:'50px'}}>
                                 <p className="title-text-dark" style={{fontSize: '16px', fontWeight: '600', color: '#333'}}>{"Lead Status"}</p>
                                     <div style={{height:'50px',width:'130px'}}>
-                                        {!(selectedStatus === 3 || selectedStatus === 4) && (
+                                        {selectedLead && !(selectedStatus === 3 || selectedStatus === 4) && (
                                             <Dropdown
                                                 data={statusArray}
                                                 selectedItem={selectedStatus}
@@ -738,253 +738,285 @@ function LeadsVendor() {
                                         )}
                                     </div>
                                 </div>
-                                    <div style={{justifyContent: 'center',boxSizing:'border-box'}}>
-                                        <div style={{display:'flex',flexDirection:'row',alignItems: 'center',marginTop:'20px'}}>
-                                            {/* <DotBadge status={3} /> */}
-                                            {/* Step 1: Pending */}
-                                            <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
-                                                <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
-                                                    
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        position: 'relative',
-                                                        alignItems: 'center',
-                                                        width:'100%'
-                                                    }}>
+                                
+                                {!selectedLead ? (
+                                    // Empty state when no lead is selected
+                                    <div style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        height: 'calc(100% - 50px)',
+                                        color: '#666',
+                                        textAlign: 'center'
+                                    }}>
+                                        
+                                        <div style={{
+                                            fontSize: '16px',
+                                            fontWeight: '500',
+                                            marginBottom: '8px',
+                                            color: '#333'
+                                        }}>
+                                            No Lead Selected
+                                        </div>
+                                        <div style={{
+                                            fontSize: '14px',
+                                            color: '#888'
+                                        }}>
+                                            Select a lead from the list to view its status
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div style={{justifyContent: 'center',boxSizing:'border-box'}}>
+                                            <div style={{display:'flex',flexDirection:'row',alignItems: 'center',marginTop:'20px'}}>
+                                                {/* <DotBadge status={3} /> */}
+                                                {/* Step 1: Pending */}
+                                                <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
+                                                    <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
+                                                        
                                                         <div style={{
-                                                            position: 'absolute',
-                                                            width: '20px',
-                                                            height: '20px',
-                                                            borderRadius: '50%',
-                                                            backgroundColor: selectedStatus >= 0 ? '#4CAF50' : '#e0e0e0',
                                                             display: 'flex',
+                                                            position: 'relative',
                                                             alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            border: '2px solid white',
-                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                            transition: 'all 0.3s ease'
+                                                            width:'100%'
                                                         }}>
-                                                            {selectedStatus >= 0 && (
-                                                                <div style={{
-                                                                    width: '8px',
-                                                                    height: '8px',
-                                                                    borderRadius: '50%',
-                                                                    backgroundColor: 'white'
-                                                                }} />
-                                                            )}
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                width: '20px',
+                                                                height: '20px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: selectedStatus >= 0 ? '#4CAF50' : '#e0e0e0',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                border: '2px solid white',
+                                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                transition: 'all 0.3s ease'
+                                                            }}>
+                                                                {selectedStatus >= 0 && (
+                                                                    <div style={{
+                                                                        width: '8px',
+                                                                        height: '8px',
+                                                                        borderRadius: '50%',
+                                                                        backgroundColor: 'white'
+                                                                    }} />
+                                                                )}
+                                                            </div>
+                                                            <hr style={{background: selectedStatus === 1 || selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',width:'100%',padding:'0px',margin:'0px'}}/>
                                                         </div>
-                                                        <hr style={{background: selectedStatus === 1 || selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',width:'100%',padding:'0px',margin:'0px'}}/>
-                                                    </div>
 
-                                                    <div style={{
-                                                            marginTop: '15px',
-                                                            fontSize: '12px',
-                                                            fontWeight: '500',
-                                                            color: selectedStatus >= 0 ? '#4CAF50' : '#999',
-                                                            textAlign: 'center',
-                                                            transition: 'color 0.3s ease'
-                                                        }}>
+                                                        <div style={{
+                                                                marginTop: '15px',
+                                                                fontSize: '12px',
+                                                                fontWeight: '500',
+                                                                color: selectedStatus >= 0 ? '#4CAF50' : '#999',
+                                                                textAlign: 'center',
+                                                                transition: 'color 0.3s ease'
+                                                            }}>
                                                             Pending
                                                         </div>
-                                                
-                                                </div>
-                                                
-                                            </div>
-
-
-                                            {/* <DotBadge status={3} /> */}
-                                            {/* Step 2: Review */}
-                                            <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
-                                                <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
                                                     
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        position: 'relative',
-                                                        alignItems: 'center',
-                                                        width:'100%'
-                                                    }}>
-                                                        <div style={{
-                                                            position: 'absolute',
-                                                            width: '20px',
-                                                            height: '20px',
-                                                            borderRadius: '50%',
-                                                            backgroundColor: selectedStatus >= 1 ? '#4CAF50' : '#e0e0e0',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            border: '2px solid white',
-                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                            transition: 'all 0.3s ease'
-                                                        }}>
-                                                            {selectedStatus >= 1 && (
-                                                                <div style={{
-                                                                    width: '8px',
-                                                                    height: '8px',
-                                                                    borderRadius: '50%',
-                                                                    backgroundColor: 'white'
-                                                                }} />
-                                                            )}
-                                                        </div>
-                                                        <hr style={{background: selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',width:'100%',padding:'0px',margin:'0px'}}/>
                                                     </div>
-
-                                                    <div style={{
-                                                            marginTop: '15px',
-                                                            fontSize: '12px',
-                                                            fontWeight: '500',
-                                                            color: selectedStatus >= 1 ? '#4CAF50' : '#999',
-                                                            textAlign: 'center',
-                                                            transition: 'color 0.3s ease'
-                                                    }}>
-                                                        Review
-                                                    </div>
-                                                
-                                                </div>
-                                                
-                                            </div>
-
-                                            
-                                            {/* <DotBadge status={3} /> */}
-                                            {/* Step 2: Processing */}
-                                            <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
-                                                <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
                                                     
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        position: 'relative',
-                                                        alignItems: 'center',
-                                                        width:'100%'
-                                                    }}>
-                                                        <div style={{
-                                                            position: 'absolute',
-                                                            width: '20px',
-                                                            height: '20px',
-                                                            borderRadius: '50%',
-                                                            backgroundColor: selectedStatus >= 2 ? '#4CAF50' : '#e0e0e0',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            border: '2px solid white',
-                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                            transition: 'all 0.3s ease'
-                                                        }}>
-                                                            {selectedStatus >= 2 && (
-                                                                <div style={{
-                                                                    width: '8px',
-                                                                    height: '8px',
-                                                                    borderRadius: '50%',
-                                                                    backgroundColor: 'white'
-                                                                }} />
-                                                            )}
-                                                        </div>
-                                                        <hr style={{
-                                                            backgroundColor: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#e0e0e0',
-                                                            //background: selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',
-                                                            width:'100%',padding:'0px',margin:'0px'}}/>
-                                                    </div>
+                                                </div>
 
-                                                    <div style={{
-                                                            marginTop: '15px',
-                                                            fontSize: '12px',
-                                                            fontWeight: '500',
-                                                            color: selectedStatus >= 2 ? '#4CAF50' : '#999',
-                                                            textAlign: 'center',
-                                                            transition: 'color 0.3s ease'
+
+                                                {/* <DotBadge status={3} /> */}
+                                                {/* Step 2: Review */}
+                                                <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
+                                                    <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
+                                                        
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            position: 'relative',
+                                                            alignItems: 'center',
+                                                            width:'100%'
                                                         }}>
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                width: '20px',
+                                                                height: '20px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: selectedStatus >= 1 ? '#4CAF50' : '#e0e0e0',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                border: '2px solid white',
+                                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                transition: 'all 0.3s ease'
+                                                            }}>
+                                                                {selectedStatus >= 1 && (
+                                                                    <div style={{
+                                                                        width: '8px',
+                                                                        height: '8px',
+                                                                        borderRadius: '50%',
+                                                                        backgroundColor: 'white'
+                                                                    }} />
+                                                                )}
+                                                            </div>
+                                                            <hr style={{background: selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',width:'100%',padding:'0px',margin:'0px'}}/>
+                                                        </div>
+
+                                                        <div style={{
+                                                                marginTop: '15px',
+                                                                fontSize: '12px',
+                                                                fontWeight: '500',
+                                                                color: selectedStatus >= 1 ? '#4CAF50' : '#999',
+                                                                textAlign: 'center',
+                                                                transition: 'color 0.3s ease'
+                                                        }}>
+                                                            Review
+                                                        </div>
+                                                    
+                                                    </div>
+                                                    
+                                                </div>
+
+                                                
+                                                {/* <DotBadge status={3} /> */}
+                                                {/* Step 2: Processing */}
+                                                <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
+                                                    <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
+                                                        
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            position: 'relative',
+                                                            alignItems: 'center',
+                                                            width:'100%'
+                                                        }}>
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                width: '20px',
+                                                                height: '20px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: selectedStatus >= 2 ? '#4CAF50' : '#e0e0e0',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                border: '2px solid white',
+                                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                transition: 'all 0.3s ease'
+                                                            }}>
+                                                                {selectedStatus >= 2 && (
+                                                                    <div style={{
+                                                                        width: '8px',
+                                                                        height: '8px',
+                                                                        borderRadius: '50%',
+                                                                        backgroundColor: 'white'
+                                                                    }} />
+                                                                )}
+                                                            </div>
+                                                            <hr style={{
+                                                                backgroundColor: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#e0e0e0',
+                                                                //background: selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',
+                                                                width:'100%',padding:'0px',margin:'0px'}}/>
+                                                        </div>
+
+                                                        <div style={{
+                                                                marginTop: '15px',
+                                                                fontSize: '12px',
+                                                                fontWeight: '500',
+                                                                color: selectedStatus >= 2 ? '#4CAF50' : '#999',
+                                                                textAlign: 'center',
+                                                                transition: 'color 0.3s ease'
+                                                            }}>
                                                             Processing
                                                         </div>
-                                                
-                                                </div>
-                                                
-                                            </div>
-
-
-                                            {/* <DotBadge status={3} /> */}
-                                            {/* Step 2: Final */}
-                                            <div style={{width:'60px',display:'flex',flexDirection:'row'}}>
-                                                <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
                                                     
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        position: 'relative',
-                                                        alignItems: 'center',
-                                                        width:'100%'
-                                                    }}>
-                                                        <div style={{
-                                                            position: 'absolute',
-                                                            width: '20px',
-                                                            height: '20px',
-                                                            borderRadius: '50%',
-                                                            backgroundColor: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#e0e0e0',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            border: '2px solid white',
-                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                            transition: 'all 0.3s ease'
-                                                        }}>
-                                                            {selectedStatus >= 3 && (
-                                                                <div style={{
-                                                                    width: '8px',
-                                                                    height: '8px',
-                                                                    borderRadius: '50%',
-                                                                    backgroundColor: 'white'
-                                                                }} />
-                                                            )}
-                                                        </div>
-                                                        {/* <hr style={{background: selectedStatus === 3 || selectedStatus === 4 ? 'green' : 'gray',width:'100%',padding:'0px',margin:'0px'}}/> */}
                                                     </div>
+                                                    
+                                                </div>
 
-                                                    <div style={{
-                                                            marginTop: '15px',
-                                                            fontSize: '12px',
-                                                            fontWeight: '500',
-                                                            color: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#999',
-                                                            textAlign: 'center',
-                                                            transition: 'color 0.3s ease'
+
+                                                {/* <DotBadge status={3} /> */}
+                                                {/* Step 2: Final */}
+                                                <div style={{width:'60px',display:'flex',flexDirection:'row'}}>
+                                                    <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
+                                                        
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            position: 'relative',
+                                                            alignItems: 'center',
+                                                            width:'100%'
                                                         }}>
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                width: '20px',
+                                                                height: '20px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#e0e0e0',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                border: '2px solid white',
+                                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                transition: 'all 0.3s ease'
+                                                            }}>
+                                                                {selectedStatus >= 3 && (
+                                                                    <div style={{
+                                                                        width: '8px',
+                                                                        height: '8px',
+                                                                        borderRadius: '50%',
+                                                                        backgroundColor: 'white'
+                                                                    }} />
+                                                                )}
+                                                            </div>
+                                                            {/* <hr style={{background: selectedStatus === 3 || selectedStatus === 4 ? 'green' : 'gray',width:'100%',padding:'0px',margin:'0px'}}/> */}
+                                                        </div>
+
+                                                        <div style={{
+                                                                marginTop: '15px',
+                                                                fontSize: '12px',
+                                                                fontWeight: '500',
+                                                                color: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#999',
+                                                                textAlign: 'center',
+                                                                transition: 'color 0.3s ease'
+                                                            }}>
                                                             {selectedStatus === 4 ? "Rejected" : "Done"}
                                                         </div>
-                                                
-                                                </div>
-                                                
-                                            </div>
-
-                                            
-
-                                            {/* <div style={{width:'80px',display:'flex',flexDirection:'column'}}>
-                                                <TextView type="subDark" text={selectedStatus === 4 ? "Rejected" : "Done"}/>
-                                                <div style={{display:'flex',flexDirection:'row',height:'10px'}}>
-                                                    <DotBadge status={selectedStatus === 3 || selectedStatus === 4 ? 3 : 6} />
+                                                    
+                                                    </div>
                                                     
                                                 </div>
-                                            </div> */}
 
+                                                
+
+                                                {/* <div style={{width:'80px',display:'flex',flexDirection:'column'}}>
+                                                    <TextView type="subDark" text={selectedStatus === 4 ? "Rejected" : "Done"}/>
+                                                    <div style={{display:'flex',flexDirection:'row',height:'10px'}}>
+                                                        <DotBadge status={selectedStatus === 3 || selectedStatus === 4 ? 3 : 6} />
+                                                        
+                                                    </div>
+                                                </div> */}
+
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Status Description */}
-                                    <div style={{
-                                        marginTop: '15px',
-                                        padding: '10px 15px',
-                                        backgroundColor: selectedStatus === 4 ? '#ffebee' : '#f1f8e9',
-                                        borderRadius: '8px',
-                                        border: `1px solid ${selectedStatus === 4 ? '#ffcdd2' : '#c8e6c9'}`,
-                                        transition: 'all 0.3s ease'
-                                    }}>
+                                        {/* Status Description */}
                                         <div style={{
-                                            fontSize: '13px',
-                                            fontWeight: '500',
-                                            color: selectedStatus === 4 ? '#d32f2f' : '#2e7d32',
-                                            textAlign: 'center'
+                                            marginTop: '15px',
+                                            padding: '10px 15px',
+                                            backgroundColor: selectedStatus === 4 ? '#ffebee' : '#f1f8e9',
+                                            borderRadius: '8px',
+                                            border: `1px solid ${selectedStatus === 4 ? '#ffcdd2' : '#c8e6c9'}`,
+                                            transition: 'all 0.3s ease'
                                         }}>
-                                            {selectedStatus === 0 && "Your lead is pending review"}
-                                            {selectedStatus === 1 && "Your lead is under review"}
-                                            {selectedStatus === 2 && "Your lead is being processed"}
-                                            {selectedStatus === 3 && "Your lead has been completed"}
-                                            {selectedStatus === 4 && "Your lead has been rejected"}
+                                            <div style={{
+                                                fontSize: '13px',
+                                                fontWeight: '500',
+                                                color: selectedStatus === 4 ? '#d32f2f' : '#2e7d32',
+                                                textAlign: 'center'
+                                            }}>
+                                                {selectedStatus === 0 && "Your lead is pending review"}
+                                                {selectedStatus === 1 && "Your lead is under review"}
+                                                {selectedStatus === 2 && "Your lead is being processed"}
+                                                {selectedStatus === 3 && "Your lead has been completed"}
+                                                {selectedStatus === 4 && "Your lead has been rejected"}
+                                            </div>
                                         </div>
-                                    </div>
+                                    </>
+                                )}
                                     
                                 </div>
                             </DashboardBox>
@@ -999,328 +1031,370 @@ function LeadsVendor() {
                         padding: '2px'
                         }}>
                         <DashboardBox>
-                            <div style={{
-                                padding: '20px',
-                                paddingBottom: '0px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '10px'
-                            }}>
-                                {/* Header Section */}
+                            {!selectedLead ? (
+                                // Empty state when no lead is selected
                                 <div style={{
                                     display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'flex-start',
-                                    borderBottom: '2px solid #f0f0f0',
-                                    paddingBottom: '15px'
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    height: '100%',
+                                    color: '#666',
+                                    textAlign: 'center',
+                                    padding: '40px 20px'
                                 }}>
-                                    <div style={{ flex: 1 }}>
-                                                                                <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '12px',
-                                            marginBottom: '8px'
-                                        }}>
-                                            <img 
-                                                className="user-avatar" 
-                                                src={selectedLead?.member_image ? baseUrl + selectedLead.member_image : "/public/dummy.jpg"} 
-                                                alt={selectedLead?.member_name || 'Member'}
-                                                style={{
-                                                    width: '40px',
-                                                    height: '40px',
-                                                    borderRadius: '12px',
-                                                    objectFit: 'cover',
-                                                    border: '2px solid #f0f0f0'
-                                                }}
-                                            />
-                                            <div>
-                                                <TextView 
-                                                    type="darkBold" 
-                                                    text={selectedLead?.lead_name ?? "Lead Title"} 
-                                                    style={{ fontSize: '18px', marginBottom: '4px' }}
+                                    <div style={{
+                                        fontSize: '48px',
+                                        marginBottom: '16px',
+                                        opacity: 0.5
+                                    }}>
+                                        📄
+                                    </div>
+                                    <div style={{
+                                        fontSize: '16px',
+                                        fontWeight: '500',
+                                        marginBottom: '8px',
+                                        color: '#333'
+                                    }}>
+                                        No Lead Details
+                                    </div>
+                                    <div style={{
+                                        fontSize: '14px',
+                                        color: '#888'
+                                    }}>
+                                        Select a lead from the list to view its details
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{
+                                    padding: '20px',
+                                    paddingBottom: '0px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '10px'
+                                }}>
+                                    {/* Header Section */}
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'flex-start',
+                                        borderBottom: '2px solid #f0f0f0',
+                                        paddingBottom: '5px'
+                                    }}>
+                                        <div style={{ flex: 1 }}>
+                                                                                        <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '12px',
+                                                marginBottom: '8px'
+                                            }}>
+                                                <img 
+                                                    className="user-avatar" 
+                                                    src={selectedLead?.vendor_image ? baseUrl + selectedLead.vendor_image : "/public/dummy.jpg"} 
+                                                    alt={selectedLead?.vendor_name || 'Vendor'}
+                                                    style={{
+                                                        width: '40px',
+                                                        height: '40px',
+                                                        borderRadius: '12px',
+                                                        objectFit: 'cover',
+                                                        border: '2px solid #f0f0f0'
+                                                    }}
                                                 />
-                                                <div style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '8px'
-                                                }}>
+                                                <div>
+                                                    <TextView 
+                                                        type="darkBold" 
+                                                        text={selectedLead?.lead_name ?? "Lead Title"} 
+                                                        style={{ fontSize: '18px', marginBottom: '4px',width:'100%' }}
+                                                    />
+
                                                     <div style={{
-                                                        width: '8px',
-                                                        height: '8px',
-                                                        borderRadius: '50%',
-                                                        backgroundColor: selectedLead?.lead_status === 3 ? '#4caf50' : 
-                                                                       selectedLead?.lead_status === 4 ? '#f44336' : '#ff9800'
-                                                    }} />
-                                                    <span style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
                                                         fontSize: '12px',
                                                         color: '#666',
                                                         fontWeight: '500'
                                                     }}>
-                                                        {selectedLead?.lead_status === 0 ? 'Pending' :
-                                                         selectedLead?.lead_status === 1 ? 'Under Review' :
-                                                         selectedLead?.lead_status === 2 ? 'Processing' :
-                                                         selectedLead?.lead_status === 3 ? 'Completed' : 'Rejected'}
-                                                    </span>
-                                </div>
+                                                        <FontAwesomeIcon 
+                                                            icon={faCalendar} 
+                                                            style={{ color: '#999', fontSize: '12px' }}
+                                                        />
+                                                        <span>
+                                                            {new Date(selectedLead?.created_at ?? new Date()).toLocaleDateString("en-US", {
+                                                                year: "numeric",
+                                                                month: "short",
+                                                                day: "numeric",
+                                                            })} • {new Date(selectedLead?.created_at ?? new Date()).toLocaleTimeString("en-US", {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                                hour12: true
+                                                            })}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'flex-end',
-                                        gap: '8px'
-                                    }}>
-                                        <div style={{
-                                            padding: '6px 12px',
-                                            backgroundColor: '#f5f5f5',
-                                            borderRadius: '20px',
-                                            fontSize: '11px',
-                                            color: '#666',
-                                            fontWeight: '500'
-                                        }}>
-                                            Lead ID: #{selectedLead?.id ?? 'N/A'}
-                                        </div>
-                                                                                <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            fontSize: '12px',
-                                            color: '#666',
-                                            fontWeight: '500'
-                                        }}>
-                                            <FontAwesomeIcon 
-                                                icon={faCalendar} 
-                                                style={{ color: '#999', fontSize: '12px' }}
-                                            />
-                                            <span>
-                                                {new Date(selectedLead?.created_at ?? new Date()).toLocaleDateString("en-US", {
-                                                    year: "numeric",
-                                                    month: "short",
-                                                    day: "numeric",
-                                                })} • {new Date(selectedLead?.created_at ?? new Date()).toLocaleTimeString("en-US", {
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                    hour12: true
-                                                })}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Description Section */}
-                                <div style={{
-                                    backgroundColor: '#fafafa',
-                                    borderRadius: '12px',
-                                    padding: '16px',
-                                    border: '1px solid #e0e0e0'
-                                }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        marginBottom: '12px'
-                                    }}>
-                                        <FontAwesomeIcon 
-                                            icon={faLocationDot} 
-                                            style={{ color: '#666', fontSize: '14px' }}
-                                        />
-                                        <span style={{
-                                            fontSize: '14px',
-                                            fontWeight: '600',
-                                            color: '#333'
-                                        }}>
-                                            Lead Description
-                                        </span>
-                                    </div>
-                                    <p style={{
-                                        fontSize: '14px',
-                                        lineHeight: '1.6',
-                                        color: '#555',
-                                        margin: '0',
-                                        padding: '0'
-                                    }}>
-                                        {selectedLead?.lead_description ?? "No description available for this lead."}
-                                    </p>
-                                </div>
-
-                                {/* Key Information Grid */}
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: '1fr 1fr',
-                                    gap: '16px'
-                                }}>
-                                    {/* Member Information */}
-                                    <div style={{
-                                        backgroundColor: '#fff',
-                                        borderRadius: '10px',
-                                        padding: '16px',
-                                        border: '1px solid #e8e8e8',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                                    }}>
                                         <div style={{
                                             display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                            marginBottom: '12px'
+                                            flexDirection: 'column',
+                                            alignItems: 'flex-end',
+                                            gap: '8px'
                                         }}>
                                             <div style={{
-                                                width: '24px',
-                                                height: '24px',
-                                                borderRadius: '50%',
-                                                backgroundColor: '#e8f5e8',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
+                                                padding: '6px 12px',
+                                                backgroundColor: '#f5f5f5',
+                                                borderRadius: '20px',
+                                                fontSize: '11px',
+                                                color: '#666',
+                                                fontWeight: '500'
                                             }}>
-                                                <FontAwesomeIcon 
-                                                    icon={faExchangeAlt} 
-                                                    style={{ color: '#4caf50', fontSize: '12px' }}
-                                                />
+                                                Lead ID: #{selectedLead?.id ?? 'N/A'}
                                             </div>
-                                            <span style={{
-                                                fontSize: '13px',
-                                                fontWeight: '600',
-                                                color: '#333'
-                                            }}>
-                                                Member Details
-                                            </span>
-                                        </div>
-                                        <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.5' }}>
-                                            <div style={{ marginBottom: '6px' }}>
-                                                <strong>Name:</strong> {selectedLead?.member_name ?? 'N/A'}
-                                            </div>
-                                            <div style={{ marginBottom: '6px' }}>
-                                                <strong>Email:</strong> {selectedLead?.member_email ?? 'N/A'}
-                                            </div>
-                                            <div>
-                                                <strong>Contact:</strong> {selectedLead?.member_phone ?? 'N/A'}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Lead Statistics */}
-                                    <div style={{
-                                        backgroundColor: '#fff',
-                                        borderRadius: '10px',
-                                        padding: '16px',
-                                        border: '1px solid #e8e8e8',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                                    }}>
-                                        <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                            marginBottom: '12px'
-                                        }}>
+                                            
                                             <div style={{
-                                                width: '24px',
-                                                height: '24px',
-                                                borderRadius: '50%',
-                                                backgroundColor: '#fff3e0',
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                justifyContent: 'center'
+                                                gap: '8px'
                                             }}>
-                                                <FontAwesomeIcon 
-                                                    icon={faPaperPlane} 
-                                                    style={{ color: '#ff9800', fontSize: '12px' }}
-                                                />
-                                            </div>
-                                            <span style={{
-                                                fontSize: '13px',
-                                                fontWeight: '600',
-                                                color: '#333'
-                                            }}>
-                                                Lead Info
-                                            </span>
-                                        </div>
-                                        <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.5' }}>
-                                            <div style={{ marginBottom: '6px' }}>
-                                                <strong>Category:</strong> Business Lead
-                                            </div>
-                                            <div style={{ marginBottom: '6px' }}>
-                                                <strong>Priority:</strong> 
+                                                <div style={{
+                                                    width: '8px',
+                                                    height: '8px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: selectedLead?.lead_status === 3 ? '#4caf50' : 
+                                                                    selectedLead?.lead_status === 4 ? '#f44336' : '#ff9800'
+                                                }} />
                                                 <span style={{
-                                                    padding: '2px 8px',
-                                                    borderRadius: '10px',
-                                                    fontSize: '10px',
-                                                    fontWeight: '500',
-                                                    backgroundColor: '#e3f2fd',
-                                                    color: '#1976d2',
-                                                    marginLeft: '6px'
+                                                    fontSize: '12px',
+                                                    color: '#666',
+                                                    fontWeight: '500'
                                                 }}>
-                                                    Medium
+                                                    {selectedLead?.lead_status === 0 ? 'Pending' :
+                                                        selectedLead?.lead_status === 1 ? 'Under Review' :
+                                                        selectedLead?.lead_status === 2 ? 'Processing' :
+                                                        selectedLead?.lead_status === 3 ? 'Completed' : 'Rejected'}
                                                 </span>
                                             </div>
-                                            <div>
-                                                <strong>Messages:</strong> {messages.length} exchanged
+                                        </div>
+                                    </div>
+
+                                    {/* Description Section */}
+                                    <div style={{
+                                        backgroundColor: '#fafafa',
+                                        borderRadius: '12px',
+                                        paddingLeft: '16px',
+                                        paddingRight: '16px',
+                                        paddingTop: '10px',
+                                        paddingBottom: '5px',
+                                        border: '1px solid #e0e0e0',
+                                        marginBottom: '0px'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            marginBottom: '5px'
+                                        }}>
+                                            <FontAwesomeIcon 
+                                                icon={faLocationDot} 
+                                                style={{ color: '#666', fontSize: '14px' }}
+                                            />
+                                            <span style={{
+                                                fontSize: '14px',
+                                                fontWeight: '600',
+                                                color: '#333'
+                                            }}>
+                                                Lead Description
+                                            </span>
+                                        </div>
+                                        <p style={{
+                                            fontSize: '14px',
+                                            lineHeight: '1.6',
+                                            color: '#555',
+                                            margin: '0',
+                                            padding: '0'
+                                        }}>
+                                            {selectedLead?.lead_description ?? "No description available for this lead."}
+                                        </p>
+                                    </div>
+
+                                    {/* Key Information Grid */}
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: '1fr 1fr',
+                                        gap: '10px'
+                                    }}>
+                                        {/* Vendor Information */}
+                                        <div style={{
+                                            backgroundColor: '#fff',
+                                            borderRadius: '10px',
+                                            padding: '16px',
+                                            border: '1px solid #e8e8e8',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                        }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                marginBottom: '5px'
+                                            }}>
+                                                <div style={{
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: '#e8f5e8',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}>
+                                                    <FontAwesomeIcon 
+                                                        icon={faExchangeAlt} 
+                                                        style={{ color: '#4caf50', fontSize: '12px' }}
+                                                    />
+                                                </div>
+                                                <span style={{
+                                                    fontSize: '13px',
+                                                    fontWeight: '600',
+                                                    color: '#333'
+                                                }}>
+                                                    Vendor Details
+                                                </span>
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.5' }}>
+                                                <div style={{ marginBottom: '6px' }}>
+                                                    <strong>Name:</strong> {selectedLead?.vendor_name ?? 'N/A'}
+                                                </div>
+                                                <div style={{ marginBottom: '6px' }}>
+                                                    <strong>Email:</strong> {selectedLead?.vendor_email ?? 'N/A'}
+                                                </div>
+                                                <div>
+                                                    <strong>Contact:</strong> {selectedLead?.vendor_phone ?? 'N/A'}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Lead Statistics */}
+                                        <div style={{
+                                            backgroundColor: '#fff',
+                                            borderRadius: '10px',
+                                            padding: '16px',
+                                            border: '1px solid #e8e8e8',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                        }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                marginBottom: '5px'
+                                            }}>
+                                                <div style={{
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: '#fff3e0',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}>
+                                                    <FontAwesomeIcon 
+                                                        icon={faPaperPlane} 
+                                                        style={{ color: '#ff9800', fontSize: '12px' }}
+                                                    />
+                                                </div>
+                                                <span style={{
+                                                    fontSize: '13px',
+                                                    fontWeight: '600',
+                                                    color: '#333'
+                                                }}>
+                                                    Lead Info
+                                                </span>
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.5' }}>
+                                                <div style={{ marginBottom: '6px' }}>
+                                                    <strong>Category:</strong> Business Lead
+                                                </div>
+                                                <div style={{ marginBottom: '6px' }}>
+                                                    <strong>Priority:</strong> 
+                                                    <span style={{
+                                                        padding: '2px 8px',
+                                                        borderRadius: '10px',
+                                                        fontSize: '10px',
+                                                        fontWeight: '500',
+                                                        backgroundColor: '#e3f2fd',
+                                                        color: '#1976d2',
+                                                        marginLeft: '6px'
+                                                    }}>
+                                                        Medium
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <strong>Messages:</strong> {messages.length} exchanged
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Action Buttons */}
-                                <div style={{
-                                    display: 'flex',
-                                    gap: '12px',
-                                    marginTop: '20px',
-                                    paddingTop: '0px',
-                                }}>
-                                    <button style={{
-                                        flex: 1,
-                                        padding: '12px 16px',
-                                        backgroundColor: 'var(--highlight-color)',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        fontSize: '14px',
-                                        fontWeight: '500',
-                                        cursor: 'pointer',
+                                    {/* Action Buttons */}
+                                    <div style={{
                                         display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        transition: 'all 0.3s ease',
-                                        marginTop: '0px'
-                                    }}
-                                    onMouseEnter={(e) => e.target.style.backgroundColor = '#e6c200'}
-                                    onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--highlight-color)'}
-                                    >
-                                        <FontAwesomeIcon icon={faPhone} style={{ fontSize: '14px' }} />
-                                        Contact Member
-                                    </button>
-                                    <button style={{
-                                        flex: 1,
-                                        padding: '12px 16px',
-                                        backgroundColor: '#fff',
-                                        color: '#666',
-                                        border: '1px solid #ddd',
-                                        borderRadius: '8px',
-                                        fontSize: '14px',
-                                        fontWeight: '500',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        transition: 'all 0.3s ease',
-                                        marginTop: '0px'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.target.style.backgroundColor = '#f5f5f5';
-                                        e.target.style.borderColor = '#ccc';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.target.style.backgroundColor = '#fff';
-                                        e.target.style.borderColor = '#ddd';
-                                    }}
-                                    >
-                                        <FontAwesomeIcon icon={faLocationDot} style={{ fontSize: '14px' }} />
-                                        Location
-                                    </button>
+                                        gap: '12px',
+                                        marginTop: '0px',
+                                        paddingTop: '0px',
+                                        borderTop: '1px solid #f0f0f0'
+                                    }}>
+                                        <button style={{
+                                            flex: 1,
+                                            padding: '12px 16px',
+                                            backgroundColor: 'var(--highlight-color)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: '500',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                        onMouseEnter={(e) => e.target.style.backgroundColor = '#e6c200'}
+                                        onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--highlight-color)'}
+                                        >
+                                            <FontAwesomeIcon icon={faPhone} style={{ fontSize: '14px' }} />
+                                            Contact Vendor
+                                        </button>
+                                        <button style={{
+                                            flex: 1,
+                                            padding: '12px 16px',
+                                            backgroundColor: '#fff',
+                                            color: '#666',
+                                            border: '1px solid #ddd',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: '500',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.backgroundColor = '#f5f5f5';
+                                            e.target.style.borderColor = '#ccc';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.backgroundColor = '#fff';
+                                            e.target.style.borderColor = '#ddd';
+                                        }}
+                                        >
+                                            <FontAwesomeIcon icon={faLocationDot} style={{ fontSize: '14px' }} />
+                                            Location
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </DashboardBox>
                     </div>
                 </div>
@@ -1342,279 +1416,315 @@ function LeadsVendor() {
                     padding: '2px'
                     }}>
                         <DashboardBox>
-                            <div style={{
-                                boxSizing: 'border-box',
-                                display: 'flex',
-                                height: '100%',
-                                flexDirection: 'column',
-                                justifyContent: 'start',
-                                padding: '0px',
-                                maxHeight: 'calc(100vh - 300px)',
-                                minHeight: '480px'
-                            }}>
-                                {/* Chat Header */}
+                            {!selectedLead ? (
+                                // Empty state when no lead is selected
                                 <div style={{
                                     display: 'flex',
-                                    justifyContent: 'space-between',
+                                    flexDirection: 'column',
                                     alignItems: 'center',
-                                    padding: '20px 20px 15px 20px',
-                                    borderBottom: '1px solid #f0f0f0',
-                                    backgroundColor: '#fafafa',
-                                    borderRadius: '8px 8px 0 0'
+                                    justifyContent: 'center',
+                                    height: '100%',
+                                    color: '#666',
+                                    textAlign: 'center',
+                                    padding: '40px 20px'
                                 }}>
-                                    <div>
-                                        <div style={{
-                                            fontSize: '16px',
-                                            fontWeight: '600',
-                                            color: '#333',
-                                            marginBottom: '2px'
-                                        }}>
-                                            Chat with Member
-                                        </div>
-                                        <div style={{
-                                            fontSize: '12px',
-                                            color: '#666',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px'
-                                        }}>
-                                            <div style={{
-                                                width: '6px',
-                                                height: '6px',
-                                                borderRadius: '50%',
-                                                backgroundColor: '#4caf50'
-                                            }} />
-                                            <span>Active now</span>
-                                        </div>
+                                    <div style={{
+                                        fontSize: '48px',
+                                        marginBottom: '16px',
+                                        opacity: 0.5
+                                    }}>
+                                        💬
                                     </div>
                                     <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px'
+                                        fontSize: '16px',
+                                        fontWeight: '500',
+                                        marginBottom: '8px',
+                                        color: '#333'
                                     }}>
-                                        <div style={{
-                                            padding: '6px 12px',
-                                            backgroundColor: '#e8f5e8',
-                                            borderRadius: '20px',
-                                            fontSize: '11px',
-                                            color: '#2e7d32',
-                                            fontWeight: '500',
-                                            border: '1px solid #c8e6c9'
-                                        }}>
-                                            {selectedLead?.member_name || 'Member'}
-                                        </div>
+                                        No Messages
+                                    </div>
+                                    <div style={{
+                                        fontSize: '14px',
+                                        color: '#888'
+                                    }}>
+                                        Select a lead from the list to start chatting
                                     </div>
                                 </div>
-
-                                {/* Messages Container */}
-                                <div 
-                                    className="messages-container"
-                                    style={{
-                                        flex: 1,
+                            ) : (
+                                <div style={{
+                                    boxSizing: 'border-box',
+                                    display: 'flex',
+                                    height: '100%',
+                                    flexDirection: 'column',
+                                    justifyContent: 'start',
+                                    padding: '0px',
+                                    maxHeight: 'calc(100vh - 300px)',
+                                    minHeight: '480px'
+                                }}>
+                                    {/* Chat Header */}
+                                    <div style={{
                                         display: 'flex',
-                                        flexDirection: 'column',
-                                        overflowY: 'auto',
-                                        padding: '20px',
-                                        gap: '16px',
-                                        maxHeight: 'calc(100vh - 300px)',
-                                        minHeight: 'calc(100vh - 300px)'
-                                    }}
-                                >
-                                    {loadingMessages ? (
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '20px 20px 15px 20px',
+                                        borderBottom: '1px solid #f0f0f0',
+                                        backgroundColor: '#fafafa',
+                                        borderRadius: '8px 8px 0 0'
+                                    }}>
+                                        <div>
+                                            <div style={{
+                                                fontSize: '16px',
+                                                fontWeight: '600',
+                                                color: '#333',
+                                                marginBottom: '2px'
+                                            }}>
+                                                Chat with Member
+                                            </div>
+                                            <div style={{
+                                                fontSize: '12px',
+                                                color: '#666',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px'
+                                            }}>
+                                                <div style={{
+                                                    width: '6px',
+                                                    height: '6px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: '#4caf50'
+                                                }} />
+                                                <span>Active now</span>
+                                            </div>
+                                        </div>
                                         <div style={{
                                             display: 'flex',
-                                            justifyContent: 'center',
                                             alignItems: 'center',
-                                            height: '100px',
-                                            flexDirection: 'column',
-                                            gap: '12px'
+                                            gap: '8px'
                                         }}>
-                                            <div className="spinner" />
                                             <div style={{
-                                                fontSize: '14px',
-                                                color: '#666'
+                                                padding: '6px 12px',
+                                                backgroundColor: '#e8f5e8',
+                                                borderRadius: '20px',
+                                                fontSize: '11px',
+                                                color: '#2e7d32',
+                                                fontWeight: '500',
+                                                border: '1px solid #c8e6c9'
                                             }}>
-                                                Loading messages...
+                                                {selectedLead?.member_name || 'Member'}
                                             </div>
                                         </div>
-                                    ) : messages.length === 0 ? (
-                                        <div style={{ 
-                                            display: 'flex', 
-                                            justifyContent: 'center', 
-                                            alignItems: 'center', 
-                                            height: '100%',
+                                    </div>
+
+                                    {/* Messages Container */}
+                                    <div 
+                                        className="messages-container"
+                                        style={{
+                                            flex: 1,
+                                            display: 'flex',
                                             flexDirection: 'column',
+                                            overflowY: 'auto',
+                                            padding: '20px',
                                             gap: '16px',
-                                            color: '#666'
-                                        }}>
-                                            
+                                            maxHeight: 'calc(100vh - 300px)',
+                                            minHeight: 'calc(100vh - 300px)'
+                                        }}
+                                    >
+                                        {loadingMessages ? (
                                             <div style={{
-                                                textAlign: 'center'
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                height: '100px',
+                                                flexDirection: 'column',
+                                                gap: '12px'
                                             }}>
-                                                <div style={{
-                                                    fontSize: '18px',
-                                                    fontWeight: '600',
-                                                    color: '#333',
-                                                    marginBottom: '8px'
-                                                }}>
-                                                    Start a conversation
-                                                </div>
+                                                <div className="spinner" />
                                                 <div style={{
                                                     fontSize: '14px',
-                                                    color: '#666',
-                                                    lineHeight: '1.5'
+                                                    color: '#666'
                                                 }}>
-                                                    Send your first message to begin chatting with the member
+                                                    Loading messages...
                                                 </div>
                                             </div>
-                                        </div>
-                                    ) : (
-                                        (() => {
-                                            const groupedMessages = groupMessagesByDate(messages);
-                                            return groupedMessages.map((group, groupIndex) => (
-                                                <div key={groupIndex}>
-                                                    {/* Date Separator */}
+                                        ) : messages.length === 0 ? (
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                justifyContent: 'center', 
+                                                alignItems: 'center', 
+                                                height: '100%',
+                                                flexDirection: 'column',
+                                                gap: '16px',
+                                                color: '#666'
+                                            }}>
+                                                
+                                                <div style={{
+                                                    textAlign: 'center'
+                                                }}>
                                                     <div style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'center',
-                                                        margin: groupIndex === 0 ? '0 0 20px 0' : '30px 0 20px 0',
-                                                        padding: '0 10px'
+                                                        fontSize: '18px',
+                                                        fontWeight: '600',
+                                                        color: '#333',
+                                                        marginBottom: '8px'
                                                     }}>
-                                                        <div style={{
-                                                            backgroundColor: '#fff',
-                                                            padding: '8px 16px',
-                                                            borderRadius: '20px',
-                                                            fontSize: '12px',
-                                                            color: '#666',
-                                                            fontWeight: '500',
-                                                            border: '1px solid #e0e0e0',
-                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                                                        }}>
-                                                            {formatMessageDate(group.messages[0].create_at || group.messages[0].created_at || group.messages[0].date || group.messages[0].timestamp)}
-                                                        </div>
+                                                        Start a conversation
                                                     </div>
-                                                    
-                                                    {/* Messages for this date */}
-                                                    {group.messages.map((message, index) => {
-                                                        const isSentByMe = message.sender === currentUserId;
-                                                        const isLastMessage = index === group.messages.length - 1;
-                                                        const isFirstMessage = index === 0;
-                                                        
-                                                        return (
-                                                            <div key={message.id || index} style={{
-                                                                display: 'flex',
-                                                                justifyContent: isSentByMe ? 'flex-end' : 'flex-start',
-                                                                marginBottom: isLastMessage ? '0' : '8px',
-                                                                alignItems: 'flex-end',
-                                                                gap: '8px'
+                                                    <div style={{
+                                                        fontSize: '14px',
+                                                        color: '#666',
+                                                        lineHeight: '1.5'
+                                                    }}>
+                                                        Send your first message to begin chatting with the member
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            (() => {
+                                                const groupedMessages = groupMessagesByDate(messages);
+                                                return groupedMessages.map((group, groupIndex) => (
+                                                    <div key={groupIndex}>
+                                                        {/* Date Separator */}
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'center',
+                                                            margin: groupIndex === 0 ? '0 0 20px 0' : '30px 0 20px 0',
+                                                            padding: '0 10px'
+                                                        }}>
+                                                            <div style={{
+                                                                backgroundColor: '#fff',
+                                                                padding: '8px 16px',
+                                                                borderRadius: '20px',
+                                                                fontSize: '12px',
+                                                                color: '#666',
+                                                                fontWeight: '500',
+                                                                border: '1px solid #e0e0e0',
+                                                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                                                             }}>
-                                                                
-                                                                
-                                                                                                                                 {/* Message Bubble */}
-                                                                 <div style={{
-                                                                     maxWidth: '70%',
-                                                                     position: 'relative'
-                                                                 }}>
-                                                                     <div 
-                                                                         className="message-bubble"
-                                                                         style={{
-                                                                             padding: '12px 16px',
-                                                                             borderRadius: '20px',
-                                                                             backgroundColor: isSentByMe ? '#0084ff' : '#fff',
-                                                                             color: isSentByMe ? 'white' : '#333',
-                                                                             wordWrap: 'break-word',
-                                                                             wordBreak: 'break-word',
-                                                                             fontSize: '14px',
-                                                                             lineHeight: '1.5',
-                                                                             overflowWrap: 'break-word',
-                                                                             boxShadow: isSentByMe ? '0 2px 8px rgba(0,132,255,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
-                                                                             border: isSentByMe ? 'none' : '1px solid #e0e0e0',
-                                                                             position: 'relative'
-                                                                         }}
-                                                                     >
-                                                                         {message.text}
-                                                                         
-                                                                         {/* Message Time */}
-                                                                         <div style={{
-                                                                             fontSize: '11px',
-                                                                             opacity: isSentByMe ? 0.8 : 0.6,
-                                                                             marginTop: '6px',
-                                                                             textAlign: isSentByMe ? 'right' : 'left',
-                                                                             fontWeight: '500'
-                                                                         }}>
-                                                                             {new Date(message.create_at || message.created_at || message.date || message.timestamp).toLocaleTimeString([], {
-                                                                                 hour: '2-digit',
-                                                                                 minute: '2-digit',
-                                                                                 hour12: true
-                                                                             })}
+                                                                {formatMessageDate(group.messages[0].create_at || group.messages[0].created_at || group.messages[0].date || group.messages[0].timestamp)}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {/* Messages for this date */}
+                                                        {group.messages.map((message, index) => {
+                                                            const isSentByMe = message.sender === currentUserId;
+                                                            const isLastMessage = index === group.messages.length - 1;
+                                                            const isFirstMessage = index === 0;
+                                                            
+                                                            return (
+                                                                <div key={message.id || index} style={{
+                                                                    display: 'flex',
+                                                                    justifyContent: isSentByMe ? 'flex-end' : 'flex-start',
+                                                                    marginBottom: isLastMessage ? '0' : '8px',
+                                                                    alignItems: 'flex-end',
+                                                                    gap: '8px'
+                                                                }}>
+                                                                    
+                                                                    
+                                                                                                                                     {/* Message Bubble */}
+                                                                     <div style={{
+                                                                         maxWidth: '70%',
+                                                                         position: 'relative'
+                                                                     }}>
+                                                                         <div 
+                                                                             className="message-bubble"
+                                                                             style={{
+                                                                                 padding: '12px 16px',
+                                                                                 borderRadius: '20px',
+                                                                                 backgroundColor: isSentByMe ? '#0084ff' : '#fff',
+                                                                                 color: isSentByMe ? 'white' : '#333',
+                                                                                 wordWrap: 'break-word',
+                                                                                 wordBreak: 'break-word',
+                                                                                 fontSize: '14px',
+                                                                                 lineHeight: '1.5',
+                                                                                 overflowWrap: 'break-word',
+                                                                                 boxShadow: isSentByMe ? '0 2px 8px rgba(0,132,255,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
+                                                                                 border: isSentByMe ? 'none' : '1px solid #e0e0e0',
+                                                                                 position: 'relative'
+                                                                             }}
+                                                                         >
+                                                                             {message.text}
+                                                                             
+                                                                             {/* Message Time */}
+                                                                             <div style={{
+                                                                                 fontSize: '11px',
+                                                                                 opacity: isSentByMe ? 0.8 : 0.6,
+                                                                                 marginTop: '6px',
+                                                                                 textAlign: isSentByMe ? 'right' : 'left',
+                                                                                 fontWeight: '500'
+                                                                             }}>
+                                                                                 {new Date(message.create_at || message.created_at || message.date || message.timestamp).toLocaleTimeString([], {
+                                                                                     hour: '2-digit',
+                                                                                     minute: '2-digit',
+                                                                                     hour12: true
+                                                                                 })}
+                                                                             </div>
                                                                          </div>
-                                                                     </div>
+                                                                        
+                                                                        
+                                                                    </div>
                                                                     
                                                                     
                                                                 </div>
-                                                                
-                                                                
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ));
-                                        })()
-                                    )}
-                                </div>
-
-                                {/* Input Section */}
-                                <div style={{
-                                    width: '100%',
-                                    height: '40px',
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    borderTop: '1px solid #e0e0e0',
-                                    paddingTop: '10px',
-                                    paddingLeft: '20px',
-                                    paddingRight: '20px',
-                                    paddingBottom: '10px'
-                                }}>
-
-                                    <div style={{
-                                        width: '82%',
-                                        height: '40px',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        justifyContent:'center',
-                                        justifyItems: 'center',
-                                    }}> 
-
-                                    <InputText 
-                                            type="name"
-                                            placeholder="Type a message..."
-                                            name="message"
-                                            value={formData.message}
-                                            onChange={handleChange}
-                                            onKeyPress={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    handlePhoneClick();
-                                                }
-                                            }}
-                                        />
-
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ));
+                                            })()
+                                        )}
                                     </div>
 
+                                    {/* Input Section */}
                                     <div style={{
-                                    width: '55px',
-                                    height: '40px',
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center'}}> 
-                                        <RoundButton 
-                                            icon={faPaperPlane} 
-                                            onClick={handlePhoneClick}
-                                            disabled={!formData.message.trim() || sendingMessage}
-                                        />
-                                    </div>      
-                                    
+                                        width: '100%',
+                                        height: '40px',
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        borderTop: '1px solid #e0e0e0',
+                                        paddingTop: '10px',
+                                        paddingLeft: '20px',
+                                        paddingRight: '20px',
+                                        paddingBottom: '10px'
+                                    }}>
+
+                                        <div style={{
+                                            width: '82%',
+                                            height: '40px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent:'center',
+                                            justifyItems: 'center',
+                                        }}> 
+
+                                        <InputText 
+                                                type="name"
+                                                placeholder="Type a message..."
+                                                name="message"
+                                                value={formData.message}
+                                                onChange={handleChange}
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        handlePhoneClick();
+                                                    }
+                                                }}
+                                            />
+
+                                        </div>
+
+                                        <div style={{
+                                        width: '55px',
+                                        height: '40px',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center'}}> 
+                                            <RoundButton 
+                                                icon={faPaperPlane} 
+                                                onClick={handlePhoneClick}
+                                                disabled={!formData.message.trim() || sendingMessage}
+                                            />
+                                        </div>      
+                                        
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </DashboardBox>
                     </div>
                 </div>

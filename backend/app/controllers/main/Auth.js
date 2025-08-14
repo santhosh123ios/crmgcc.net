@@ -327,7 +327,7 @@ export const login = (req, res) => {
                       return res
                         .status(404)
                         .json({
-                          error: [{ message: "Unknown user, Please verify your email..." }],
+                          error: [{ message: "Please verify your email..." }],
                           result: {},
                         });
                     }
