@@ -1,8 +1,8 @@
 import React from 'react'
 
-function DashboardBox({ children }) {
+function DashboardBox({ children, style }) {
   return (
-    <div className='admin-item-box'>
+    <div className='admin-item-box' style={style}>
       { children }
     </div>
   )

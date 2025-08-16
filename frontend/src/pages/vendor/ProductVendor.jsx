@@ -292,10 +292,6 @@ function ProductVendor() {
         }
     };
 
-
-    ////
-    ///const items = Array.from({ length: 35 }, (_, i) => `Item ${i + 1}`);
-
   return (
         <div className='content-view'>
             <div style={{
@@ -328,7 +324,7 @@ function ProductVendor() {
                     height: '100%',
                     backgroundColor: '#00000', 
                         }}>
-                            <div className="grid-container">
+                            <div className="grid-container-product">
                                 {loading ? (
                                 <div className="loader-container">
                                     <div className="spinner" />
@@ -388,7 +384,7 @@ function ProductVendor() {
                         <DashboardBox>
                             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height:'100%',width:'100%' }}>
                                 <div className="product-details-inside" >
-                                    <div style={{position: 'relative', width:'100%', maxWidth:'500px',justifyContent:'center', alignItems:'center'}}>
+                                    <div style={{position: 'relative', width:'100%',justifyContent:'center', alignItems:'center'}}>
                                         <img className="prod-image" src={selectedProd?.image ? baseUrl+selectedProd.image : "/public/dummy.jpg"} alt={selectedProd.image} />
 
                                         <div style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'row',justifyContent: 'center', alignItems: 'center', zIndex: 1}}>
@@ -434,8 +430,8 @@ function ProductVendor() {
                 <TextView type="darkBold" text={"Create your Product"}/>
                 <div style={{marginTop:'20px'}}></div>
 
-                <InputText placeholder={"Title"} name={"title"} onChange={handleChange}></InputText>
-                <InputText placeholder={"Description"} name={"description"} onChange={handleChange}></InputText>
+                <InputText placeholder={"Title"} name={"title"} onChange={handleChange} maxLength={30}></InputText>
+                <InputText placeholder={"Description"} name={"description"} onChange={handleChange} maxLength={150}></InputText>
 
                 <div style={{display:'flex', flexDirection:'row'}}>
                     <div style={{width:'48%'}}>

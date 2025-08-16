@@ -1,14 +1,14 @@
 import express from "express"
 import vendorAuth from "../middleware/vendor/authMiddlewareVendor.js";
 import { getLeads, leadStatusUpdate, createLeadMessage, getLeadMessage } from "../controllers/vendor/leads.js";
-import { getTransaction, addTransaction } from "../controllers/vendor/Transaction.js";
+import { getTransaction, addTransaction, getTransactionSettings, get_wallet, add_vendor_topup, check_member_points } from "../controllers/vendor/Transaction.js";
 import { adminList, getProfile, memberList, updateProfile, updateProfileImage } from "../controllers/vendor/Profile.js";
 import { complaintsStatusUpdate, createComplaint, createComplaintMessage, getComplaintMessage, getComplaints } from "../controllers/vendor/Complaints.js";
 import FileUpload from "../services/FileUpload.js";
 import { getDashboard } from "../controllers/vendor/Reports.js";
 import { addVendorCategory } from "../controllers/vendor/Brand.js";
 import { addProduct, deleteProduct, getProduct, updateProductDetails, updateProductImage, updateProductStatus } from "../controllers/vendor/product.js";
-import { addOffers, deleteOffer, getOffers, updateOfferDetails, updateOfferImage, updateOfferStatus } from "../controllers/vendor/offers.js";
+import { addOffers, deleteOffer, getOffers, updateOfferDetails, updateOfferImage, updateOfferStatus, offers_validity_check, markOfferAsUsed } from "../controllers/vendor/offers.js";
 
 const router = express.Router()
 
@@ -16,6 +16,10 @@ router.get("/getleads", vendorAuth, getLeads)
 router.post("/lead-status-update", vendorAuth, leadStatusUpdate)
 router.post("/add_transaction", vendorAuth, addTransaction)
 router.get("/get_transaction", vendorAuth, getTransaction)
+router.get("/get_transaction_settings", vendorAuth, getTransactionSettings)
+router.get("/get_wallet", vendorAuth, get_wallet)
+router.post("/add_vendor_topup", vendorAuth, add_vendor_topup)
+router.post("/check_member_points", vendorAuth, check_member_points)
 
 router.get("/member_list", vendorAuth, memberList)
 router.get("/admin_list", vendorAuth, adminList)
@@ -43,9 +47,11 @@ router.post("/update_offer_status", vendorAuth, updateOfferStatus)
 router.post("/update_offer_image", vendorAuth, updateOfferImage)
 router.post("/update_offer_details", vendorAuth, updateOfferDetails)
 router.post("/delete_offer", vendorAuth, deleteOffer)
+router.post("/offers_validity_check", vendorAuth, offers_validity_check)
+router.post("/mark_offer_as_used", vendorAuth, markOfferAsUsed)
 
 router.post("/create_lead_message", vendorAuth, createLeadMessage)
-router.get("/get_lead_message", vendorAuth, getLeadMessage)
+router.post("/get_lead_message", vendorAuth, getLeadMessage)
 
 router.post("/create_complaint_message", vendorAuth, createComplaintMessage)
 router.post("/get_complaint_message", vendorAuth, getComplaintMessage)

@@ -403,7 +403,7 @@ function OffersVendor() {
                         <DashboardBox>
                             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height:'100%',width:'100%' }}>
                                 <div className="product-details-inside" >
-                                    <div style={{position: 'relative', width:'100%', maxWidth:'500px',justifyContent:'center', alignItems:'center'}}>
+                                    <div style={{position: 'relative', width:'200px', maxWidth:'500px',justifyContent:'center', alignItems:'center'}}>
                                         <img className="offer-image" src={selectedOffer?.image ? baseUrl+selectedOffer.image : "/public/dummy.jpg"} alt={selectedOffer.image} />
 
                                         <div style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'row',justifyContent: 'center', alignItems: 'center', zIndex: 1}}>
@@ -415,22 +415,41 @@ function OffersVendor() {
 
                                     <InputText placeholder={"Title"} name={"title"} value={formDataEdit.title} onChange={handleChangeEdit}></InputText>
                                     <InputText placeholder={"Description"} name={"description"} value={formDataEdit.description} onChange={handleChangeEdit}></InputText>
+                                    <div style={{
+                                        width: '100%',
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        gap: '10px',
+                                        marginTop: '0px',
+                                        justifyContent: 'space-between',
+                                        padding: '0px',
+                                    }}>
+                                        <InputText placeholder={"Discount (%)"} name={"discount"} value={formDataEdit.discount} onChange={handleChangeEdit}></InputText>
+                                        <InputText placeholder={"Discount Code"} name={"discount_code"} value={formDataEdit.discount_code} onChange={handleChangeEdit}></InputText>
+                                    </div>
 
-                                    <InputText placeholder={"Discount (%)"} name={"discount"} value={formDataEdit.discount} onChange={handleChangeEdit}></InputText>
-                                    <InputText placeholder={"Discount Code"} name={"discount_code"} value={formDataEdit.discount_code} onChange={handleChangeEdit}></InputText>
-                                    
-                                    <CommonDatePicker
-                                        label="Start Date"
-                                        selectedDate={startDateSelected}
-                                        onChange={date => setStartDateSelected(date)}
-                                    />
+                                    <div style={{
+                                        width: '100%',
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        gap: '0px',
+                                        marginTop: '0px',
+                                        justifyContent: 'space-between',
+                                        padding: '0px',
+                                    }}>
+                                        <CommonDatePicker
+                                            label="Start Date"
+                                            selectedDate={startDateSelected}
+                                            onChange={date => setStartDateSelected(date)}
+                                        />
 
 
-                                    <CommonDatePicker
-                                        label="End Date"
-                                        selectedDate={endDateSelected}
-                                        onChange={date => setEndDateSelected(date)}
-                                    />
+                                        <CommonDatePicker
+                                            label="End Date"
+                                            selectedDate={endDateSelected}
+                                            onChange={date => setEndDateSelected(date)}
+                                        />
+                                    </div>
                                     
                                     <div style={{margin:'1px'}}></div>
                                     <LoadingButton onClick={handleSubmitEdit} isLoading={submitButFlag} text={"Save"} />
@@ -453,8 +472,8 @@ function OffersVendor() {
                 <TextView type="darkBold" text={"Create your Offer"}/>
                 <div style={{marginTop:'20px'}}></div>
 
-                <InputText placeholder={"Title"} name={"title"} onChange={handleChange}></InputText>
-                <InputText placeholder={"Description"} name={"description"} onChange={handleChange}></InputText>
+                <InputText placeholder={"Title"} name={"title"} onChange={handleChange} maxLength={30}></InputText>
+                <InputText placeholder={"Description"} name={"description"} onChange={handleChange} maxLength={150}></InputText>
 
                 <InputText placeholder={"Discount (%)"} name={"discount"} onChange={handleChange}></InputText>
                 <InputText placeholder={"Discount Code"} name={"discount_code"} onChange={handleChange}></InputText>

@@ -9,6 +9,7 @@ import VendorPage from '../../pages/member/VendorPage';
 import MemberProfile from '../../pages/member/MemberProfile';
 import MemberOffers from '../../pages/member/MemberOffers';
 import Notification from '../../pages/member/Notification';
+import ReportMember from '../../pages/member/ReportMember';
 
 function MemberDashboardLayout() {
   const [selected, setSelected] = useState('dashboard');
@@ -28,6 +29,8 @@ function MemberDashboardLayout() {
         return <ComplaintsMember/>;
       case 'offers':
         return <MemberOffers/>;
+      case 'report':
+        return <ReportMember/>;
       case 'profile':
         return <MemberProfile/>;
       case 'notification':

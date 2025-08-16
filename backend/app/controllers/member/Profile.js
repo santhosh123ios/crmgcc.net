@@ -165,6 +165,155 @@ export const updateProfile = (req, res) => {
     }
 }
 
+export const bankInfoStatus = (req, res) => {
+    try {
+        const user_id = req.user?.id;
+        
+        if (!user_id) {
+            return res
+                .status(404)
+                .json({ error: [{ message: "User ID not found" }], result: {} });
+        }
+
+        const query = "SELECT ac_no, iban_no, bank_name FROM member_info WHERE user_id = ?";
+        executeQuery({
+            query,
+            data: [user_id],
+            callback: (err, bankData) => {
+                if (err) {
+                    return res
+                        .status(500)
+                        .json({ error: [{ message: err }], result: {} });
+                }
+                
+                    console.log("SANTHOSH BANK DATA : ", bankData)
+                    let bankInfo = {
+                        ac_no: null,
+                        iban_no: null,
+                        bank_name: null,
+                        has_bank_info: false
+                    };
+    
+                    if (bankData && bankData.length > 0) {
+                        console.log("SANTHOSH BANK DATA  BB: ", bankData)
+                        const data = bankData[0];
+                        bankInfo = {
+                            ac_no: data.ac_no || null,
+                            iban_no: data.iban_no || null,
+                            bank_name: data.bank_name || null,
+                            has_bank_info: !!(data.ac_no && data.iban_no && data.bank_name)
+                        };
+                    }
+    
+                    const result = {
+                        message: "Bank information status retrieved successfully",
+                        status: 1,
+                        data: bankInfo
+                    };
+    
+                    return res.status(200).json({ error: [], result });
+                
+            }
+        });
+    } catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+};
+
+export const updateBankDetails = (req, res) => {
+    try {
+        const user_id = req.user?.id;
+        const { ac_no, iban_no, bank_name } = req.body;
+        
+        if (!user_id) {
+            
+            return res
+                .status(404)
+                .json({ error: [{ message: "User ID not found" }], result: {} });
+        }
+
+        if (!ac_no || !iban_no || !bank_name) {
+            return res
+                .status(400)
+                .json({ error: [{ message: "All bank details are required: ac_no, iban_no, bank_name" }], result: {} });
+        }
+
+        // Check if member_info record exists for this user
+        const checkQuery = "SELECT COUNT(*) AS count FROM member_info WHERE user_id = ?";
+        executeQuery({
+            query: checkQuery,
+            data: [user_id],
+            callback: (err, rows) => {
+                if (err) {
+                    return res
+                        .status(500)
+                        .json({ error: [{ message: err }], result: {} });
+                }
+
+                if (rows[0].count > 0) {
+                    // Update existing record
+                    const updateQuery = "UPDATE member_info SET ac_no = ?, iban_no = ?, bank_name = ?, updated_at = NOW() WHERE user_id = ?";
+                    executeQuery({
+                        query: updateQuery,
+                        data: [ac_no, iban_no, bank_name, user_id],
+                        callback: (err, updateResult) => {
+                            if (err) {
+                                return res
+                                    .status(500)
+                                    .json({ error: [{ message: err }], result: {} });
+                            }
+
+                            const result = {
+                                message: "Bank details updated successfully",
+                                status: 1,
+                                data: {
+                                    ac_no,
+                                    iban_no,
+                                    bank_name,
+                                    updated_at: new Date()
+                                }
+                            };
+
+                            return res.status(200).json({ error: [], result });
+                        }
+                    });
+                } else {
+                    // Insert new record
+                    const insertQuery = "INSERT INTO member_info (ac_no, iban_no, bank_name, user_id, updated_at) VALUES (?, ?, ?, ?, NOW())";
+                    executeQuery({
+                        query: insertQuery,
+                        data: [ac_no, iban_no, bank_name, user_id],
+                        callback: (err, insertResult) => {
+                            if (err) {
+                                return res
+                                    .status(500)
+                                    .json({ error: [{ message: err }], result: {} });
+                            }
+
+                            const result = {
+                                message: "Bank details added successfully",
+                                status: 1,
+                                data: {
+                                    ac_no,
+                                    iban_no,
+                                    bank_name,
+                                    updated_at: new Date()
+                                }
+                            };
+
+                            return res.status(200).json({ error: [], result });
+                        }
+                    });
+                }
+            }
+        });
+    } catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+};
+
 // export const getProfile = (req, res) => {
 
 //     try {

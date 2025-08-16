@@ -1,0 +1,29 @@
+/* Profile image hover effect */
+.profile-overlay {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.profile-overlay:hover {
+  opacity: 1;
+}
+
+/* Alternative approach using parent hover */
+.profile-image-container:hover .profile-overlay {
+  opacity: 1;
+}
+
+/* Profile image styling */
+.img-profile-dash {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Overlay button hover effect */
+.profile-overlay button:hover {
+  background-color: var(--highlight-color-hover, #e55a2b) !important;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}

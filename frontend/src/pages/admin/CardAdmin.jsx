@@ -98,20 +98,20 @@ function CardAdmin() {
   return (
     <div  className='content-view'>
         <div style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'row'
-              }}>
-
-              <div style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'row'
+        }}>
+            {/* Card List */}
+            <div style={{
                 width: '30%',
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 padding: '2px'
-                }}>
-                  <DashboardBox>
+            }}>
+                <DashboardBox>
                     <div style={{
                       width: '100%',
                       height: '60px',
@@ -120,83 +120,255 @@ function CardAdmin() {
                       padding: '2px',
                       borderBlock:'boxSizing'}}>
 
-                          <div style={{width: '100%',
-                          height: '60px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent:'center',
-                          justifyItems: 'center',
-                          paddingLeft:'10px',
-                          paddingRight:'5px'
-                          }}> 
+                        <div style={{
+                            width: '100%',
+                            height: '60px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent:'center',
+                            justifyItems: 'center',
+                            paddingLeft:'10px',
+                            paddingRight:'5px'
+                        }}> 
 
-                              <InputText 
-                                  type="name"
-                                  placeholder="Search"
-                                  name="search"
-                                  value={formData.search}
-                                  onChange={handleChange}
-                              />
+                            <InputText 
+                                type="name"
+                                placeholder="Search"
+                                name="search"
+                                value={formData.search}
+                                onChange={handleChange}
+                            />
 
-                          </div>
+                        </div>
 
-                          <div style={{
-                          width: '55px',
-                          height: '60px',
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          paddingRight:'10px',
-                          paddingLeft:'0px'}}> 
-                              <RoundButton icon={faPlus} onClick={() => setShowPopup(true)}/>
-                          </div>  
+                        <div style={{
+                            width: '55px',
+                            height: '60px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            paddingRight:'10px',
+                            paddingLeft:'0px'
+                        }}> 
+                            <RoundButton icon={faPlus} onClick={() => setShowPopup(true)}/>
+                        </div>  
 
 
                           
                     </div>
 
+                    {/* Cards List */}
+                    <div style={{
+                        padding: '16px 20px',
+                        height: 'calc(100vh - 220px)',
+                        overflowY: 'auto'
+                    }}>
+                        {loading ? (
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                height: '200px'
+                            }}>
+                                <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    border: '3px solid #f3f3f3',
+                                    borderTop: '3px solid var(--highlight-color)',
+                                    borderRadius: '50%',
+                                    animation: 'spin 1s linear infinite'
+                                }}></div>
+                            </div>
+                        ) : cards.length === 0 ? (
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                height: '200px',
+                                color: '#6c757d',
+                                textAlign: 'center'
+                            }}>
+                                <div style={{
+                                    fontSize: '48px',
+                                    marginBottom: '16px',
+                                    opacity: '0.5'
+                                }}>💳</div>
+                                <p style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '500' }}>
+                                    No card types found
+                                </p>
+                                <p style={{ margin: 0, fontSize: '14px', opacity: '0.7' }}>
+                                    Create your first card type to get started
+                                </p>
+                            </div>
+                        ) : (
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '12px'
+                            }}>
+                                {cards.map((cardItems, index) => (
+                                    <div 
+                                        key={index}
+                                        onClick={() => handleLeadListClick(index)}
+                                        className="card-item-animate"
+                                        style={{
+                                            cursor: 'pointer',
+                                            animationDelay: `${index * 0.1}s`
+                                        }}
+                                    >
+                                        <div className={`card-item-hover ${selectedPos === index ? 'card-item-selected' : ''}`} style={{
+                                            backgroundColor: selectedPos === index ? '#fffef7' : '#ffffff',
+                                            border: selectedPos === index ? '2px solid var(--highlight-color)' : '1px solid #e9ecef',
+                                            borderRadius: '12px',
+                                            padding: '16px',
+                                            boxShadow: selectedPos === index 
+                                                ? '0 4px 20px rgba(248, 211, 7, 0.15)' 
+                                                : '0 2px 8px rgba(0, 0, 0, 0.06)',
+                                            position: 'relative',
+                                            overflow: 'hidden'
+                                        }}>
+                                            {/* Status Indicator */}
+                                            <div style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                right: 0,
+                                                width: '0',
+                                                height: '0',
+                                                borderStyle: 'solid',
+                                                borderWidth: '0 20px 20px 0',
+                                                borderColor: selectedPos === index 
+                                                    ? 'var(--highlight-color) transparent transparent transparent'
+                                                    : '#28a745 transparent transparent transparent'
+                                            }}></div>
+                                            
+                                            {/* Card Header */}
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'flex-start',
+                                                marginBottom: '12px'
+                                            }}>
+                                                <h4 style={{
+                                                    margin: 0,
+                                                    fontSize: '16px',
+                                                    fontWeight: '600',
+                                                    color: '#333',
+                                                    lineHeight: '1.3',
+                                                    flex: 1,
+                                                    paddingRight: '16px'
+                                                }}>
+                                                    {cardItems.card_type_name}
+                                                </h4>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    padding: '4px 8px',
+                                                    backgroundColor: selectedPos === index 
+                                                        ? 'var(--highlight-color)' 
+                                                        : '#e8f5e8',
+                                                    borderRadius: '12px',
+                                                    fontSize: '11px',
+                                                    fontWeight: '500',
+                                                    color: selectedPos === index ? '#333' : '#28a745'
+                                                }}>
+                                                    <div style={{
+                                                        width: '6px',
+                                                        height: '6px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: selectedPos === index ? '#333' : '#28a745'
+                                                    }}></div>
+                                                    Active
+                                                </div>
+                                            </div>
 
-                    <div className="user-list-scroll-container">
-                          {loading ? (
-                          <div className="loader-container">
-                              <div className="spinner" />
-                          </div>
-                          ) : (
-                          cards.map((cardItems, index) => (
-                              <div className="user-list-item-card" key={index}>
-                              <DashboardBox>
-                                  <div className={`${selectedPos === index ? "user-list-item-leads-inside-select" : "user-list-item-leads-inside"}`} onClick={() => handleLeadListClick(index)}>
-                                    <div className="user-info-leads">
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px', margin: '0px'}}>
-                                            <p className="title-text-dark  truncate-text">{cardItems.card_type_name}</p>
-                                            <div style={{display:'flex',flexDirection:'row'}}>
-                                                <DotBadge status={1} />
-                                                <div style={{margin:'2px'}}/>
-                                                <TextView type="subDark" text={"Active"}/>
+                                            {/* Card Details */}
+                                            <div style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '8px'
+                                            }}>
+                                                <div className="card-detail-row" style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    padding: '8px 12px',
+                                                    backgroundColor: '#f8f9fa',
+                                                    borderRadius: '8px'
+                                                }}>
+                                                    <span style={{
+                                                        fontSize: '13px',
+                                                        color: '#6c757d',
+                                                        fontWeight: '500'
+                                                    }}>Eligible Points</span>
+                                                    <span style={{
+                                                        fontSize: '14px',
+                                                        color: '#333',
+                                                        fontWeight: '600'
+                                                    }}>{cardItems.card_type_e_point}</span>
+                                                </div>
+                                                
+                                                <div className="card-detail-row" style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    padding: '8px 12px',
+                                                    backgroundColor: '#f8f9fa',
+                                                    borderRadius: '8px'
+                                                }}>
+                                                    <span style={{
+                                                        fontSize: '13px',
+                                                        color: '#6c757d',
+                                                        fontWeight: '500'
+                                                    }}>Welcome Points</span>
+                                                    <span style={{
+                                                        fontSize: '14px',
+                                                        color: '#333',
+                                                        fontWeight: '600'
+                                                    }}>{cardItems.card_type_w_point}</span>
+                                                </div>
+                                                
+                                                <div className="card-detail-row" style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    padding: '8px 12px',
+                                                    backgroundColor: '#fff3cd',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid #ffeaa7'
+                                                }}>
+                                                    <span style={{
+                                                        fontSize: '13px',
+                                                        color: '#856404',
+                                                        fontWeight: '500'
+                                                    }}>Profit Margin</span>
+                                                    <span style={{
+                                                        fontSize: '14px',
+                                                        color: '#856404',
+                                                        fontWeight: '600'
+                                                    }}>{cardItems.card_profit_margin}%</span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <p className="sub-title-text-dark truncate-text">Eligible point : {cardItems.card_type_e_point}</p>
-                                        <p className="sub-title-text-dark truncate-text">Welcome point : {cardItems.card_type_w_point}</p>
-                                        <p className="sub-title-text-dark truncate-text">Profit Margin : {cardItems.card_profit_margin}</p>
                                     </div>
-                                  </div>
-                              </DashboardBox>
-                              </div>
-                          ))
-                          )}
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </DashboardBox>
-              </div>
-
-              <div style={{
+            </div>
+            
+            {/* Selected Card details */}
+            <div style={{
                 width: '70%',
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 padding: '2px'
-                }}>
-                  <DashboardBox></DashboardBox>
-              </div>
+            }}>
+                <DashboardBox></DashboardBox>
+            </div>
         </div>
 
         <RightSidePopup isloading={false} isOpen={showPopup} onClose={() => setShowPopup(false)} 

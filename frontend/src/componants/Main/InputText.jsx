@@ -1,7 +1,7 @@
 import React from 'react'
 import './Main.css'
 
-function InputText({ type = 'text', placeholder, name, value, onChange }) {
+function InputText({ type = 'text', placeholder, name, value, onChange, onKeyPress, maxLength }) {
   return (
     <div className='input-div-views'>
         <input className='input-text'
@@ -10,6 +10,8 @@ function InputText({ type = 'text', placeholder, name, value, onChange }) {
         name={name}
         value={value}
         onChange={onChange}
+        onKeyPress={onKeyPress}
+        maxLength={maxLength}
       />
     </div>
   )

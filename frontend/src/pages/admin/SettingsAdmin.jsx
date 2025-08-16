@@ -1,10 +1,11 @@
 import React,{useState} from 'react'
 import DashboardBox from '../../componants/Main/DashboardBox'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGear,faStore} from "@fortawesome/free-solid-svg-icons";
+import { faGear,faStore,faCreditCard} from "@fortawesome/free-solid-svg-icons";
 import SettingsGeneral from './SettingsGeneral';
 import SettingsMember from './SettingsMember';
 import SettingsBrand from './SettingsBrand';
+import SettingsTransaction from './SettingsTransaction';
 
 function SettingsAdmin() {
 
@@ -19,6 +20,8 @@ const renderContent = () => {
         return <SettingsBrand/>;
       case 'member':
         return <SettingsMember/>;
+      case 'transaction':
+        return <SettingsTransaction/>;
 
       default:
         return <SettingsGeneral />;
@@ -87,6 +90,17 @@ const renderContent = () => {
                                             <FontAwesomeIcon icon={faGear} style={{ color: selected ==='member' ? "white": "black"  }} />
                                             {tabStatus && (
                                                <span className={selected === 'member' ? 'span-tab-menu-selected':'span-tab-menu'} >Member</span>
+                                            )}
+                                            
+                                        </div>
+                                    </div>
+
+                                    <div className='div-tab-menu-new'>
+                                        <div className={tabStatus? selected === 'transaction' ? 'div-tab-menu-selected' : 'div-tab-menu': selected === 'transaction' ? 'div-tab-menu-selected-icon' : 'div-tab-menu-icon'}
+                                            onClick={() => setSelected('transaction')}>
+                                            <FontAwesomeIcon icon={faCreditCard} style={{ color: selected ==='transaction' ? "white": "black"  }} />
+                                            {tabStatus && (
+                                               <span className={selected === 'transaction' ? 'span-tab-menu-selected':'span-tab-menu'} >Transaction</span>
                                             )}
                                             
                                         </div>

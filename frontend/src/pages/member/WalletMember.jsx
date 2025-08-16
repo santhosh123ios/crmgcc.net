@@ -1,22 +1,29 @@
-import React, {useState,useEffect} from 'react'
+import React, {useState,useEffect,useRef} from 'react'
 import DashboardBox from '../../componants/Main/DashboardBox'
 import apiClient from '../../utils/ApiClient';
+import QRCode from 'qrcode';
 
-import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
-import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
-import { faPhone } from '@fortawesome/free-solid-svg-icons';
+import { faExchangeAlt, faWallet, faHistory, faGift, faPlus, faEye, faEyeSlash, faInbox, faSearch, faPhone, faLocationDot, faCreditCard, faCoins, faClock, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 import InputText from '../../componants/Main/InputText';
 import DateWithIcon from '../../componants/Main/DateWithIcon';
 import TextView from '../../componants/Main/TextView';
 import RoundButton from '../../componants/Main/RoundButton';
 import RedeemPopup from '../../componants/Main/RedeemPopup';
+import BankDetailsPopup from '../../componants/Main/BankDetailsPopup';
 import StatusBadge from '../../componants/Main/StatusBadge';
 
 const baseId = import.meta.env.VITE_ID_BASE;
 const baseUrl = import.meta.env.VITE_API_BASE_IMG_URL;
+
+// Helper function to format card number with 4-digit separation
+const formatCardNumber = (cardNumber) => {
+  if (!cardNumber) return '';
+  // Remove any existing spaces and format with 4-digit groups
+  const cleanNumber = cardNumber.replace(/\s/g, '');
+  return cleanNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
+};
 
 function WalletMember() {
 
@@ -27,22 +34,118 @@ function WalletMember() {
   const [selectedPosTr, setselectedPosTr] = useState(0);
   const [availablePoint, setAvailablePoint] = useState(1000);
   const [showRedeemPopup, setShowRedeemPopup] = useState(false);
+  const [showBankDetailsPopup, setShowBankDetailsPopup] = useState(false);
+  const [bankInfo, setBankInfo] = useState(null);
+  const [loadingBankInfo, setLoadingBankInfo] = useState(true);
   const [redeems, setredeems] = useState([]);
   const [selectedReadeem, setSelectedRedeem] = useState(null);
   const [selectedPosRedeem, setselectedPosReadeem] = useState(0);
   const [loadingRdm, setLoadingRdm] = useState(true);
   const [loadingWallet, setLoadingWallet] = useState(true);
+  const [showCardNumber, setShowCardNumber] = useState(false);
+  const [activeTab, setActiveTab] = useState('transactions'); // 'transactions' or 'redeems'
   const [formData, setFormData] = useState({
         search: ""
   });
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const qrCanvasRef = useRef(null);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [filteredRedeems, setFilteredRedeems] = useState([]);
+  const [expiringPoints, setExpiringPoints] = useState([]);
 
+  // Calculate expiring points
+  const calculateExpiringPoints = () => {
+    if (!transactions || transactions.length === 0) return [];
+    
+    const now = new Date();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(now.getDate() + 30);
+    
+    const expiring = transactions
+      .filter(transaction => 
+        transaction.expire_on && 
+        transaction.transaction_type === 1 && // Only credit transactions
+        new Date(transaction.expire_on) > now && // Not expired yet
+        new Date(transaction.expire_on) <= thirtyDaysFromNow // Expiring within 30 days
+      )
+      .map(transaction => ({
+        ...transaction,
+        daysUntilExpiry: Math.ceil((new Date(transaction.expire_on) - now) / (1000 * 60 * 60 * 24))
+      }))
+      .sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
+    
+    setExpiringPoints(expiring);
+  };
 
   useEffect(() => {
     fetchTransaction();
     fetchRedeem();
     fetchWallet();
+    fetchBankInfo();
   },[]);
 
+  // Calculate expiring points when transactions change
+  useEffect(() => {
+    calculateExpiringPoints();
+  }, [transactions]);
+
+  // Filter data when search term changes
+  useEffect(() => {
+    if (activeTab === 'transactions') {
+      filterTransactions();
+    } else {
+      filterRedeems();
+    }
+  }, [formData.search, transactions, redeems, activeTab]);
+
+  useEffect(() => {
+    if (wallet?.card?.card_no) {
+      generateQRCode();
+    }
+  }, [wallet?.card?.card_no]);
+
+
+  // Helper function to format date and time in a custom format
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    
+    // Format: "Dec 25, 2024 at 2:30 PM"
+    const options = {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    };
+    
+    return date.toLocaleDateString('en-US', options);
+  };
+
+  const generateQRCode = async () => {
+    try {
+      const cardData = {
+        cardNumber: wallet?.card?.card_no,
+        cardType: wallet?.card?.card_type_name,
+        memberId: baseId
+      };
+      
+      const qrData = JSON.stringify(cardData);
+      const qrUrl = await QRCode.toDataURL(qrData, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      setQrCodeUrl(qrUrl);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    }
+  };
 
   ///API CALLING
   const fetchTransaction = async () => {
@@ -52,6 +155,7 @@ function WalletMember() {
       if (response?.result?.status === 1) {
           console.warn("Get Transaction successfully");
           setTransactions(response.result.data);
+          setFilteredTransactions(response.result.data);
           setSelectedTransaction(response.result.data[0])
 
       } else {
@@ -65,27 +169,20 @@ function WalletMember() {
   };
 
   const addRedeem = async (point,notes) => {
-      //(true); // Show loader
       try {
-
           const payload = {
               redeem_point: point,
               redeem_notes: notes
           };
           
-          //console.log("SANTHOSH Vendor ID:", payload);
           const data = await apiClient.post("/member/add_redeem", payload);
 
-          //if (data && data.result?.data.status === 1) {
           if (data?.result?.status === 1) {
                 setShowRedeemPopup(false)
                 fetchRedeem();
           }
       } catch (err) {
           console.error("Something went wrong fetching vendors", err);
-      }
-      finally {
-          //setisLoading(false); // Hide loader
       }
   };
 
@@ -96,6 +193,7 @@ function WalletMember() {
       if (responseRedeems?.result?.status === 1) {
           console.warn("Get Redeem successfully");
           setredeems(responseRedeems.result.data);
+          setFilteredRedeems(responseRedeems.result.data);
           setSelectedRedeem(responseRedeems.result.data[0])
 
       } else {
@@ -105,6 +203,26 @@ function WalletMember() {
       console.error("Failed to fetch Transaction:", error);
       } finally {
       setLoadingRdm(false);
+      }
+  };
+
+  const fetchBankInfo = async () => {
+      setLoadingBankInfo(true);
+      try {
+          const response = await apiClient.get("/member/bank_info_status");
+          if (response?.result?.status === 1) {
+              console.warn("Bank info status retrieved successfully");
+              setBankInfo(response.result.data);
+              return response; // Return response for callback usage
+          } else {
+              console.warn("Failed to get bank info status");
+              return null;
+          }
+      } catch (error) {
+          console.error("Failed to fetch bank info status:", error);
+          return null;
+      } finally {
+          setLoadingBankInfo(false);
       }
   };
 
@@ -136,11 +254,76 @@ function WalletMember() {
       }));
   };
 
+  // Filter transactions based on search term
+  const filterTransactions = () => {
+    if (!formData.search.trim()) {
+      setFilteredTransactions(transactions);
+      return;
+    }
+
+    const searchTerm = formData.search.toLowerCase();
+    const filtered = transactions.filter(transaction => 
+      transaction.transaction_title?.toLowerCase().includes(searchTerm) ||
+      transaction.vendor_name?.toLowerCase().includes(searchTerm) ||
+      transaction.transaction_id?.toString().includes(searchTerm) ||
+      transaction.transaction_cr?.toString().includes(searchTerm) ||
+      transaction.transaction_dr?.toString().includes(searchTerm) ||
+      new Date(transaction.transaction_created_at).toLocaleDateString().includes(searchTerm)
+    );
+    setFilteredTransactions(filtered);
+  };
+
+  // Filter redeems based on search term
+  const filterRedeems = () => {
+    if (!formData.search.trim()) {
+      setFilteredRedeems(redeems);
+      return;
+    }
+
+    const searchTerm = formData.search.toLowerCase();
+    const filtered = redeems.filter(redeem => 
+      redeem.notes?.toLowerCase().includes(searchTerm) ||
+      redeem.redeem_id?.toString().includes(searchTerm) ||
+      redeem.point?.toString().includes(searchTerm) ||
+      getStatusText(redeem.redeem_status)?.toLowerCase().includes(searchTerm) ||
+      new Date(redeem.redeem_created_at).toLocaleDateString().includes(searchTerm)
+    );
+    setFilteredRedeems(filtered);
+  };
+
+  // Clear search function
+  const clearSearch = () => {
+    setFormData(prev => ({
+      ...prev,
+      search: ""
+    }));
+  };
+
   const handleLeadListClick = (index) => {
-      setselectedPosTr(index)
+      const selectedTransaction = filteredTransactions[index];
+      const originalIndex = transactions.findIndex(t => t.transaction_id === selectedTransaction.transaction_id);
+      setselectedPosTr(originalIndex >= 0 ? originalIndex : index);
       console.log("Clicked index:", index);
-      console.log("Clicked Sttaus:", transactions[index].lead_status);
-      setSelectedTransaction(transactions[index])
+      console.log("Clicked Sttaus:", selectedTransaction.lead_status);
+      setSelectedTransaction(selectedTransaction)
+  };
+
+  const handleRedeemClick = () => {
+      if (bankInfo?.has_bank_info) {
+          setShowRedeemPopup(true);
+      } else {
+          setShowBankDetailsPopup(true);
+      }
+  };
+
+  const handleBankDetailsSubmit = () => {
+      setShowBankDetailsPopup(false);
+      // Refresh bank info and then show redeem popup
+      fetchBankInfo().then((response) => {
+          if (response?.result?.data?.has_bank_info) {
+              setShowRedeemPopup(true);
+          }
+      });
   };
 
   const handleRedeemPopupSubmit = (points,notes) => {
@@ -149,355 +332,1079 @@ function WalletMember() {
   };
 
   const handleLeadListClickRedeem = (index) => {
-      setselectedPosReadeem(index)
+      const selectedRedeem = filteredRedeems[index];
+      const originalIndex = redeems.findIndex(r => r.redeem_id === selectedRedeem.redeem_id);
+      setselectedPosReadeem(originalIndex >= 0 ? originalIndex : index);
       console.log("Clicked index:", index);
-      console.log("Clicked Sttaus:", redeems[index].redeem_id);
-      setSelectedRedeem(redeems[index])
+      console.log("Clicked Sttaus:", selectedRedeem.redeem_id);
+      setSelectedRedeem(selectedRedeem)
   };
 
+  const toggleCardNumber = () => {
+      setShowCardNumber(!showCardNumber);
+  };
+
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 0: return '#ff9800'; // Pending
+      case 1: return '#4caf50'; // Approved
+      case 2: return '#f44336'; // Rejected
+      default: return '#9e9e9e'; // Default
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch(status) {
+      case 0: return 'Pending';
+      case 1: return 'Approved';
+      case 2: return 'Rejected';
+      default: return 'Unknown';
+    }
+  };
 
   return (
-    <div  className='content-view'>
+    <div className='content-view' style={{ 
+      height: 'calc(100vh - 90px)', 
+      //backgroundColor: '#f8f9fa', 
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      padding: '0'
+    }}>
+      
+      {/* Main Content */}
+      <div style={{
+        display: 'grid',
+        // gridTemplateColumns: '1.5fr 1.2fr 2.5fr',
+        gridTemplateColumns: expiringPoints.length > 0? '1.5fr 1.2fr 2.5fr': '1fr 2fr',
+        
+        gap: '20px',
+        flex: 1,
+        padding: '20px',
+        overflow: 'hidden',
+        width: 'calc(100% - 40px)',
+        paddingTop: '0px'
+      }}>
 
+        {/* First Column - Wallet Card & Details */}
         <div style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'row'
+          display: 'flex',
+          height: '100%',
+          flexDirection: 'column',
+          gap: '10px',
+          padding: '0px'
+        }}>
+          
+          
+          
+          {/* Wallet Card */}
+          <DashboardBox style={{ padding: '0', overflow: 'hidden' }}>
+
+            <div style={{
+              padding: '20px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '12px',
+              height: '100%'
             }}>
-
+                {/* Wallet Header */}
                 <div style={{
-                  width: '35%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '2px'
-                }}>
-                    <DashboardBox>
-                        {/* Search bar and add button */}
-                        <div style={{
-                            width: '100%',
-                            height: '60px',
-                            display: 'flex',
-                            flexDirection: 'row',
-                            padding: '2px',
-                            borderBlock:'boxSizing'}}>
-
-                                <div style={{width: '100%',
-                                height: '60px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent:'center',
-                                justifyItems: 'center',
-                                paddingLeft:'10px',
-                                paddingRight:'10px'
-                                }}> 
-
-                                   <InputText 
-                                        type="name"
-                                        placeholder="Search Transaction"
-                                        name="search"
-                                        value={formData.search}
-                                        onChange={handleChange}
-                                    />
-
-                                </div>
-                        </div>
-
-
-                        <div className="user-list-scroll-container">
-                            {loading ? (
-                            <div className="loader-container">
-                                <div className="spinner" />
-                            </div>
-                            ) : (
-                            transactions.map((trItems, index) => (
-                              <div className="user-list-item-tr" key={index}>
-                                <DashboardBox>
-                                      <div className="user-list-item-tr-inside" onClick={() => handleLeadListClick(index)}>
-                                        
-                                            <div className="user-info-tr">
-                                                <DateWithIcon text={new Date(trItems.transaction_created_at).toLocaleDateString("en-US", {
-                                                    year: "numeric",
-                                                    month: "long",
-                                                    day: "numeric",
-                                                    })} >
-                                                </DateWithIcon>
-                                                <TextView type="subDarkBold" text={trItems.transaction_title}/>
-                                                <TextView type="subDark" text={trItems.vendor_name}/>
-                                            </div>
-
-                                            <div style={{height: '100%',display: 'flex',justifyContent: 'center',alignItems: 'center',paddingLeft:'10px',paddingRight:'10px',gap:'2px'}}>
-                                              <TextView type="darkBold" text={trItems.transaction_type === 1 ? trItems.transaction_cr : trItems.transaction_dr }/>
-                                              <TextView type="subDarkBold" text={trItems.transaction_type === 1 ? "Cr" : "Dr" } style={{color:trItems.transaction_type === 1 ? 'green' : 'red'}}/>
-                                            </div>
-                                            {selectedPosTr === index && (
-                                                 <div className='tr-list-selection-div'/>
-                                            )}
-                                            
-                                      </div>
-                                </DashboardBox>
-                              </div>
-                            ))
-                          )}
-                        </div>
-
-                    </DashboardBox>
-
-                </div>
-
-                <div style={{
-                  width: '30%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '2px'
-                }}>
-                    {/* Transaction detalil view */}
-                    <div style={{
-                        width: '100%',
-                        height: '32%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        padding: '2px'
-                        }}>
-                        <DashboardBox >
-                          <div className='user-list-item-inside'>
-                              <img className="user-avatar" src={selectedTransaction?.vendor_image ? baseUrl+selectedTransaction?.vendor_image : "/dummy.jpg"} alt={"selectedLead.vendor_name"} /> 
-                                {/* <img className="user-avatar" src="http://localhost:8000/uploads/1747778079775.jpg"alt={"uploads"} /> */}
-                              <div className="user-info">
-                                  <p className="title-text-dark">{selectedTransaction?.vendor_name ?? "No member name"}</p>
-                                  <p className="sub-title-text-dark">{selectedTransaction?.vendor_email ?? "No member email"}</p>
-
-                                  <div className="button-row">
-                                      {/* Translation */}
-                                      <button className="circle-btn-light">
-                                              <FontAwesomeIcon icon={faPhone} />
-                                      </button>
-
-                                      {/* Translation */}
-                                      <button className="circle-btn-light">
-                                              <FontAwesomeIcon icon={faLocationDot} />
-                                      </button>
-
-                                      {/* Translation */}
-                                      <button className="circle-btn-light">
-                                              <FontAwesomeIcon icon={faExchangeAlt} />
-                                      </button>
-                                  </div>
-                              </div>
-                          </div>
-
-                          <div style={{boxSizing:'border-box',display: 'flex',alignItems: 'start',justifyItems:'start'}}>
-                            <div className="tr-view-item">
-                                  <div className="user-info-tr">
-                                      <DateWithIcon text={new Date(selectedTransaction?.transaction_created_at).toLocaleDateString("en-US", {
-                                          year: "numeric",
-                                          month: "long",
-                                          day: "numeric",
-                                          })} >
-                                      </DateWithIcon>
-                                      <TextView type="subDarkBold" text={selectedTransaction?.transaction_title}/>
-                                      <TextView type="subDark" text={selectedTransaction?.vendor_name}/>
-                                      <TextView type="subDark" text={baseId+selectedTransaction?.transaction_id}/>
-                                  </div>
-
-                                  <div style={{height: '100%',display: 'flex',justifyContent: 'center',alignItems: 'center',paddingLeft:'10px',paddingRight:'10px',gap:'2px'}}>
-                                    <TextView type="darkBold" text={selectedTransaction?.transaction_type === 1 ? selectedTransaction?.transaction_cr : selectedTransaction?.transaction_dr }/>
-                                    <TextView type="subDarkBold" text={selectedTransaction?.transaction_type === 1 ? "Cr" : "Dr" } style={{color:selectedTransaction?.transaction_type === 1 ? 'green' : 'red'}}/>
-                                  </div>
-                            </div>
-                          </div>
-                        </DashboardBox>
-                    </div>
-
-                    <div style={{
-                    boxSizing: 'border-box',
-                    padding: '2px',
-                    width: '100%',
-                    height: '35%',
                     display: 'flex',
-                    }}>
-                      
-                        <div className='card-view-bg'>
-                          {loadingWallet ? (
-                            <div className="loader-container">
-                                <div className="spinner" />
-                            </div>
-                            ) : (
-                            <div style={{ boxSizing:'border-box', width:'100%',height:'100%'}}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px', marginLeft: '10px', marginRight: '10px',height:'15%'}}>
-                                    <p className="title-text-light">{wallet?.card?.card_type_name}</p>
-                                    <p className="title-text-light">Wallet</p>
-                                </div>
-
-                                <div style={{ display: 'flex', 
-                                    justifyContent: 'center', 
-                                    alignItems: 'center', 
-                                    padding: '0px', 
-                                    marginLeft: '10px', 
-                                    marginRight: '10px' , 
-                                    height:'70%',
-                                    fontSize:'25px',
-                                    fontWeight:'bold',
-                                    flexDirection:'column'}}>
-                                    <TextView type="subLight" text={"Balance"}/>
-                                    {wallet?.available_point?.user_balance}
-                                    <TextView type="light" text={wallet?.card?.card_no.replace(/(.{4})/g, '$1    ').trim()}/>
-                                </div>
-                                
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px', marginLeft: '10px', marginRight: '10px',height:'15%'}}>
-                                    <p className="title-text-light">{wallet?.user?.name.toUpperCase()}</p>
-                                </div>
-                            </div>
-                             )}
-                        </div>
-                     
-                    </div>
-
-                    {/* Redeem detail view */}
-                    <div style={{
-                        width: '100%',
-                        height: '33%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        padding: '2px'
-                        }}>
-                        <DashboardBox>
-
-                          <div className="user-list-item-redeem-inside" >      
-                              <div className="user-info-tr">
-                                  <DateWithIcon text={new Date(selectedReadeem?.redeem_created_at).toLocaleDateString("en-US", {
-                                      year: "numeric",
-                                      month: "long",
-                                      day: "numeric",
-                                      })} >
-                                  </DateWithIcon>
-                                  <TextView type="subDarkBold" text={selectedReadeem?.notes}/>
-                                    <StatusBadge status={selectedReadeem?.redeem_status==0 ? 0 : selectedReadeem?.redeem_status==1 ? 3 : 4 } />
-                                  <TextView type="subDark" text={baseId+selectedReadeem?.redeem_id}/>
-                                  
-                              </div> 
-
-                              <div style={{height: '100%',display: 'flex',justifyContent: 'center',alignItems: 'center',paddingLeft:'10px',paddingRight:'10px',gap:'2px'}}>
-                                <TextView type="darkBold" text={selectedReadeem?.point}/>
-                              </div>
-                          </div>
-                          <div style={{paddingLeft:'10px',paddingRight:'10px',paddingBottom:'10px'}}>
-                              <TextView type="subDarkBold" text="Notes :"/>   
-                              <TextView type="subDark" text={selectedReadeem?.redeem_comment}/>                  
-                          </div>
-                          
-
-                        </DashboardBox>
-                    </div>
-
-                    
-                </div>
-
-                <div style={{
-                  width: '35%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '5px'
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: '10px'
                 }}>
-                    <DashboardBox>
-                        {/* Search bar and add button */}
-                        <div style={{
-                            width: '100%',
-                            height: '60px',
-                            display: 'flex',
-                            flexDirection: 'row',
-                            padding: '2px',
-                            borderBlock:'boxSizing'}}>
-
-                                <div style={{width: '100%',
-                                height: '60px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent:'center',
-                                justifyItems: 'center',
-                                paddingLeft:'10px',
-                                paddingRight:'10px'
-                                }}> 
-
-                                   <InputText 
-                                        type="name"
-                                        placeholder="Search Redeem Requests"
-                                        name="search"
-                                        value={formData.search}
-                                        onChange={handleChange}
-                                    />
-
-                                </div>
-
-                                <div style={{
-                                width: '55px',
-                                height: '60px',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                paddingRight:'10px',
-                                paddingLeft:'0px'}}> 
-                                    <RoundButton icon={faPlus} onClick={() => setShowRedeemPopup(true)}/>
-                                </div>  
-                        </div>
-
-
-                        <div className="user-list-scroll-container">
-                            {loadingRdm ? (
-                            <div className="loader-container">
-                                <div className="spinner" />
-                            </div>
-                            ) : (
-                            redeems.map((rdmItems, index) => (
-                              <div className="user-list-item-rdm" key={index}>
-                                <DashboardBox>
-                                      <div className="user-list-item-tr-inside" onClick={() => handleLeadListClickRedeem(index)}>
-                                        
-                                            <div className="user-info-tr">
-                                                <DateWithIcon text={new Date(rdmItems.redeem_created_at).toLocaleDateString("en-US", {
-                                                    year: "numeric",
-                                                    month: "long",
-                                                    day: "numeric",
-                                                    })} >
-                                                </DateWithIcon>
-                                                <TextView type="subDarkBold" text={rdmItems.notes}/>
-                                                 <StatusBadge status={rdmItems.redeem_status==0 ? 0 : rdmItems.redeem_status==1 ? 3 : 4 } />
-                                                <TextView type="subDark" text={baseId+rdmItems.redeem_id}/>
-                                               
-                                            </div> 
-
-                                            <div style={{height: '100%',display: 'flex',justifyContent: 'center',alignItems: 'center',paddingLeft:'10px',paddingRight:'10px',gap:'2px'}}>
-                                              <TextView type="darkBold" text={rdmItems.point}/>
-                                            </div>
-                                            {selectedPosRedeem === index && (
-                                                 <div className='tr-list-selection-div'/>
-                                            )}
-                                            
-                                      </div>
-                                </DashboardBox>
-                              </div>
-                            ))
-                          )}
-                        </div>
-
-                    </DashboardBox>
-
+                    <div style={{
+                        textAlign: 'left'
+                    }}>
+                        <TextView type="darkBold" text="My Reward Card" style={{ fontSize: '20px', marginBottom: '8px' }} />
+                        <TextView type="subDark" text="Your digital wallet for managing points and rewards" style={{ fontSize: '13px', opacity: 0.8 }} />
+                    </div>
+                    <RoundButton 
+                        icon={faPlus} 
+                        onClick={handleRedeemClick}
+                        style={{
+                            backgroundColor: 'var(--highlight-color)',
+                            color: '#333',
+                            width: '40px',
+                            height: '40px',
+                            flexShrink: 0,
+                        }}
+                    />
                 </div>
+                
+                {loadingWallet ? (
+                <div style={{
+                    background: 'linear-gradient(135deg, var(--highlight-color) 0%, #ffb300 100%)',
+                    padding: '20px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '50%'
+                }}>
+                    <div className="spinner" style={{borderColor: 'white', borderTopColor: 'transparent'}}></div>
+                </div>
+                ) : wallet?.card ? (
+                <div style={{
+                    background: 'linear-gradient(135deg, var(--highlight-color) 0%, #ffb300 100%)',
+                    padding: '20px',
+                    color: '#333',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    height: '160px',
+                    borderRadius: '12px'
+                }}>
+                    {/* Card Header */}
+                    <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '10px'
+                    }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px'
+                    }}>
+                        <FontAwesomeIcon icon={faCreditCard} style={{ fontSize: '24px' }} />
+                        <div>
+                        <div style={{ fontSize: '14px', opacity: 0.8 }}>Reward Card</div>
+                        <div style={{ fontSize: '16px', fontWeight: 'bold' }}>
+                            {wallet?.card?.card_type_name}
+                        </div>
+                        </div>
+                    </div>
+                    
+                    <div style={{
+                        padding: '6px 12px',
+                        backgroundColor: 'rgba(255,255,255,0.3)',
+                        borderRadius: '18px',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                    }}>
+                        {wallet?.card?.card_status === 1 ? 'Active' : 'Inactive'}
+                    </div>
+                    </div>
 
+                    {/* Card Number */}
+                    <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '0px',
+                    gap: '15px',
+                    }}>
+                        <div style={{
+                            fontSize: '20px',
+                            letterSpacing: '3px',
+                            fontFamily: 'monospace',
+                            fontWeight: 'bold',
+                            flex: 1,
+                            lineHeight: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center'
+                        }}>
+                            {showCardNumber ? formatCardNumber(wallet?.card?.card_no) : '**** **** **** ' + formatCardNumber(wallet?.card?.card_no?.slice(-4))}
+                        </div>
+                        <button 
+                            onClick={toggleCardNumber}
+                            style={{
+                            background: 'rgba(255,255,255,0.3)',
+                            border: 'none',
+                            color: '#333',
+                            cursor: 'pointer',
+                            padding: '0',
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s',
+                            flexShrink: 0,
+                            marginBottom: '15px'
+                            }}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.5)'}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                        >
+                            <FontAwesomeIcon icon={showCardNumber ? faEyeSlash : faEye} style={{ fontSize: '12px' }} />
+                        </button>
+                    </div>
+
+                                    {/* Card Footer */}
+                    <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end'
+                    }}>
+                    <div>
+                        <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '4px' }}>
+                        CARD HOLDER
+                        </div>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                        {selectedTransaction?.vendor_name || 'Member Name'}
+                        </div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '4px' }}>
+                        BALANCE
+                        </div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                        {wallet?.available_point?.user_balance || 0} 
+                        </div>
+                    </div>
+                    </div>
+
+                    {/* Decorative Elements */}
+                    <div style={{
+                    position: 'absolute',
+                    top: '-40px',
+                    right: '-40px',
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255,255,255,0.1)'
+                    }}></div>
+                </div>
+                ) : (
+                <div style={{
+                    background: 'linear-gradient(135deg, var(--highlight-color) 0%, #ffb300 100%)',
+                    padding: '30px',
+                    color: '#333',
+                    textAlign: 'center',
+                    minHeight: '200px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <FontAwesomeIcon icon={faCreditCard} style={{ fontSize: '48px', marginBottom: '20px', opacity: 0.7 }} />
+                    <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>No Card Available</div>
+                    <div style={{ fontSize: '14px', opacity: 0.8 }}>Contact support to get your reward card</div>
+                </div>
+                )}
+
+            </div>
+          </DashboardBox>
+
+          
+
+          {/* Redeem Request Button */}
+          <DashboardBox style={{ padding: '0', overflow: 'hidden' }}>
+            <div style={{
+              padding: '20px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '12px',
+              height: '100%'
+            }}>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '15px'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}>
+                  <FontAwesomeIcon icon={faGift} style={{ fontSize: '20px', color: 'var(--highlight-color)' }} />
+                  <TextView type="darkBold" text="Redeem Points" style={{ fontSize: '16px' }} />
+                </div>
+                <TextView type="subDark" text="Convert your points into rewards" style={{ fontSize: '13px', textAlign: 'center', opacity: 0.8 }} />
+                
+                {/* QR Code Display */}
+                <div style={{
+                  width: '120px',
+                  height: '120px',
+                  backgroundColor: '#ffffff',
+                  border: '2px solid #e0e0e0',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  marginBottom: '10px'
+                }}>
+                  {wallet?.card && qrCodeUrl ? (
+                    <img 
+                      src={qrCodeUrl} 
+                      alt="QR Code" 
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        padding: '8px'
+                      }}
+                    />
+                  ) : wallet?.card ? (
+                    <div style={{
+                      fontSize: '10px',
+                      color: '#666',
+                      textAlign: 'center',
+                      padding: '10px'
+                    }}>
+                      Generating<br/>QR Code...
+                    </div>
+                  ) : (
+                    <div style={{
+                      fontSize: '12px',
+                      color: '#999',
+                      textAlign: 'center',
+                      padding: '10px'
+                    }}>
+                      No Card<br/>Available
+                    </div>
+                  )}
+                </div>
+                
+                <TextView type="subDark" text="Show this QR code to vendors for point redemption" style={{ fontSize: '11px', textAlign: 'center', opacity: 0.7 }} />
+                
+              </div>
+            </div>
+          </DashboardBox>
 
         </div>
 
+        {/* Point Expiry Awareness Section */}
+        {expiringPoints.length > 0 && (
+          <DashboardBox style={{ padding: '0', overflow: 'hidden' }}>
+            <div style={{
+              padding: '20px',
+              backgroundColor: '#fff3cd',
+              borderRadius: '12px',
+              border: '1px solid #ffeaa7',
+              height: '100%'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '15px'
+              }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ffc107',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <FontAwesomeIcon icon={faExclamationTriangle} style={{ fontSize: '18px', color: '#856404' }} />
+                </div>
+                <div>
+                  <TextView type="darkBold" text="Points Expiring Soon!" style={{ fontSize: '16px', color: '#856404' }} />
+                  <TextView type="subDark" text="Some of your points will expire soon. Use them before they're gone!" style={{ fontSize: '13px', color: '#856404', opacity: 0.8 }} />
+                </div>
+              </div>
+
+              <div style={{
+                // maxHeight: '120px',
+                height: 'calc(100vh - 350px)',
+                overflow: 'auto',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#ffc107 #fff3cd'
+              }}>
+                {expiringPoints.map((point, index) => (
+                  <div key={index} style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '10px',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    borderRadius: '8px',
+                    marginBottom: '8px',
+                    border: '1px solid rgba(255, 193, 7, 0.3)'
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '4px'
+                      }}>
+                        <FontAwesomeIcon icon={faClock} style={{ fontSize: '12px', color: '#856404' }} />
+                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#856404' }}>
+                          {point.transaction_title}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#856404', opacity: 0.8 }}>
+                        Expires: {/* {new Date(point.expire_on).toLocaleDateString()} */}
+                        
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#856404', opacity: 0.8 }}>
+                        
+                        {formatDateTime(point?.expire_on)}
+                      </div>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <div style={{
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        color: '#856404'
+                      }}>
+                        {point.transaction_cr} pts
+                      </div>
+                      <div style={{
+                        padding: '4px 8px',
+                        backgroundColor: point.daysUntilExpiry <= 7 ? '#dc3545' : 
+                                        point.daysUntilExpiry <= 14 ? '#fd7e14' : '#ffc107',
+                        color: 'white',
+                        borderRadius: '12px',
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        minWidth: '40px',
+                        textAlign: 'center'
+                      }}>
+                        {point.daysUntilExpiry === 1 ? '1 day' : 
+                          point.daysUntilExpiry === 0 ? 'Today' : 
+                          `${point.daysUntilExpiry} days`}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{
+                marginTop: '15px',
+                padding: '12px',
+                backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 193, 7, 0.4)'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '6px'
+                }}>
+                  <FontAwesomeIcon icon={faGift} style={{ fontSize: '14px', color: '#856404' }} />
+                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#856404' }}>
+                    Quick Action
+                  </span>
+                </div>
+                <TextView type="subDark" text="Consider redeeming these points or using them for purchases before they expire!" style={{ fontSize: '12px', color: '#856404', opacity: 0.9 }} />
+              </div>
+            </div>
+          </DashboardBox>
+        )}
+
+        {/* Second Column - Merged List & Details */}
+        <DashboardBox style={{ overflow: 'hidden' }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            padding: '20px'
+          }}>
+            
+            {/* Tab Navigation and Search Header - Combined */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '15px',
+              marginBottom: '5px',
+              paddingBottom: '15px',
+              borderBottom: '1px solid #eee',
+              marginTop: '0',
+              paddingTop: '0'
+            }}>
+              {/* Tab Navigation - Same as Vendor Page */}
+              <div className="div-items-view" style={{
+                minWidth: '220px',
+                paddingRight: '5px'
+              }}>
+                <div 
+                  className={activeTab === 'transactions' ? 'div-tab-selected' : 'div-tab'}
+                  onClick={() => setActiveTab('transactions')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faHistory} style={{ fontSize: '14px' }} />
+                  Transactions
+                </div>
+                <div 
+                  className={activeTab === 'redeems' ? 'div-tab-selected' : 'div-tab'}
+                  onClick={() => setActiveTab('redeems')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faGift} style={{ fontSize: '14px' }} />
+                  Redeems
+                </div>
+              </div>
+
+              {/* Search Input */}
+              <div style={{
+                position: 'relative',
+                flex: 1
+              }}>
+                {/* <FontAwesomeIcon 
+                  icon={faSearch} 
+                  style={{ 
+                    position: 'absolute', 
+                    left: '12px', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)', 
+                    color: '#999', 
+                    fontSize: '14px',
+                    zIndex: 1
+                  }} 
+                /> */}
+                <InputText 
+                  type="text"
+                  placeholder={`Search ${activeTab === 'transactions' ? 'transactions' : 'redeem requests'}...`}
+                  name="search"
+                  value={formData.search}
+                  onChange={handleChange}
+                  style={{
+                    paddingLeft: '40px',
+                    paddingRight: formData.search ? '40px' : '12px',
+                    borderRadius: '12px',
+                    border: '1px solid #eee',
+                    backgroundColor: '#fafafa'
+                  }}
+                />
+                {formData.search && (
+                  <button
+                    onClick={clearSearch}
+                    style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#999',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      zIndex: 1
+                    }}
+                    onMouseEnter={(e) => e.target.style.color = '#666'}
+                    onMouseLeave={(e) => e.target.style.color = '#999'}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              
+              {activeTab === 'redeems' && (
+                <RoundButton 
+                  icon={faPlus} 
+                  onClick={handleRedeemClick}
+                  style={{
+                    backgroundColor: 'var(--highlight-color)',
+                    color: '#333',
+                    width: '40px',
+                    height: '40px'
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Content Area - Split into List and Details */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr', 
+              gap: '20px', 
+              flex: 1, 
+              overflow: 'hidden' 
+            }}>
+              
+              {/* List Section */}
+              <div style={{ 
+                overflow: 'auto',
+                height: 'calc(100vh - 210px)',
+                scrollbarWidth: 'none', /* Firefox */
+                msOverflowStyle: 'none', /* IE and Edge */
+                WebkitScrollbar: { display: 'none' } /* Chrome, Safari, Opera */
+              }}>
+              {activeTab === 'transactions' ? (
+                loading ? (
+                                <div style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                    height: '200px'
+                  }}>
+                    <div className="spinner" />
+                  </div>
+                ) : filteredTransactions.length > 0 ? (
+                  filteredTransactions.map((trItems, index) => (
+                    <div 
+                      key={index}
+                      onClick={() => handleLeadListClick(index)}
+                      style={{
+                        padding: '15px',
+                        marginBottom: '10px',
+                        backgroundColor: selectedTransaction?.transaction_id === trItems.transaction_id ? 'var(--highlight-color)' : '#ffffff',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        border: selectedTransaction?.transaction_id === trItems.transaction_id ? '2px solid var(--highlight-color)' : '1px solid #eee'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedTransaction?.transaction_id !== trItems.transaction_id) {
+                          e.target.style.backgroundColor = '#f0f0f0';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedTransaction?.transaction_id !== trItems.transaction_id) {
+                          e.target.style.backgroundColor = '#ffffff';
+                        }
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px'
+                      }}>
+                        <TextView 
+                          type="darkBold" 
+                          text={trItems.transaction_title}
+                          style={{ 
+                            fontSize: '14px',
+                            backgroundColor: 'transparent'
+                          }}
+                        />
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <div style={{
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            color: trItems.transaction_type === 1 ? '#4caf50' : '#f44336',
+                            backgroundColor: 'transparent'
+                          }}>
+                            {trItems.transaction_type === 1 ? '+' : '-'}{trItems.transaction_type === 1 ? trItems.transaction_cr : trItems.transaction_dr}
+                          </div>
+                          <div style={{
+                            fontSize: '12px',
+                            color: trItems.transaction_type === 1 ? '#4caf50' : '#f44336',
+                            fontWeight: 'bold',
+                            backgroundColor: 'transparent'
+                          }}>
+                            {trItems.transaction_type === 1 ? 'CR' : 'DR'}
+                          </div>
+                                </div>  
+                        </div>
+
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <TextView 
+                            type="subDark" 
+                            text={trItems.vendor_name}
+                            style={{ 
+                              fontSize: '12px',
+                              marginBottom: '4px',
+                              backgroundColor: 'transparent'
+                            }}
+                          />
+                          <TextView 
+                            type="subDark" 
+                            text={baseId+trItems.transaction_id}
+                            style={{ 
+                              fontSize: '11px',
+                              backgroundColor: 'transparent'
+                            }}
+                          />
+                        </div>
+                        <div style={{
+                          fontSize: '11px',
+                          color: selectedTransaction?.transaction_id === trItems.transaction_id ? '#666' : '#999',
+                        }}>
+                          {/* {new Date(trItems.transaction_created_at).toLocaleDateString()} */}
+                          {formatDateTime(trItems?.transaction_created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '150px',
+                    color: '#999',
+                    textAlign: 'center'
+                  }}>
+                    <FontAwesomeIcon icon={faInbox} style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.5 }} />
+                    <div style={{ fontSize: '14px', marginBottom: '6px' }}>
+                      {formData.search.trim() ? 'No Search Results' : 'No Transactions'}
+                    </div>
+                    <div style={{ fontSize: '12px', opacity: 0.8 }}>
+                      {formData.search.trim() ? 'No transactions match your search criteria' : 'No transaction data available'}
+                    </div>
+                  </div>
+                )
+              ) : (
+                // Redeems List
+                loadingRdm ? (
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '200px'
+                  }}>
+                                <div className="spinner" />
+                            </div>
+                ) : filteredRedeems.length > 0 ? (
+                            filteredRedeems.map((rdmItems, index) => (
+                    <div 
+                      key={index}
+                      onClick={() => handleLeadListClickRedeem(index)}
+                      style={{
+                        padding: '15px',
+                        marginBottom: '10px',
+                        backgroundColor: selectedReadeem?.redeem_id === rdmItems.redeem_id ? 'var(--highlight-color)' : '#ffffff',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        border: selectedReadeem?.redeem_id === rdmItems.redeem_id ? '2px solid var(--highlight-color)' : '1px solid #eee'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedReadeem?.redeem_id !== rdmItems.redeem_id) {
+                          e.target.style.backgroundColor = '#f0f0f0';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedReadeem?.redeem_id !== rdmItems.redeem_id) {
+                          e.target.style.backgroundColor = '#ffffff';
+                        }
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px'
+                      }}>
+                        <TextView 
+                          type="darkBold" 
+                          text={rdmItems.notes}
+                          style={{ 
+                            fontSize: '14px',
+                          }}
+                        />
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <div style={{
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            color: selectedReadeem?.redeem_id === rdmItems.redeem_id ? '#333' : 'var(--highlight-color)',
+                          }}>
+                            {rdmItems.point}
+                          </div>
+                          <div style={{
+                            fontSize: '12px',
+                            color: getStatusColor(rdmItems.redeem_status),
+                            fontWeight: 'bold',
+                            backgroundColor: 'transparent'
+                          }}>
+                            {getStatusText(rdmItems.redeem_status)}
+                          </div>
+                        </div>
+                                            </div> 
+
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <TextView 
+                            type="subDark" 
+                            text={baseId+rdmItems.redeem_id}
+                            style={{ 
+                              fontSize: '11px',
+                            }}
+                          />
+                        </div>
+                                                <div style={{
+                          fontSize: '11px',
+                          color: selectedReadeem?.redeem_id === rdmItems.redeem_id ? '#666' : '#999',
+                          backgroundColor: 'transparent'
+                        }}>
+                          {/* {new Date(rdmItems.redeem_created_at).toLocaleDateString()} */}
+                          {formatDateTime(rdmItems?.redeem_created_at)}
+                        </div>
+                                      </div>
+                              </div>
+                            ))
+                ) : (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '150px',
+                    color: '#999',
+                    textAlign: 'center'
+                  }}>
+                    <FontAwesomeIcon icon={faGift} style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.5 }} />
+                    <div style={{ fontSize: '14px', marginBottom: '6px' }}>
+                      {formData.search.trim() ? 'No Search Results' : 'No Redeem Requests'}
+                    </div>
+                    <div style={{ fontSize: '12px', opacity: 0.8 }}>
+                      {formData.search.trim() ? 'No redeem requests match your search criteria' : 'No redeem requests available'}
+                    </div>
+                  </div>
+                )
+              )}
+              </div>
+
+              {/* Details Section */}
+              <div style={{ overflow: 'auto' }}>
+                {/* Details Header */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '0px',
+                  paddingBottom: '15px',
+                  borderBottom: '1px solid #eee'
+                }}>
+                  <FontAwesomeIcon icon={activeTab === 'transactions' ? faHistory : faGift} style={{ fontSize: '18px', color: 'var(--highlight-color)' }} />
+                  <TextView type="darkBold" text={`${activeTab === 'transactions' ? 'Transaction' : 'Redeem'} Details`} style={{ fontSize: '16px' }} />
+                </div>
+
+                {/* Details Content */}
+                <div style={{ flex: 1 }}>
+                  {activeTab === 'transactions' && selectedTransaction ? (
+                    <div style={{ padding: '15px', backgroundColor: '#fafafa', borderRadius: '10px' }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        marginBottom: '15px',
+                        paddingBottom: '12px',
+                        borderBottom: '1px solid #eee',
+                      }}>
+                        <img 
+                          src={selectedTransaction?.vendor_image ? baseUrl+selectedTransaction?.vendor_image : "/dummy.jpg"} 
+                          alt="Vendor" 
+                          style={{
+                            width: '50px',
+                            height: '50px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            border: '2px solid var(--highlight-color)'
+                          }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <TextView type="darkBold" text={selectedTransaction?.vendor_name || "Vendor Name"} style={{ marginBottom: '4px' }} />
+                          <TextView type="subDark" text={selectedTransaction?.vendor_email || "vendor@email.com"} style={{ marginBottom: '8px' }} />
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              border: 'none',
+                              backgroundColor: 'var(--highlight-color)',
+                              color: '#333',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}>
+                              <FontAwesomeIcon icon={faPhone} style={{ fontSize: '12px' }} />
+                            </button>
+                            <button style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              border: 'none',
+                              backgroundColor: 'var(--highlight-color)',
+                              color: '#333',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}>
+                              <FontAwesomeIcon icon={faLocationDot} style={{ fontSize: '12px' }} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: '15px' }}>
+                        <TextView type="darkBold" text="Transaction Details" style={{ marginBottom: '10px' }} />
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: '15px'
+                        }}>
+                          <div>
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Transaction ID</div>
+                            <div style={{ fontSize: '14px', fontWeight: 'bold',color: '#666' }}>{baseId+selectedTransaction?.transaction_id}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Type</div>
+                            <div style={{ 
+                              fontSize: '14px', 
+                              fontWeight: 'bold',
+                              color: selectedTransaction?.transaction_type === 1 ? '#4caf50' : '#f44336'
+                            }}>
+                              {selectedTransaction?.transaction_type === 1 ? 'Credit' : 'Debit'}
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Points</div>
+                            <div style={{ 
+                              fontSize: '16px', 
+                              fontWeight: 'bold',
+                              color: selectedTransaction?.transaction_type === 1 ? '#4caf50' : '#f44336'
+                            }}>
+                              {selectedTransaction?.transaction_type === 1 ? selectedTransaction?.transaction_cr : selectedTransaction?.transaction_dr}
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Date</div>
+                            <div style={{ fontSize: '12px', color: '#666' }}>
+                              {/* {new Date(selectedTransaction?.transaction_created_at).toLocaleDateString()} */}
+                              {formatDateTime(selectedTransaction?.transaction_created_at)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <TextView type="darkBold" text="Description" style={{ marginBottom: '8px' }} />
+                        <TextView type="subDark" text={selectedTransaction?.transaction_title || "No description available"} />
+                      </div>
+                    </div>
+                  ) : activeTab === 'redeems' && selectedReadeem ? (
+                    <div style={{ padding: '15px', backgroundColor: '#fafafa', borderRadius: '10px' }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '20px',
+                        paddingBottom: '15px',
+                        borderBottom: '1px solid #eee'
+                      }}>
+                        <div>
+                          <TextView type="darkBold" text="Redeem Request" style={{ marginBottom: '4px' }} />
+                          <TextView type="subDark" text={`ID: ${baseId}${selectedReadeem?.redeem_id}`} />
+                        </div>
+                        <div style={{
+                          padding: '6px 12px',
+                          backgroundColor: getStatusColor(selectedReadeem?.redeem_status),
+                          color: 'white',
+                          borderRadius: '20px',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}>
+                          {getStatusText(selectedReadeem?.redeem_status)}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '15px',
+                        marginBottom: '20px'
+                      }}>
+                        <div>
+                          <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Points Requested</div>
+                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--highlight-color)' }}>
+                            {selectedReadeem?.point} 
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Request Date</div>
+                          <div style={{ fontSize: '12px', color: '#666' }}>
+                            {/* {new Date(selectedReadeem?.redeem_created_at).toLocaleDateString()} */}
+                            {formatDateTime(selectedReadeem?.redeem_created_at)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: '15px' }}>
+                        <TextView type="darkBold" text="Notes" style={{ marginBottom: '8px' }} />
+                        <TextView type="subDark" text={selectedReadeem?.notes || "No notes provided"} />
+                      </div>
+
+                      {selectedReadeem?.redeem_comment && (
+                        <div>
+                          <TextView type="darkBold" text="Admin Comment" style={{ marginBottom: '8px' }} />
+                          <TextView type="subDark" text={selectedReadeem?.redeem_comment} />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      color: '#999',
+                      textAlign: 'center'
+                    }}>
+                      <FontAwesomeIcon icon={activeTab === 'transactions' ? faHistory : faGift} style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.5 }} />
+                      <div style={{ fontSize: '14px', marginBottom: '6px' }}>
+                        No {activeTab === 'transactions' ? 'Transaction' : 'Redeem Request'} Selected
+                      </div>
+                      <div style={{ fontSize: '12px', opacity: 0.8 }}>
+                        Select an item from the list to view details
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </DashboardBox>
+
+
+      </div>
+
         {showRedeemPopup && (
             <RedeemPopup
-            point = {availablePoint}
+          point={wallet?.available_point?.user_balance}
             onClose={() => setShowRedeemPopup(false)}
             onSubmit={handleRedeemPopupSubmit}
             />
         )}
 
+        {showBankDetailsPopup && (
+            <BankDetailsPopup
+                onClose={() => setShowBankDetailsPopup(false)}
+                onSubmit={handleBankDetailsSubmit}
+            />
+        )}
     </div>
   )
 }

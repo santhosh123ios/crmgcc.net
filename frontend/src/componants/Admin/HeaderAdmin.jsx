@@ -25,20 +25,25 @@ function HeaderAdmin({ selected, setSelected }) {
                   Leads
                 </div>
 
-                <div className={selected === 'transaction' ? 'div-tab-selected' : 'div-tab'}
+                {/* <div className={selected === 'transaction' ? 'div-tab-selected' : 'div-tab'}
           onClick={() => setSelected('transaction')}>
                   Transactions
+                </div> */}
+
+                <div className={selected === 'wallet' ? 'div-tab-selected' : 'div-tab'}
+          onClick={() => setSelected('wallet')}>
+                  Wallet
                 </div>
   
                  <div className={selected === 'members' ? 'div-tab-selected' : 'div-tab'}
           onClick={() => setSelected('members')}>
-                  Members
+                  Users
                 </div>
     
-                <div className={selected === 'vendor' ? 'div-tab-selected' : 'div-tab'}
+                {/* <div className={selected === 'vendor' ? 'div-tab-selected' : 'div-tab'}
           onClick={() => setSelected('vendor')}>
                   Vendor
-                </div>
+                </div> */}
     
                 <div className={selected === 'complaints' ? 'div-tab-selected' : 'div-tab'}
           onClick={() => setSelected('complaints')}>
@@ -52,7 +57,7 @@ function HeaderAdmin({ selected, setSelected }) {
 
                 <div className={selected === 'offers' ? 'div-tab-selected' : 'div-tab'}
           onClick={() => setSelected('offers')}>
-                  Offers
+                  Products
                 </div>
     
                 <div className={selected === 'report' ? 'div-tab-selected' : 'div-tab'}

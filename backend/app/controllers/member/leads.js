@@ -87,7 +87,7 @@ export const getLeads = (req, res) => {
         console.log(token)
         const user_id = req.user?.id;
         //const query = "SELECT * FROM leads WHERE user_id = ?";
-        const query =  "SELECT leads.*, users.name AS vendor_name, users.email AS vendor_email, users.profile_img AS vendor_image FROM  leads LEFT JOIN  users  ON  leads.vendor_id = users.id WHERE leads.user_id = ?";
+        const query =  "SELECT leads.*, users.name AS vendor_name, users.email AS vendor_email, users.profile_img AS vendor_image FROM  leads LEFT JOIN  users  ON  leads.vendor_id = users.id WHERE leads.user_id = ? ORDER BY leads.created_at DESC";
         
         executeQuery({
             query,

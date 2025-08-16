@@ -4,7 +4,7 @@ export const getComplaints = (req, res) => {
 
     try {
         const user_id = req.user?.id;
-        const query = "SELECT complaints.*, users.name AS vendor_name, users.email AS vendor_email, users.profile_img AS vendor_image FROM  complaints LEFT JOIN  users  ON  complaints.vendor_id = users.id WHERE complaints.vendor_id = ?";
+        const query = "SELECT complaints.*, vendor.name AS vendor_name, vendor.email AS vendor_email, vendor.profile_img AS vendor_image,member.name AS member_name,member.email AS member_email, member.profile_img AS member_image FROM complaints LEFT JOIN users AS vendor ON complaints.vendor_id = vendor.id LEFT JOIN users AS member ON complaints.user_id = member.id WHERE complaints.vendor_id = ?";
 
         executeQuery({
             query,

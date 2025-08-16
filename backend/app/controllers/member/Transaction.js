@@ -4,7 +4,7 @@ export const getTransaction = (req, res) => {
 
     try {
         const user_id = req.user?.id;
-        const query =  "SELECT transaction.*, users.name AS vendor_name, users.email AS vendor_email, users.profile_img AS vendor_image FROM  transaction LEFT JOIN  users  ON  transaction.vendor_id = users.id WHERE transaction.user_id = ?";
+        const query =  "SELECT t.transaction_id, t.transaction_type, t.transaction_cr, t.transaction_dr, t.transaction_title, t.transaction_created_at, t.expire_on, t.user_id, t.from_id, t.to_id, t.card_id, t.card_no,  from_user.name AS from_name, from_user.profile_img AS from_image, from_user.user_type AS from_type,  to_user.name AS to_name, to_user.email AS to_email, to_user.profile_img AS to_image, to_user.user_type AS to_type FROM `transaction` t  LEFT JOIN `users` AS from_user ON t.from_id = from_user.id LEFT JOIN `users` AS to_user ON t.to_id = to_user.id  WHERE t.user_id = ? ORDER BY t.transaction_created_at DESC";
         executeQuery({
             query,
             data: [user_id],
@@ -71,7 +71,7 @@ export const getRedeem = (req, res) => {
 
     try {
         const user_id = req.user?.id;
-        const query = "SELECT * FROM redeems WHERE member_id = ?";
+        const query = "SELECT * FROM redeems WHERE member_id = ? ORDER BY redeem_created_at DESC";
         executeQuery({
             query,
             data: [user_id],
@@ -153,6 +153,39 @@ export const getWalletDetails = (req, res) => {
                                         });
                             }             
                         });      
+            }
+        })
+    } 
+    catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+}
+
+export const getTransactionSettings = (req, res) => {
+    try {
+        const query = "SELECT * FROM transaction_settings ORDER BY id DESC LIMIT 1";
+        executeQuery({
+            query,
+            data: [],
+            callback: (err, settingsData) => 
+            {
+                console.log("Query result:", settingsData);
+                if (err) {
+                    console.error("Database error:", err);
+                    return res
+                    .status(500)
+                    .json({ error: [{ message: err }], result: {} });
+                }
+
+                const result = {
+                    message: "Get transaction settings",
+                    status: 1,
+                    data: settingsData[0] || null,
+                };
+    
+                console.log("Sending response:", result);
+                return res.status(200).json({ error: [], result });
             }
         })
     } 

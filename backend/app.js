@@ -7,6 +7,7 @@ import memberRoutes from "./app/routers/member.js"
 import cors from 'cors';
 import path from "path";
 import { fileURLToPath } from "url";
+import { initExpiredTransactionCron } from "./app/services/cronService.js";
 
 const app = express();
 configDotenv();
@@ -34,4 +35,7 @@ app.use("/api/vendor",vendorRoutes)
 const port = process.env.PORT || 8000;
 app.listen(port, (req, res) => {
   console.log(`Server is running at ${port}`);
+  
+  // Initialize cron jobs
+  initExpiredTransactionCron();
 });

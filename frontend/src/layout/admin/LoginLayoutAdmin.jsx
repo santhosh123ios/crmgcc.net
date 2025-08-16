@@ -51,7 +51,7 @@ export default function LoginLayoutAdmin() {
      <div className='img-bg-part-b'>
       <div className='login-banner-view'>
         <img className='login-banner-img' 
-        src="https://blog.advantageclub.co/wp-content/uploads/2023/10/Point-based-rewards-system.webp" 
+        src="https://www.jobsoid.com/wp-content/uploads/2025/02/3-reasons-why-candidate-experience-is-important.png" 
         alt="My Image" />
       </div>
         
