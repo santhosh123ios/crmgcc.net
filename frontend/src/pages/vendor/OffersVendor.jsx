@@ -472,8 +472,8 @@ function OffersVendor() {
                 <TextView type="darkBold" text={"Create your Offer"}/>
                 <div style={{marginTop:'20px'}}></div>
 
-                <InputText placeholder={"Title"} name={"title"} onChange={handleChange}></InputText>
-                <InputText placeholder={"Description"} name={"description"} onChange={handleChange}></InputText>
+                <InputText placeholder={"Title"} name={"title"} onChange={handleChange} maxLength={30}></InputText>
+                <InputText placeholder={"Description"} name={"description"} onChange={handleChange} maxLength={150}></InputText>
 
                 <InputText placeholder={"Discount (%)"} name={"discount"} onChange={handleChange}></InputText>
                 <InputText placeholder={"Discount Code"} name={"discount_code"} onChange={handleChange}></InputText>

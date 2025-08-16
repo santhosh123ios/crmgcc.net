@@ -318,7 +318,7 @@ function VendorPage() {
 
 
                         <div style={{
-                            width: showDetails ? '60%' : '75%',
+                            width: showDetails ? '55%' : '75%',
                             height: '100%',
                             display: 'flex',
                             flexDirection: 'column',
@@ -357,7 +357,7 @@ function VendorPage() {
                         {/* Details Panel */}
                         {showDetails && selectedItem && (
                             <div style={{
-                                width: '30%',
+                                width: '35%',
                                 height: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -396,8 +396,8 @@ function VendorPage() {
                                                 alt={selectedItem.title || selectedItem.name} 
                                                 style={{ 
                                                     width: '100%', 
-                                                    maxWidth: '200px', 
-                                                    height: '200px', 
+                                                    maxWidth: '180px', 
+                                                    height: '180px', 
                                                     objectFit: 'cover', 
                                                     borderRadius: '12px' 
                                                 }} 
@@ -421,15 +421,15 @@ function VendorPage() {
                                                     <TextView type='darkBold' text="Description" style={{ marginBottom: '8px' }} />
                                                     <TextView type='dark' text={selectedItem.description || 'No description available'} />
                                                 </div>
-                                                <div style={{ marginTop: '15px' }}>
-                                                    <TextView type='darkBold' text="Terms & Conditions" style={{ marginBottom: '8px' }} />
+                                                <div style={{ marginTop: '5px' }}>
+                                                    <TextView type='darkBold' text="Terms & Conditions" style={{ marginBottom: '5px' }} />
                                                     <TextView type='dark' text={selectedItem.terms_conditions || 'Standard terms and conditions apply. Please read carefully before redeeming this offer.'} />
                                                 </div>
                                             </div>
                                         )}
 
                                         {activeTab === 'products' && (
-                                            <div style={{ marginBottom: '15px' }}>
+                                            <div style={{ marginBottom: '5px' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'left', alignItems: 'center' }}>
                                                     <TextView type='darkBold' text={`Price: ${selectedItem.offer_price}`} style={{ color: '#28a745' }} />
                                                     <TextView type='dark' text={selectedItem.price} style={{ textDecoration: 'line-through' , marginLeft: '5px'}} />
@@ -501,7 +501,7 @@ function VendorPage() {
                                     {/* Discount Code */}
                                     {selectedItem?.discount_code && (
                                         <div style={{ marginBottom: '20px' }}>
-                                            <TextView type='darkBold' text="Discount Code" style={{ marginBottom: '10px' }} />
+                                            <TextView type='darkBold' text="Discount Code" style={{ marginBottom: '5px' }} />
                                             <div style={{ 
                                                 display: 'flex', 
                                                 alignItems: 'center', 

@@ -430,8 +430,8 @@ function ProductVendor() {
                 <TextView type="darkBold" text={"Create your Product"}/>
                 <div style={{marginTop:'20px'}}></div>
 
-                <InputText placeholder={"Title"} name={"title"} onChange={handleChange}></InputText>
-                <InputText placeholder={"Description"} name={"description"} onChange={handleChange}></InputText>
+                <InputText placeholder={"Title"} name={"title"} onChange={handleChange} maxLength={30}></InputText>
+                <InputText placeholder={"Description"} name={"description"} onChange={handleChange} maxLength={150}></InputText>
 
                 <div style={{display:'flex', flexDirection:'row'}}>
                     <div style={{width:'48%'}}>

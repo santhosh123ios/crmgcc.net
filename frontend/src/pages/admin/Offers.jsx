@@ -375,14 +375,14 @@ function Offers() {
                                             </button>
                                         </div>
                                         
-                                        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                                        <div style={{ textAlign: 'center', marginBottom: '5px' }}>
                                             <img 
                                                 src={selectedItem.image ? baseUrl + selectedItem.image : "/dummy.jpg"} 
                                                 alt={selectedItem.title || selectedItem.name} 
                                                 style={{ 
                                                     width: '100%', 
-                                                    maxWidth: '200px', 
-                                                    height: '200px', 
+                                                    maxWidth: '170px', 
+                                                    height: '170px', 
                                                     objectFit: 'cover', 
                                                     borderRadius: '12px' 
                                                 }} 

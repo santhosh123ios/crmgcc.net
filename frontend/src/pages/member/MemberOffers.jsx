@@ -271,7 +271,7 @@ function MemberOffers() {
 
 
                         <div style={{
-                            width: showDetails ? '70%' : '100%',
+                            width: showDetails ? '65%' : '100%',
                             height: '100%',
                             display: 'flex',
                             flexDirection: 'column',
@@ -310,7 +310,7 @@ function MemberOffers() {
                         {/* Details Panel */}
                         {showDetails && selectedItem && (
                             <div style={{
-                                width: '30%',
+                                width: '35%',
                                 height: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -319,7 +319,7 @@ function MemberOffers() {
                             }}>
                                 <DashboardBox>
                                     <div className="comp-item-inside">
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', width: '100%' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', width: '100%' }}>
                                             <TextView type='darkBold' text="Details" />
                                             <button 
                                                 onClick={() => setShowDetails(false)}
@@ -343,14 +343,14 @@ function MemberOffers() {
                                             </button>
                                         </div>
                                         
-                                        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                                        <div style={{ textAlign: 'center', marginBottom: '5px' }}>
                                             <img 
                                                 src={selectedItem.image ? baseUrl + selectedItem.image : "/dummy.jpg"} 
                                                 alt={selectedItem.title || selectedItem.name} 
                                                 style={{ 
                                                     width: '100%', 
-                                                    maxWidth: '200px', 
-                                                    height: '200px', 
+                                                    maxWidth: '180px', 
+                                                    height: '180px', 
                                                     objectFit: 'cover', 
                                                     borderRadius: '12px' 
                                                 }} 
@@ -374,8 +374,8 @@ function MemberOffers() {
                                                     <TextView type='darkBold' text="Description" style={{ marginBottom: '8px' }} />
                                                     <TextView type='dark' text={selectedItem.description || 'No description available'} />
                                                 </div>
-                                                <div style={{ marginTop: '15px' }}>
-                                                    <TextView type='darkBold' text="Terms & Conditions" style={{ marginBottom: '8px' }} />
+                                                <div style={{ marginTop: '5px' }}>
+                                                    <TextView type='darkBold' text="Terms & Conditions" style={{ marginBottom: '5px' }} />
                                                     <TextView type='dark' text={selectedItem.terms_conditions || 'Standard terms and conditions apply. Please read carefully before redeeming this offer.'} />
                                                 </div>
                                             </div>
@@ -396,14 +396,14 @@ function MemberOffers() {
                                                     <TextView type='darkBold' text="Description" style={{ marginBottom: '8px' }} />
                                                     <TextView type='dark' text={selectedItem.description || 'No description available'} />
                                                 </div>
-                                                <div style={{ marginTop: '15px' }}>
-                                                    <TextView type='darkBold' text="Terms & Conditions" style={{ marginBottom: '8px' }} />
+                                                <div style={{ marginTop: '5px' }}>
+                                                    <TextView type='darkBold' text="Terms & Conditions" style={{ marginBottom: '5px' }} />
                                                     <TextView type='dark' text={selectedItem.terms_conditions || 'Standard terms and conditions apply. Please read carefully before proceeding with this product.'} />
                                                 </div>
                                             </div>
                                         )}
 
-                                        <div style={{ marginTop: '10px' }}>
+                                        <div style={{ marginTop: '15px' }}>
                                             <button 
                                                 onClick={activeTab === 'offers' ? handleRedeemClick : undefined}
                                                 style={{
