@@ -147,7 +147,7 @@ function ComplaintsMember() {
     const [complaints, setComplaints] = useState([]);
     const [selectedComplaints, setSelectedComplaints] = useState(null);
     const [showCompPopup, setShowCompPopup] = useState(false);
-    const [selectedPosComp, setselectedPosComp] = useState(0);
+    const [selectedPosComp, setselectedPosComp] = useState(-1);
     const [fileName, setFileName] = useState("");
 
     const [vendors, setVendors] = useState([]);
@@ -206,6 +206,9 @@ function ComplaintsMember() {
     useEffect(() => {
         if (selectedComplaints?.id) {
             fetchMessages(selectedComplaints.id);
+        } else {
+            // Clear messages when no complaint is selected
+            setMessages([]);
         }
     }, [selectedComplaints]);
 
@@ -242,13 +245,27 @@ function ComplaintsMember() {
             console.warn("Get Complaints successfully");
             setComplaints(response.result.data);
             setFilteredComplaints(response.result.data);
-            setSelectedComplaints(response.result.data[0])
-
+            // Only set selected complaint if there are complaints available
+            if (response.result.data && response.result.data.length > 0) {
+                setSelectedComplaints(response.result.data[0]);
+                setselectedPosComp(0);
+            } else {
+                setSelectedComplaints(null);
+                setselectedPosComp(-1);
+            }
         } else {
-            console.warn("No Transaction found or status != 1");
+            console.warn("No complaints found or status != 1");
+            setComplaints([]);
+            setFilteredComplaints([]);
+            setSelectedComplaints(null);
+            setselectedPosComp(-1);
         }
         } catch (error) {
-        console.error("Failed to fetch Transaction:", error);
+        console.error("Failed to fetch complaints:", error);
+        setComplaints([]);
+        setFilteredComplaints([]);
+        setSelectedComplaints(null);
+        setselectedPosComp(-1);
         } finally {
         setLoadingComp(false);
         }
@@ -397,10 +414,12 @@ function ComplaintsMember() {
     };
 
     const handleCompListClick = (index) => {
-        setselectedPosComp(index)
-        console.log("Clicked index:", index);
-        console.log("Clicked Status:", filteredComplaints[index].status);
-        setSelectedComplaints(filteredComplaints[index])
+        if (filteredComplaints && filteredComplaints[index]) {
+            setselectedPosComp(index);
+            console.log("Clicked index:", index);
+            console.log("Clicked Status:", filteredComplaints[index].status);
+            setSelectedComplaints(filteredComplaints[index]);
+        }
     };
 
     const handleVendorChange = (e) => {
@@ -507,6 +526,7 @@ function ComplaintsMember() {
                                 <div 
                                   className={`complaint-list-item ${selectedPosComp === index ? 'complaint-list-item-selected' : ''}`}
                                   onClick={() => handleCompListClick(index)}
+                                  style={{ cursor: 'pointer' }}
                                 >
                                   <div className="complaint-item-header">
                                     <div className="complaint-status-indicator">
@@ -530,10 +550,7 @@ function ComplaintsMember() {
                                       {compItems?.subject}
                                     </h4>
                                     <p className="complaint-message-preview">
-                                      {compItems?.message?.length > 60 
-                                        ? `${compItems?.message.substring(0, 60)}...` 
-                                        : compItems?.message
-                                      }
+                                    {compItems?.message}
                                     </p>
                                   </div>
                                   
@@ -549,7 +566,7 @@ function ComplaintsMember() {
                                     </div>
                                   </div>
                                   
-                                  {selectedPosComp === index && (
+                                  {selectedPosComp === index && selectedPosComp >= 0 && (
                                     <div className="complaint-selection-indicator">
                                       <div className="selection-arrow"></div>
                                     </div>
@@ -600,7 +617,7 @@ function ComplaintsMember() {
                                                     fontSize: '14px',
                                                     textShadow: '0 1px 1px rgba(0,0,0,0.1)'
                                                 }}>
-                                                    Complaint Information & Status
+                                                    {selectedComplaints ? 'Complaint Information & Status' : 'Select a complaint to view details'}
                                                 </p>
                                             </div>
                                             <div style={{ 
@@ -609,153 +626,241 @@ function ComplaintsMember() {
                                                 alignItems: 'flex-end',
                                                 gap: '8px'
                                             }}>
-                                                <StatusBadge status={selectedComplaints?.status} />
-                                                <div style={{
-                                                    fontSize: '10px',
-                                                    color: 'rgba(255, 255, 255, 0.8)',
-                                                    textAlign: 'center'
-                                                }}>
-                                                    Last Updated
-                                                </div>
+                                                {selectedComplaints ? (
+                                                    <>
+                                                        <StatusBadge status={selectedComplaints?.status} />
+                                                        <div style={{
+                                                            fontSize: '10px',
+                                                            color: 'rgba(255, 255, 255, 0.8)',
+                                                            textAlign: 'center'
+                                                        }}>
+                                                            Last Updated
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div style={{
+                                                        fontSize: '12px',
+                                                        color: 'rgba(255, 255, 255, 0.7)',
+                                                        textAlign: 'center'
+                                                    }}>
+                                                        No Selection
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Complaint ID and Priority Section */}
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        justifyContent: 'space-between', 
-                                        alignItems: 'center',
-                                        marginBottom: '20px',
-                                        padding: '16px',
-                                        backgroundColor: '#f8f9fa',
-                                        borderRadius: '10px',
-                                        border: '1px solid #e9ecef',
-                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                                        position: 'relative'
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <div className="complaint-icon">
-                                                #
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: '11px', color: '#6c757d', marginBottom: '2px', fontWeight: '500' }}>
-                                                    COMPLAINT ID
+                                    {selectedComplaints ? (
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center',
+                                            marginBottom: '20px',
+                                            padding: '16px',
+                                            backgroundColor: '#f8f9fa',
+                                            borderRadius: '10px',
+                                            border: '1px solid #e9ecef',
+                                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                                            position: 'relative'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <div className="complaint-icon">
+                                                    #
                                                 </div>
-                                                <div style={{ fontSize: '14px', fontWeight: '600', color: '#495057' }}>
-                                                    {baseId}{selectedComplaints?.id}
+                                                <div>
+                                                    <div style={{ fontSize: '11px', color: '#6c757d', marginBottom: '2px', fontWeight: '500' }}>
+                                                        COMPLAINT ID
+                                                    </div>
+                                                    <div style={{ fontSize: '14px', fontWeight: '600', color: '#495057' }}>
+                                                        {baseId}{selectedComplaints?.id}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="complaint-status-active">
+                                                Active
+                                            </div>
+                                            {/* Decorative corner element */}
+                                            <div style={{
+                                                position: 'absolute',
+                                                top: '0',
+                                                right: '0',
+                                                width: '0',
+                                                height: '0',
+                                                borderStyle: 'solid',
+                                                borderWidth: '0 20px 20px 0',
+                                                borderColor: 'transparent #007bff transparent transparent',
+                                                borderRadius: '0 10px 0 0'
+                                            }}></div>
+                                        </div>
+                                    ) : (
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'center', 
+                                            alignItems: 'center',
+                                            marginBottom: '20px',
+                                            padding: '20px',
+                                            backgroundColor: '#f8f9fa',
+                                            borderRadius: '10px',
+                                            border: '1px solid #e9ecef',
+                                            opacity: '0.6'
+                                        }}>
+                                            <div style={{ textAlign: 'center' }}>
+                                                <div style={{ fontSize: '14px', color: '#6c757d', fontWeight: '500' }}>
+                                                    Complaint ID will be displayed here
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="complaint-status-active">
-                                            Active
-                                        </div>
-                                        {/* Decorative corner element */}
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: '0',
-                                            right: '0',
-                                            width: '0',
-                                            height: '0',
-                                            borderStyle: 'solid',
-                                            borderWidth: '0 20px 20px 0',
-                                            borderColor: 'transparent #007bff transparent transparent',
-                                            borderRadius: '0 10px 0 0'
-                                        }}></div>
-                                    </div>
+                                    )}
 
                                     {/* Message Content Section */}
                                     <div style={{ 
                                         flex: 1,
                                         marginBottom: '20px'
                                     }}>
-                                        <div style={{
-                                            marginBottom: '16px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '10px'
-                                        }}>
-                                            <div className="complaint-icon">
-                                                💬
-                                            </div>
-                                            <h4 style={{ 
-                                                margin: '0', 
-                                                fontSize: '16px', 
-                                                fontWeight: '600',
-                                                color: '#495057'
-                                            }}>
-                                                Complaint Details
-                                            </h4>
-                                        </div>
-                                        <div className="complaint-message-box">
+                                        {!selectedComplaints ? (
                                             <div style={{
                                                 display: 'flex',
-                                                alignItems: 'flex-start',
-                                                gap: '12px'
+                                                flexDirection: 'column',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                height: '100%',
+                                                textAlign: 'center',
+                                                padding: '20px'
                                             }}>
+                                                {/* <div style={{
+                                                    fontSize: '48px',
+                                                    marginBottom: '16px',
+                                                    opacity: '0.6'
+                                                }}>
+                                                    📋
+                                                </div> */}
                                                 <div style={{
-                                                    width: '4px',
-                                                    height: '20px',
-                                                    backgroundColor: '#007bff',
-                                                    borderRadius: '2px',
-                                                    marginTop: '2px'
-                                                }}></div>
-                                                <div style={{ flex: 1 }}>
-                                                    <TextView type="subDark" text={selectedComplaints?.message || 'No complaint message available.'} />
+                                                    fontSize: '18px',
+                                                    fontWeight: '600',
+                                                    color: '#666',
+                                                    marginBottom: '8px'
+                                                }}>
+                                                    No Complaint Selected
+                                                </div>
+                                                <div style={{
+                                                    fontSize: '14px',
+                                                    color: '#999',
+                                                    lineHeight: '1.5'
+                                                }}>
+                                                    Select a complaint from the list to view details
                                                 </div>
                                             </div>
-                                        </div>
+                                        ) : (
+                                            <>
+                                                <div style={{
+                                                    marginBottom: '16px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '10px'
+                                                }}>
+                                                    <div className="complaint-icon">
+                                                        💬
+                                                    </div>
+                                                    <h4 style={{ 
+                                                        margin: '0', 
+                                                        fontSize: '16px', 
+                                                        fontWeight: '600',
+                                                        color: '#495057'
+                                                    }}>
+                                                        Complaint Details
+                                                    </h4>
+                                                </div>
+                                                <div className="complaint-message-box">
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        alignItems: 'flex-start',
+                                                        gap: '12px'
+                                                    }}>
+                                                        <div style={{
+                                                            width: '4px',
+                                                            height: '20px',
+                                                            backgroundColor: '#007bff',
+                                                            borderRadius: '2px',
+                                                            marginTop: '2px'
+                                                        }}></div>
+                                                        <div style={{ flex: 1 }}>
+                                                            <TextView type="subDark" text={selectedComplaints?.message || 'No complaint message available.'} />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
 
                                     <div className="complaint-divider"></div>
 
                                     {/* Footer Section with Date and Time */}
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        justifyContent: 'space-between', 
-                                        alignItems: 'flex-end'
-                                    }}>
-                                        <div >
-                                            <div style={{ 
-                                                display: 'flex', 
-                                                flexDirection: 'column', 
-                                                gap: '8px'
-                                            }}>
-                                                <div style={{ 
-                                                    display: 'flex', 
-                                                    alignItems: 'center', 
-                                                    gap: '10px',
-                                                    padding: '5px'
-                                                }}>
-                                                    <DateWithIcon text={new Date(selectedComplaints?.created_at).toLocaleDateString("en-US", {
-                                                        year: "numeric",
-                                                        month: "long",
-                                                        day: "numeric",
-                                                        })} >
-                                                    </DateWithIcon>
-                                                    <TextView type="subDark" text={new Date(selectedComplaints?.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}/>
-                                               
-                                                </div>
-                                                
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Action Buttons */}
+                                    {selectedComplaints ? (
                                         <div style={{ 
                                             display: 'flex', 
-                                            gap: '8px'
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'flex-end'
                                         }}>
-                                            {/* <button className="complaint-action-btn" title="Copy Complaint ID to clipboard">
-                                                📋 Copy ID
-                                            </button>
-                                            <button className="complaint-action-btn" title="Export complaint details">
-                                                📤 Export
-                                            </button> */}
+                                            <div >
+                                                <div style={{ 
+                                                    display: 'flex', 
+                                                    flexDirection: 'column', 
+                                                    gap: '8px'
+                                                }}>
+                                                    <div style={{ 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        gap: '10px',
+                                                        padding: '5px'
+                                                    }}>
+                                                        <DateWithIcon text={new Date(selectedComplaints?.created_at).toLocaleDateString("en-US", {
+                                                            year: "numeric",
+                                                            month: "long",
+                                                            day: "numeric",
+                                                            })} >
+                                                        </DateWithIcon>
+                                                        <TextView type="subDark" text={new Date(selectedComplaints?.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}/>
+                                                   
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Action Buttons */}
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                gap: '8px'
+                                            }}>
+                                                {/* <button className="complaint-action-btn" title="Copy Complaint ID to clipboard">
+                                                    📋 Copy ID
+                                                </button>
+                                                <button className="complaint-action-btn" title="Export complaint details">
+                                                    📤 Export
+                                                </button> */}
+                                            </div>
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'center', 
+                                            alignItems: 'center',
+                                            padding: '20px',
+                                            backgroundColor: '#f8f9fa',
+                                            borderRadius: '10px',
+                                            border: '1px solid #e9ecef',
+                                            opacity: '0.6'
+                                        }}>
+                                            <div style={{ textAlign: 'center' }}>
+                                                <div style={{ fontSize: '14px', color: '#6c757d', fontWeight: '500' }}>
+                                                    Date and time will be displayed here
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Additional Info Section */}
-                                    {selectedComplaints && (
+                                    {selectedComplaints ? (
                                         <div style={{
                                             marginTop: '16px',
                                             padding: '12px',
@@ -772,6 +877,25 @@ function ComplaintsMember() {
                                             <div style={{ fontSize: '11px', lineHeight: '1.4' }}>
                                                 Use the buttons above to copy the complaint ID or export details. 
                                                 The status badge shows the current resolution progress.
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{
+                                            marginTop: '16px',
+                                            padding: '12px',
+                                            backgroundColor: '#f8f9fa',
+                                            borderRadius: '8px',
+                                            border: '1px solid #e9ecef',
+                                            fontSize: '12px',
+                                            color: '#6c757d',
+                                            opacity: '0.6'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                <span>ℹ️</span>
+                                                <span style={{ fontWeight: '500' }}>Information</span>
+                                            </div>
+                                            <div style={{ fontSize: '11px', lineHeight: '1.4' }}>
+                                                Select a complaint from the left panel to view detailed information and take actions.
                                             </div>
                                         </div>
                                     )}
@@ -837,13 +961,19 @@ function ComplaintsMember() {
                                             alignItems: 'center',
                                             gap: '6px'
                                         }}>
-                                            <div style={{
-                                                width: '6px',
-                                                height: '6px',
-                                                borderRadius: '50%',
-                                                backgroundColor: '#4caf50'
-                                            }} />
-                                            <span>Active now</span>
+                                            {selectedComplaints ? (
+                                                <>
+                                                    <div style={{
+                                                        width: '6px',
+                                                        height: '6px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: '#4caf50'
+                                                    }} />
+                                                    <span>Active now</span>
+                                                </>
+                                            ) : (
+                                                <span style={{ opacity: '0.6' }}>No complaint selected</span>
+                                            )}
                                         </div>
                                     </div>
                                     <div style={{
@@ -853,14 +983,14 @@ function ComplaintsMember() {
                                     }}>
                                         <div style={{
                                             padding: '6px 12px',
-                                            backgroundColor: '#e8f5e8',
+                                            backgroundColor: selectedComplaints ? '#e8f5e8' : '#f0f0f0',
                                             borderRadius: '20px',
                                             fontSize: '11px',
-                                            color: '#2e7d32',
+                                            color: selectedComplaints ? '#2e7d32' : '#666',
                                             fontWeight: '500',
-                                            border: '1px solid #c8e6c9'
+                                            border: `1px solid ${selectedComplaints ? '#c8e6c9' : '#ddd'}`
                                         }}>
-                                            {selectedComplaints?.vendor_name || 'Vendor'}
+                                            {selectedComplaints?.vendor_name || 'No Vendor'}
                                         </div>
                                     </div>
                                 </div>
@@ -1032,7 +1162,8 @@ function ComplaintsMember() {
                                     paddingTop: '10px',
                                     paddingLeft: '20px',
                                     paddingRight: '20px',
-                                    paddingBottom: '10px'
+                                    paddingBottom: '10px',
+                                    opacity: selectedComplaints ? '1' : '0.6'
                                 }}>
 
                                     <div style={{
@@ -1046,15 +1177,16 @@ function ComplaintsMember() {
 
                                     <InputText 
                                             type="name"
-                                            placeholder="Type a message..."
+                                            placeholder={selectedComplaints ? "Type a message..." : "Select a complaint to chat..."}
                                             name="message"
                                             value={formData.message}
                                             onChange={handleChange}
                                             onKeyPress={(e) => {
-                                                if (e.key === 'Enter') {
+                                                if (e.key === 'Enter' && selectedComplaints) {
                                                     handleSendMessage();
                                                 }
                                             }}
+                                            disabled={!selectedComplaints}
                                         />
 
                                     </div>
@@ -1068,7 +1200,7 @@ function ComplaintsMember() {
                                         <RoundButton 
                                             icon={faPaperPlane} 
                                             onClick={handleSendMessage}
-                                            disabled={!formData.message.trim() || sendingMessage}
+                                            disabled={!formData.message.trim() || sendingMessage || !selectedComplaints}
                                         />
                                     </div>      
                                     
@@ -1094,8 +1226,8 @@ function ComplaintsMember() {
                 selectedItem={selectedVendor}
                 onChange={handleVendorChange}
             />
-            <InputText placeholder={"Subject"} name={"subject"} onChange={handleChange}></InputText>
-            <InputText placeholder={"Message"} name={"message"} onChange={handleChange}></InputText>
+            <InputText placeholder={"Subject"} name={"subject"} onChange={handleChange} maxLength={30}></InputText>
+            <InputText placeholder={"Message"} name={"message"} onChange={handleChange} maxLength={150}></InputText>
 
             <div className={`input-div-views-attach`} onClick={handleClick}>
                 
@@ -1125,8 +1257,6 @@ function ComplaintsMember() {
                 )}
                   
             </div>
-
-           
         </RightSidePopup>
 
     </div>

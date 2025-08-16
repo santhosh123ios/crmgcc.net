@@ -104,6 +104,26 @@ function WalletMember() {
     }
   }, [wallet?.card?.card_no]);
 
+
+  // Helper function to format date and time in a custom format
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    
+    // Format: "Dec 25, 2024 at 2:30 PM"
+    const options = {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    };
+    
+    return date.toLocaleDateString('en-US', options);
+  };
+
   const generateQRCode = async () => {
     try {
       const cardData = {
@@ -712,7 +732,12 @@ function WalletMember() {
                         </span>
                       </div>
                       <div style={{ fontSize: '11px', color: '#856404', opacity: 0.8 }}>
-                        Expires: {new Date(point.expire_on).toLocaleDateString()}
+                        Expires: {/* {new Date(point.expire_on).toLocaleDateString()} */}
+                        
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#856404', opacity: 0.8 }}>
+                        
+                        {formatDateTime(point?.expire_on)}
                       </div>
                     </div>
                     <div style={{
@@ -1015,7 +1040,8 @@ function WalletMember() {
                           fontSize: '11px',
                           color: selectedTransaction?.transaction_id === trItems.transaction_id ? '#666' : '#999',
                         }}>
-                          {new Date(trItems.transaction_created_at).toLocaleDateString()}
+                          {/* {new Date(trItems.transaction_created_at).toLocaleDateString()} */}
+                          {formatDateTime(trItems?.transaction_created_at)}
                         </div>
                       </div>
                     </div>
@@ -1130,7 +1156,8 @@ function WalletMember() {
                           color: selectedReadeem?.redeem_id === rdmItems.redeem_id ? '#666' : '#999',
                           backgroundColor: 'transparent'
                         }}>
-                          {new Date(rdmItems.redeem_created_at).toLocaleDateString()}
+                          {/* {new Date(rdmItems.redeem_created_at).toLocaleDateString()} */}
+                          {formatDateTime(rdmItems?.redeem_created_at)}
                         </div>
                                       </div>
                               </div>
@@ -1264,8 +1291,9 @@ function WalletMember() {
                           </div>
                           <div>
                             <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Date</div>
-                            <div style={{ fontSize: '14px' }}>
-                              {new Date(selectedTransaction?.transaction_created_at).toLocaleDateString()}
+                            <div style={{ fontSize: '12px', color: '#666' }}>
+                              {/* {new Date(selectedTransaction?.transaction_created_at).toLocaleDateString()} */}
+                              {formatDateTime(selectedTransaction?.transaction_created_at)}
                             </div>
                           </div>
                         </div>
@@ -1316,8 +1344,9 @@ function WalletMember() {
                         </div>
                         <div>
                           <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Request Date</div>
-                          <div style={{ fontSize: '14px' }}>
-                            {new Date(selectedReadeem?.redeem_created_at).toLocaleDateString()}
+                          <div style={{ fontSize: '12px', color: '#666' }}>
+                            {/* {new Date(selectedReadeem?.redeem_created_at).toLocaleDateString()} */}
+                            {formatDateTime(selectedReadeem?.redeem_created_at)}
                           </div>
                         </div>
                       </div>

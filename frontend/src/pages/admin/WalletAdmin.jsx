@@ -1651,7 +1651,7 @@ function WalletAdmin() {
                                         </div>
                                         <div>
                                             <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Date & Time</div>
-                                            <div style={{ fontSize: '14px', color: '#666' }}>
+                                            <div style={{ fontSize: '12px', color: '#666' }}>
                                             {formatDateTime(selectedTransaction?.transaction_created_at)}
                                             </div>
                                         </div>
@@ -1703,7 +1703,7 @@ function WalletAdmin() {
                                         </div>
                                         <div>
                                         <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Request Date & Time</div>
-                                        <div style={{ fontSize: '14px',color: '#666' }}>
+                                        <div style={{ fontSize: '12px',color: '#666' }}>
                                             {formatDateTime(selectedReadeem?.redeem_created_at)}
                                         </div>
                                         </div>

@@ -118,6 +118,7 @@ function SettingsTransaction() {
       padding: '0px',
       boxSizing: 'border-box'
     }}>
+
       <DashboardBox>
         <div style={{
           width: '100%',
@@ -140,227 +141,286 @@ function SettingsTransaction() {
 
           <div style={{
             display: 'flex',
-            flexDirection: 'column',
+            flexDirection: 'row',
             gap: '15px',
-            maxWidth: '400px'
+            width: '100%',
+            height: '100%'
           }}>
-            {/* Daily Limit */}
-            <div style={{
+
+          <div style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '5px'
-            }}>
-              <label style={{
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#333'
+              gap: '15px',
+              width: '30%',
+              height: '100%'
+          }}>
+              {/* Daily Limit */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '5px'
               }}>
-                Daily Limit
-              </label>
-              <InputText
-                placeholder="Enter daily transaction limit"
-                value={formData.dailyLimit}
-                onChange={handleInputChange('dailyLimit')}
-                type="number"
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '13px'
-                }}
-              />
-              <span style={{
-                fontSize: '11px',
-                color: '#666',
-                fontStyle: 'italic'
-              }}>
-                Maximum amount that can be transacted per day
-              </span>
-            </div>
-
-            {/* Minimum Redeem Limit */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '5px'
-            }}>
-              <label style={{
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#333'
-              }}>
-                Minimum Redeem Limit
-              </label>
-              <InputText
-                placeholder="Enter minimum redeem limit"
-                value={formData.minimumRedeemLimit}
-                onChange={handleInputChange('minimumRedeemLimit')}
-                type="number"
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '13px'
-                }}
-              />
-              <span style={{
-                fontSize: '11px',
-                color: '#666',
-                fontStyle: 'italic'
-              }}>
-                Minimum points required for redemption
-              </span>
-            </div>
-
-            {/* Maximum Redeem Limit */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '5px'
-            }}>
-              <label style={{
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#333'
-              }}>
-                Maximum Redeem Limit
-              </label>
-              <InputText
-                placeholder="Enter maximum redeem limit"
-                value={formData.maximumRedeemLimit}
-                onChange={handleInputChange('maximumRedeemLimit')}
-                type="number"
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '13px'
-                }}
-              />
-              <span style={{
-                fontSize: '11px',
-                color: '#666',
-                fontStyle: 'italic'
-              }}>
-                Maximum points that can be redeemed at once
-              </span>
-            </div>
-
-            {/* Transaction Charges */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '5px'
-            }}>
-              <label style={{
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#333'
-              }}>
-                Transaction Charges
-              </label>
-              <InputText
-                placeholder="Enter transaction charges percentage"
-                value={formData.transactionCharges}
-                onChange={handleInputChange('transactionCharges')}
-                type="number"
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '13px'
-                }}
-              />
-              <span style={{
-                fontSize: '11px',
-                color: '#666',
-                fontStyle: 'italic'
-              }}>
-                Percentage of charges applied on transactions
-              </span>
-            </div>
-
-            {/* Transaction Expiry Time */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '5px'
-            }}>
-              <label style={{
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#333'
-              }}>
-                Transaction Expiry Time
-              </label>
-              <InputText
-                placeholder="Enter transaction expiry time in hours"
-                value={formData.transactionExpiryTime}
-                onChange={handleInputChange('transactionExpiryTime')}
-                type="number"
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '13px'
-                }}
-              />
-              <span style={{
-                fontSize: '11px',
-                color: '#666',
-                fontStyle: 'italic'
-              }}>
-                Time in hours after which transactions expire
-              </span>
-            </div>
-
-            {/* Save Button */}
-            <div style={{
-              marginTop: '0px',
-              display: 'flex',
-              gap: '10px'
-            }}>
-              <CommonButton
-                text={loading ? "Saving..." : "Save"}
-                onClick={handleSave}
-                disabled={loading}
-                style={{
-                  backgroundColor: loading ? '#6c757d' : '#007bff',
-                  color: 'white',
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '6px',
+                <label style={{
                   fontSize: '14px',
                   fontWeight: '600',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  transition: 'background-color 0.3s ease',
-                  opacity: loading ? 0.7 : 1
-                }}
-              />
-              <CommonButton
-                text="Reset"
-                onClick={fetchTransactionSettings}
-                disabled={loading}
-                style={{
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '6px',
+                  color: '#333'
+                }}>
+                  Daily Limit
+                </label>
+                <InputText
+                  placeholder="Enter daily transaction limit"
+                  value={formData.dailyLimit}
+                  onChange={handleInputChange('dailyLimit')}
+                  type="number"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    fontSize: '13px'
+                  }}
+                />
+                <span style={{
+                  fontSize: '11px',
+                  color: '#666',
+                  fontStyle: 'italic'
+                }}>
+                  Maximum amount that can be transacted per day
+                </span>
+              </div>
+
+              {/* Minimum Redeem Limit */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '5px'
+              }}>
+                <label style={{
                   fontSize: '14px',
                   fontWeight: '600',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  transition: 'background-color 0.3s ease',
-                  opacity: loading ? 0.7 : 1
-                }}
-              />
+                  color: '#333'
+                }}>
+                  Minimum Redeem Limit
+                </label>
+                <InputText
+                  placeholder="Enter minimum redeem limit"
+                  value={formData.minimumRedeemLimit}
+                  onChange={handleInputChange('minimumRedeemLimit')}
+                  type="number"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    fontSize: '13px'
+                  }}
+                />
+                <span style={{
+                  fontSize: '11px',
+                  color: '#666',
+                  fontStyle: 'italic'
+                }}>
+                  Minimum points required for redemption
+                </span>
+              </div>
+
+              {/* Maximum Redeem Limit */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '5px'
+              }}>
+                <label style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#333'
+                }}>
+                  Maximum Redeem Limit
+                </label>
+                <InputText
+                  placeholder="Enter maximum redeem limit"
+                  value={formData.maximumRedeemLimit}
+                  onChange={handleInputChange('maximumRedeemLimit')}
+                  type="number"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    fontSize: '13px'
+                  }}
+                />
+                <span style={{
+                  fontSize: '11px',
+                  color: '#666',
+                  fontStyle: 'italic'
+                }}>
+                  Maximum points that can be redeemed at once
+                </span>
+              </div>
+
+              {/* Transaction Charges */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '5px'
+              }}>
+                <label style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#333'
+                }}>
+                  Transaction Charges
+                </label>
+                <InputText
+                  placeholder="Enter transaction charges percentage"
+                  value={formData.transactionCharges}
+                  onChange={handleInputChange('transactionCharges')}
+                  type="number"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    fontSize: '13px'
+                  }}
+                />
+                <span style={{
+                  fontSize: '11px',
+                  color: '#666',
+                  fontStyle: 'italic'
+                }}>
+                  Percentage of charges applied on transactions
+                </span>
+              </div>
+
+              {/* Transaction Expiry Time */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '5px'
+              }}>
+                <label style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#333'
+                }}>
+                  Transaction Expiry Time
+                </label>
+                <InputText
+                  placeholder="Enter transaction expiry time in hours"
+                  value={formData.transactionExpiryTime}
+                  onChange={handleInputChange('transactionExpiryTime')}
+                  type="number"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    fontSize: '13px'
+                  }}
+                />
+                <span style={{
+                  fontSize: '11px',
+                  color: '#666',
+                  fontStyle: 'italic'
+                }}>
+                  Time in hours after which transactions expire
+                </span>
+              </div>
+
+              {/* Save Button */}
+              <div style={{
+                marginTop: '0px',
+                display: 'flex',
+                gap: '10px'
+              }}>
+                <CommonButton
+                  text={loading ? "Saving..." : "Save"}
+                  onClick={handleSave}
+                  disabled={loading}
+                  style={{
+                    backgroundColor: loading ? '#6c757d' : '#007bff',
+                    color: 'white',
+                    padding: '8px 16px',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    transition: 'background-color 0.3s ease',
+                    opacity: loading ? 0.7 : 1
+                  }}
+                />
+                <CommonButton
+                  text="Reset"
+                  onClick={fetchTransactionSettings}
+                  disabled={loading}
+                  style={{
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    padding: '8px 16px',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    transition: 'background-color 0.3s ease',
+                    opacity: loading ? 0.7 : 1
+                  }}
+                />
+              </div>
             </div>
+
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '15px',
+              width: '30%',
+              height: '100%'
+            }}>
+              {/* Transaction Expiry Time */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '5px'
+              }}>
+                <label style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#333'
+                }}>
+                  Transaction Expiry Time
+                </label>
+                <InputText
+                  placeholder="Enter transaction expiry time in hours"
+                  value={formData.transactionExpiryTime}
+                  onChange={handleInputChange('transactionExpiryTime')}
+                  type="number"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    fontSize: '13px'
+                  }}
+                />
+                <span style={{
+                  fontSize: '11px',
+                  color: '#666',
+                  fontStyle: 'italic'
+                }}>
+                  Time in hours after which transactions expire
+                </span>
+              </div>
+
+
+            </div>
+
           </div>
+
+          
+
         </div>
       </DashboardBox>
 
