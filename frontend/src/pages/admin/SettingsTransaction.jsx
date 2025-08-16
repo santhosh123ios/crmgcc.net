@@ -11,7 +11,8 @@ function SettingsTransaction() {
     minimumRedeemLimit: '',
     maximumRedeemLimit: '',
     transactionCharges: '',
-    transactionExpiryTime: ''
+    transactionExpiryTime: '',
+    pointCorrespondingAmount: ''
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -35,7 +36,8 @@ function SettingsTransaction() {
           minimumRedeemLimit: response.result.data.minimum_redeem_limit?.toString() || '',
           maximumRedeemLimit: response.result.data.maximum_redeem_limit?.toString() || '',
           transactionCharges: response.result.data.transaction_charges?.toString() || '',
-          transactionExpiryTime: response.result.data.transaction_expiry_time?.toString() || ''
+          transactionExpiryTime: response.result.data.transaction_expiry_time?.toString() || '',
+          pointCorrespondingAmount: response.result.data.point_corresponding_amount?.toString() || ''
         });
       }
     } catch (error) {
@@ -64,7 +66,8 @@ function SettingsTransaction() {
         minimum_redeem_limit: parseFloat(formData.minimumRedeemLimit) || 0,
         maximum_redeem_limit: parseFloat(formData.maximumRedeemLimit) || 0,
         transaction_charges: parseFloat(formData.transactionCharges) || 0,
-        transaction_expiry_time: parseFloat(formData.transactionExpiryTime) || 0
+        transaction_expiry_time: parseFloat(formData.transactionExpiryTime) || 0,
+        point_corresponding_amount: parseFloat(formData.pointCorrespondingAmount) || 0
       };
 
       const response = await apiClient.post('/admin/update_transaction_settings', payload);
@@ -379,7 +382,7 @@ function SettingsTransaction() {
               width: '30%',
               height: '100%'
             }}>
-              {/* Transaction Expiry Time */}
+              {/* Point corresponding amount */}
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -390,12 +393,12 @@ function SettingsTransaction() {
                   fontWeight: '600',
                   color: '#333'
                 }}>
-                  Transaction Expiry Time
+                  Point corresponding amount
                 </label>
                 <InputText
-                  placeholder="Enter transaction expiry time in hours"
-                  value={formData.transactionExpiryTime}
-                  onChange={handleInputChange('transactionExpiryTime')}
+                  placeholder="Enter point corresponding amount"
+                  value={formData.pointCorrespondingAmount}
+                  onChange={handleInputChange('pointCorrespondingAmount')}
                   type="number"
                   style={{
                     width: '100%',
@@ -410,7 +413,7 @@ function SettingsTransaction() {
                   color: '#666',
                   fontStyle: 'italic'
                 }}>
-                  Time in hours after which transactions expire
+                  Amount corresponding to each point
                 </span>
               </div>
 

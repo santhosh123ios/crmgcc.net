@@ -178,9 +178,9 @@ export const getTransactionSettings = (req, res) => {
 
 export const updateTransactionSettings = (req, res) => {
     try {
-        const { daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges, transaction_expiry_time } = req.body;
+        const { daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges, transaction_expiry_time, point_corresponding_amount } = req.body;
         
-        if (!daily_limit || !minimum_redeem_limit || !maximum_redeem_limit || !transaction_charges || !transaction_expiry_time)
+        if (!daily_limit || !minimum_redeem_limit || !maximum_redeem_limit || !transaction_charges || !transaction_expiry_time || !point_corresponding_amount)
             return res
               .status(404)
               .json({ error: [{ message: "Input data missing" }], result: {} });
@@ -198,10 +198,10 @@ export const updateTransactionSettings = (req, res) => {
 
                 if (existingData.length > 0) {
                     // Update existing settings
-                    const updateQuery = "UPDATE transaction_settings SET daily_limit = ?, minimum_redeem_limit = ?, maximum_redeem_limit = ?, transaction_charges = ?, transaction_expiry_time = ?, updated_at = NOW() WHERE id = ?";
+                    const updateQuery = "UPDATE transaction_settings SET daily_limit = ?, minimum_redeem_limit = ?, maximum_redeem_limit = ?, transaction_charges = ?, transaction_expiry_time = ?, point_corresponding_amount = ?, updated_at = NOW() WHERE id = ?";
                     executeQuery({
                         query: updateQuery,
-                        data: [daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges, transaction_expiry_time, existingData[0].id],
+                        data: [daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges, transaction_expiry_time, point_corresponding_amount, existingData[0].id],
                         callback: (err, updateData) => {
                             if (err)
                                 return res
@@ -217,10 +217,10 @@ export const updateTransactionSettings = (req, res) => {
                     });
                 } else {
                     // Create new settings
-                    const insertQuery = "INSERT INTO transaction_settings (daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges, transaction_expiry_time, updated_at) VALUES (?, ?, ?, ?, ?, NOW())";
+                    const insertQuery = "INSERT INTO transaction_settings (daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges, transaction_expiry_time,point_corresponding_amount, updated_at) VALUES (?, ?, ?, ?, ?, ?, NOW())";
                     executeQuery({
                         query: insertQuery,
-                        data: [daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges, transaction_expiry_time],
+                        data: [daily_limit, minimum_redeem_limit, maximum_redeem_limit, transaction_charges, transaction_expiry_time, point_corresponding_amount],
                         callback: (err, insertData) => {
                             if (err)
                                 return res
