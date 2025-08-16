@@ -22,6 +22,7 @@ function RedeemPopup({ onClose, onSubmit, point = 0 }) {
             
             if (response && response.result && response.result.data) {
                 setTransactionSettings(response.result.data);
+                console.log('Transaction settings:', response.result.data); // For debugging
             }
         } catch (error) {
             console.error('Error fetching transaction settings:', error);
@@ -93,6 +94,12 @@ function RedeemPopup({ onClose, onSubmit, point = 0 }) {
             <div>Min: {transactionSettings.minimum_redeem_limit} points</div>
             <div>Max: {transactionSettings.maximum_redeem_limit} points</div>
             <div>Daily Limit: {transactionSettings.daily_limit} points</div>
+            {transactionSettings.point_corresponding_amount && (
+              <div style={{ marginTop: '5px', borderTop: '1px solid #ddd', paddingTop: '5px' }}>
+                <strong>Point Value: {parseFloat(transactionSettings.point_corresponding_amount).toFixed(3)} BHD per point</strong>
+                {/* {parseFloat(points) * transactionSettings.transaction_charges / 100)).toFixed(2)} */}
+              </div>
+            )}
             <div style={{ marginTop: '5px', borderTop: '1px solid #ddd', paddingTop: '5px' }}>
               <strong>Transaction Charges: {transactionSettings.transaction_charges}%</strong>
             </div>
@@ -105,6 +112,7 @@ function RedeemPopup({ onClose, onSubmit, point = 0 }) {
           onChange={(f) => setNotes(f.target.value)}
           placeholder="Enter Note"
           className="popup-input"
+          maxLength={30}
           style={{
             width: '100%',
             padding: '12px 15px',
@@ -173,7 +181,10 @@ function RedeemPopup({ onClose, onSubmit, point = 0 }) {
               <strong>Transaction Summary:</strong>
             </div>
             <div>Redeem Points: {points}</div>
-            <div>Transaction Charges ({transactionSettings.transaction_charges}%): {(parseFloat(points) * transactionSettings.transaction_charges / 100).toFixed(2)}</div>
+            {transactionSettings.point_corresponding_amount && (
+              <div>Point Value: {parseFloat(transactionSettings.point_corresponding_amount).toFixed(3)} BHD per point</div>
+            )}
+            <div>Transaction Charges ({transactionSettings.transaction_charges}%): {(parseFloat(points) * transactionSettings.transaction_charges / 100).toFixed(0)} point</div>
             <div style={{ 
               marginTop: '5px', 
               paddingTop: '5px', 
@@ -183,6 +194,18 @@ function RedeemPopup({ onClose, onSubmit, point = 0 }) {
             }}>
               Net Redeem Points: {(parseFloat(points) - (parseFloat(points) * transactionSettings.transaction_charges / 100)).toFixed(2)}
             </div>
+            {transactionSettings.point_corresponding_amount && (
+              <div style={{ 
+                marginTop: '5px', 
+                paddingTop: '5px', 
+                borderTop: '1px solid #1976d2',
+                fontWeight: 'bold',
+                fontSize: '13px',
+                color: '#2e7d32'
+              }}>
+                Estimated Value: {((parseFloat(points) - (parseFloat(points) * transactionSettings.transaction_charges / 100)) * transactionSettings.point_corresponding_amount).toFixed(3)} {transactionSettings.currency || 'BHD'}
+              </div>
+            )}
           </div>
         )}
         
