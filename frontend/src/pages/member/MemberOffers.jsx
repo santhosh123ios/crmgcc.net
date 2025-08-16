@@ -514,7 +514,6 @@ function MemberOffers() {
                                                             margin: '10px',
                                                             textAlign: 'center',
                                                             justifyContent: 'center',
-                                                            alignItems: 'center',
                                                         }}
                                                     >
                                                         <FontAwesomeIcon icon={faCopy} />
@@ -605,7 +604,6 @@ function MemberOffers() {
                                                             margin: '10px',
                                                             textAlign: 'center',
                                                             justifyContent: 'center',
-                                                            alignItems: 'center',
                                                         }}
                                                     >
                                                         <FontAwesomeIcon icon={faCopy} />
