@@ -76,6 +76,16 @@ function MemberPage() {
         }
     };
 
+    // Helper function to format status display
+    const formatStatus = (status) => {
+        if (status === 1) {
+            return 'Active';
+        } else if (status === 0) {
+            return 'Deactivated';
+        }
+        return status || 'N/A';
+    };
+
      ///CLICKS FUNCTION
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -166,7 +176,7 @@ function MemberPage() {
                                         src={memberItems.profile_img ? baseUrl + memberItems.profile_img : "/dummy.jpg"} 
                                         alt={memberItems.name} 
                                       />
-                                      <div className="member-status-indicator"></div>
+                                      <div className={memberItems.status == 1? "member-status-indicator-active": "member-status-indicator"}></div>
                                     </div>
                                     <div className="member-info">
                                       <h3 className="member-name">{memberItems.name}</h3>
@@ -225,8 +235,8 @@ function MemberPage() {
                                                 alt={selectedMember.name} 
                                             />
                                             <div className="member-details-status">
-                                                <div className="member-status-badge">
-                                                    {selectedMember.lead_status || 'Active'}
+                                                <div className={selectedMember.status == 1? "member-status-badge-active": "member-status-badge"}>
+                                                    {formatStatus(selectedMember.status)}
                                                 </div>
                                             </div>
                                         </div>

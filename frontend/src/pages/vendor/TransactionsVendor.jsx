@@ -406,7 +406,7 @@ function TransactionsVendor() {
 
       try {
           const response = await apiClient.post("/vendor/add_vendor_topup", {
-              transaction_point: parseInt(topUpAmount)
+            transaction_point: parseInt(topUpAmount)
           });
 
           if (response?.result?.status === 1) {
@@ -1521,7 +1521,7 @@ function TransactionsVendor() {
                                 borderRadius: '6px',
                                 border: '1px solid #ffb74d'
                             }}>
-                                <div style={{
+                                {/* <div style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
@@ -1538,16 +1538,17 @@ function TransactionsVendor() {
                                 }}>
                                     <TextView type="subDark" text="Transaction Charge:" />
                                     <TextView type="darkBold" text={`${calculateTransactionCharge(topUpAmount)} Points`} style={{color: '#f57c00'}} />
-                                </div>
+                                </div> */}
                                 <div style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
-                                    borderTop: '1px solid #ffb74d',
-                                    paddingTop: '8px'
+                                    // borderTop: '1px solid #ffb74d',
+                                    // paddingTop: '8px'
                                 }}>
                                     <TextView type="subDarkBold" text="Total Amount:" />
-                                    <TextView type="darkBold" text={`${parseInt(topUpAmount) + calculateTransactionCharge(topUpAmount)} Points`} style={{color: '#2e7d32'}} />
+                                    {/* <TextView type="darkBold" text={`${parseInt(topUpAmount) + calculateTransactionCharge(topUpAmount)} Points`} style={{color: '#2e7d32'}} /> */}
+                                    <TextView type="darkBold" text={`${parseInt(topUpAmount) } Points`} style={{color: '#2e7d32'}} />
                                 </div>
                             </div>
                         )}

@@ -167,7 +167,7 @@ export const updateProfile = (req, res) => {
 
 export const bankInfoStatus = (req, res) => {
     try {
-        const user_id = 6 //req.user?.id;
+        const user_id = req.user?.id;
         
         if (!user_id) {
             return res
@@ -185,31 +185,34 @@ export const bankInfoStatus = (req, res) => {
                         .status(500)
                         .json({ error: [{ message: err }], result: {} });
                 }
-
-                let bankInfo = {
-                    ac_no: null,
-                    iban_no: null,
-                    bank_name: null,
-                    has_bank_info: false
-                };
-
-                if (bankData && bankData.length > 0) {
-                    const data = bankData[0];
-                    bankInfo = {
-                        ac_no: data.ac_no || null,
-                        iban_no: data.iban_no || null,
-                        bank_name: data.bank_name || null,
-                        has_bank_info: !!(data.ac_no && data.iban_no && data.bank_name)
+                
+                    console.log("SANTHOSH BANK DATA : ", bankData)
+                    let bankInfo = {
+                        ac_no: null,
+                        iban_no: null,
+                        bank_name: null,
+                        has_bank_info: false
                     };
-                }
-
-                const result = {
-                    message: "Bank information status retrieved successfully",
-                    status: 1,
-                    data: bankInfo
-                };
-
-                return res.status(200).json({ error: [], result });
+    
+                    if (bankData && bankData.length > 0) {
+                        console.log("SANTHOSH BANK DATA  BB: ", bankData)
+                        const data = bankData[0];
+                        bankInfo = {
+                            ac_no: data.ac_no || null,
+                            iban_no: data.iban_no || null,
+                            bank_name: data.bank_name || null,
+                            has_bank_info: !!(data.ac_no && data.iban_no && data.bank_name)
+                        };
+                    }
+    
+                    const result = {
+                        message: "Bank information status retrieved successfully",
+                        status: 1,
+                        data: bankInfo
+                    };
+    
+                    return res.status(200).json({ error: [], result });
+                
             }
         });
     } catch (err) {
