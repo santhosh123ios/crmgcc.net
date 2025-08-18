@@ -709,7 +709,7 @@ function WalletMember() {
         </div>
 
         {/* Point Expiry Awareness Section */}
-        {wallet?.available_point?.user_balance > 0 ? (
+        {expiringPoints.length > 0 ? (
           <DashboardBox style={{ padding: '0', overflow: 'hidden' }}>
             <div style={{
               padding: '20px',
