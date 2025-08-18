@@ -876,7 +876,7 @@ function WalletMember() {
                             fontWeight: 'bold',
                             color: '#856404'
                           }}>
-                            {point.transaction_cr}0000 pts
+                            {point.transaction_cr} pts
                           </div>
                           <div style={{
                             padding: '4px 8px',
