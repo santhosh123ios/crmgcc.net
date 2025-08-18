@@ -243,7 +243,7 @@ function MemberProfile() {
                                 </div>
 
                                 <div style={{width:'100%'}}>
-                                    <TextView type='subDark' text={"Job"}/>
+                                    <TextView type='subDark' text={"Gender"}/>
                                      <Dropdown
                                         data={genderArray}
                                         selectedItem={formData.gender}
