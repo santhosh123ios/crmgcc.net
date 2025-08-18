@@ -2,7 +2,7 @@ import express from "express"
 import memberAuth from "../middleware/member/authMiddlewareMember.js";
 import { createLeads, getLeads, vendorList, createLeadMessage, getLeadMessage } from '../controllers/member/leads.js';
 import FileUpload from "../services/FileUpload.js";
-import { addRedeem, getRedeem, getTransaction, getTransactionSettings, getWalletDetails } from "../controllers/member/Transaction.js";
+import { addRedeem, getRedeem, getTransaction, getTransactionSettings, getWalletDetails, calculateExpiringPoints } from "../controllers/member/Transaction.js";
 import { createComplaint, createComplaintMessage, getComplaintMessage, getComplaints } from "../controllers/member/Complaints.js";
 import { getProfile, updateProfile, updateProfileImage, bankInfoStatus, updateBankDetails } from "../controllers/member/Profile.js";
 import { getAllOffers, generateOfferCode, offers_validity_check, markOfferAsUsed } from "../controllers/member/offers.js";
@@ -25,6 +25,7 @@ router.get("/get_transaction_settings", memberAuth, getTransactionSettings)
 router.post("/add_redeem", memberAuth, addRedeem)
 router.get("/get_redeem", memberAuth, getRedeem)
 router.get("/get_walletDetails", memberAuth, getWalletDetails)
+router.get("/calculate_expiring_points", memberAuth, calculateExpiringPoints)
 router.post("/create_complaint", memberAuth, createComplaint)
 router.get("/get_complaints", memberAuth, getComplaints)
 router.post("/update_profile_image", memberAuth, updateProfileImage)

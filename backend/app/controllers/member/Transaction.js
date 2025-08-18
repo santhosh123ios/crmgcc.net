@@ -194,3 +194,137 @@ export const getTransactionSettings = (req, res) => {
         res.status(500).json({ status: 0, message: "Server error", error: err.message });
     }
 }
+
+export const calculateExpiringPoints = (req, res) => {
+    try {
+        const user_id = req.user?.id;
+        
+        if (!user_id) {
+            return res.status(400).json({ 
+                error: [{ message: "User ID is required" }], 
+                result: {} 
+            });
+        }
+
+        // First get wallet details to get available balance
+        const walletQuery = "SELECT SUM(transaction_cr) - SUM(transaction_dr) AS user_balance FROM transaction WHERE user_id = ?";
+        
+        executeQuery({
+            query: walletQuery,
+            data: [user_id],
+            callback: (err, walletData) => {
+                if (err) {
+                    return res.status(500).json({ 
+                        error: [{ message: err }], 
+                        result: {} 
+                    });
+                }
+
+                const wallet = {
+                    available_point: {
+                        user_balance: walletData[0]?.user_balance || 0
+                    }
+                };
+
+                // Get all transactions for the user
+                const transactionQuery = "SELECT transaction_id, transaction_type, transaction_cr, transaction_dr, transaction_title, transaction_created_at, expire_on, user_id FROM transaction WHERE user_id = ? ORDER BY transaction_created_at DESC";
+                
+                executeQuery({
+                    query: transactionQuery,
+                    data: [user_id],
+                    callback: (err, transactionData) => {
+                        if (err) {
+                            return res.status(500).json({ 
+                                error: [{ message: err }], 
+                                result: {} 
+                            });
+                        }
+
+                        const transactions = transactionData || [];
+                        
+                        // Check if we have the required data
+                        if (!transactions || transactions.length === 0 || !wallet?.available_point?.user_balance) {
+                            const result = {
+                                message: "No expiring points found",
+                                status: 1,
+                                data: [],
+                                available_balance: wallet.available_point.user_balance
+                            };
+                            return res.status(200).json({ error: [], result });
+                        }
+
+                        const now = new Date();
+                        const thirtyDaysFromNow = new Date();
+                        thirtyDaysFromNow.setDate(now.getDate() + 30);
+                        const availableBalance = wallet.available_point.user_balance;
+
+                        // Get all credit transactions (not just expiring ones) and sort by creation date (newest first)
+                        const creditTransactions = transactions
+                            .filter(transaction => 
+                                transaction.transaction_type === 1 // Only credit transactions
+                            )
+                            .sort((a, b) => new Date(b.transaction_created_at) - new Date(a.transaction_created_at));
+
+                        // Find the last transactions that sum up to the available balance
+                        let remainingBalance = availableBalance;
+                        const relevantTransactions = [];
+
+                        for (const transaction of creditTransactions) {
+                            if (remainingBalance <= 0) break;
+
+                            const transactionPoints = transaction.transaction_cr || 0;
+                            const pointsToUse = Math.min(transactionPoints, remainingBalance);
+
+                            if (pointsToUse > 0) {
+                                relevantTransactions.push({
+                                    ...transaction,
+                                    transaction_cr: pointsToUse, // Show only the points that are part of current balance
+                                    original_transaction_cr: transaction.transaction_cr // Keep original for reference
+                                });
+
+                                remainingBalance -= pointsToUse;
+                            }
+                        }
+
+                        // Now check which of these relevant transactions are expiring within 30 days
+                        const expiring = relevantTransactions
+                            .filter(transaction => 
+                                transaction.expire_on && 
+                                new Date(transaction.expire_on) > now && // Not expired yet
+                                new Date(transaction.expire_on) <= thirtyDaysFromNow // Expiring within 30 days
+                            )
+                            .map(transaction => ({
+                                ...transaction,
+                                daysUntilExpiry: Math.ceil((new Date(transaction.expire_on) - now) / (1000 * 60 * 60 * 24))
+                            }))
+                            .sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
+
+                        console.log('Available balance:', availableBalance);
+                        console.log('Relevant transactions (sum up to balance):', relevantTransactions);
+                        console.log('Expiring points calculated:', expiring);
+
+                        const result = {
+                            message: "Expiring points calculated successfully",
+                            status: 1,
+                            data: expiring,
+                            available_balance: availableBalance,
+                            total_expiring_points: expiring.reduce((sum, t) => sum + (t.transaction_cr || 0), 0),
+                            days_until_expiry: expiring.length > 0 ? expiring[0].daysUntilExpiry : null
+                        };
+
+                        return res.status(200).json({ error: [], result });
+                    }
+                });
+            }
+        });
+
+    } catch (err) {
+        console.error("Error calculating expiring points:", err);
+        res.status(500).json({ 
+            status: 0, 
+            message: "Server error", 
+            error: err.message 
+        });
+    }
+};
+
