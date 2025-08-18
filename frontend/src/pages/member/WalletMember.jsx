@@ -52,61 +52,60 @@ function WalletMember() {
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [filteredRedeems, setFilteredRedeems] = useState([]);
   const [expiringPoints, setExpiringPoints] = useState([]);
+  const [loadingExpiringPoints, setLoadingExpiringPoints] = useState(false);
+  const [expiringPointsData, setExpiringPointsData] = useState(null);
+  const [expiringPointsError, setExpiringPointsError] = useState(null);
 
-  // Calculate expiring points
-  const calculateExpiringPoints = () => {
-    if (!transactions || transactions.length === 0 || !wallet?.available_point?.user_balance) return [];
-    
-    const now = new Date();
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(now.getDate() + 30);
-    const availableBalance = wallet.available_point.user_balance;
-    
-    // Get all credit transactions (not just expiring ones) and sort by creation date (newest first)
-    const creditTransactions = transactions
-      .filter(transaction => 
-        transaction.transaction_type === 1 // Only credit transactions
-      )
-      .sort((a, b) => new Date(b.transaction_created_at) - new Date(a.transaction_created_at));
-    
-    // Find the last transactions that sum up to the available balance
-    let remainingBalance = availableBalance;
-    const relevantTransactions = [];
-    
-    for (const transaction of creditTransactions) {
-      if (remainingBalance <= 0) break;
-      
-      const transactionPoints = transaction.transaction_cr || 0;
-      const pointsToUse = Math.min(transactionPoints, remainingBalance);
-      
-      if (pointsToUse > 0) {
-        relevantTransactions.push({
-          ...transaction,
-          transaction_cr: pointsToUse, // Show only the points that are part of current balance
-          original_transaction_cr: transaction.transaction_cr // Keep original for reference
-        });
-        
-        remainingBalance -= pointsToUse;
+  // Fetch expiring points from API endpoint: /member/calculate_expiring_points
+  // API Response structure:
+  // {
+  //   "error": [],
+  //   "result": {
+  //     "message": "Expiring points calculated successfully",
+  //     "status": 1,
+  //     "data": [
+  //       {
+  //         "transaction_id": 20,
+  //         "transaction_type": 1,
+  //         "transaction_cr": 60,
+  //         "transaction_dr": 0,
+  //         "transaction_title": "Testing the lead section",
+  //         "transaction_created_at": "2025-08-18T07:46:58.759Z",
+  //         "expire_on": "2025-09-16T21:00:00.000Z",
+  //         "user_id": 45,
+  //         "original_transaction_cr": 100,
+  //         "daysUntilExpiry": 30
+  //       }
+  //     ],
+  //     "available_balance": "60",
+  //     "total_expiring_points": 60,
+  //     "days_until_expiry": 30
+  //   }
+  // }
+  const fetchExpiringPoints = async () => {
+    setLoadingExpiringPoints(true);
+    setExpiringPointsError(null);
+    try {
+      const response = await apiClient.get("/member/calculate_expiring_points");
+      if (response?.result?.status === 1) {
+        console.log("Expiring points fetched successfully:", response.result);
+        setExpiringPoints(response.result.data);
+        setExpiringPointsData(response.result);
+        setExpiringPointsError(null);
+      } else {
+        console.warn("Failed to fetch expiring points or status != 1");
+        setExpiringPoints([]);
+        setExpiringPointsData(null);
+        setExpiringPointsError("Failed to fetch expiring points");
       }
+    } catch (error) {
+      console.error("Failed to fetch expiring points:", error);
+      setExpiringPoints([]);
+      setExpiringPointsData(null);
+      setExpiringPointsError("Network error occurred");
+    } finally {
+      setLoadingExpiringPoints(false);
     }
-    
-    // Now check which of these relevant transactions are expiring within 30 days
-    const expiring = relevantTransactions
-      .filter(transaction => 
-        transaction.expire_on && 
-        new Date(transaction.expire_on) > now && // Not expired yet
-        new Date(transaction.expire_on) <= thirtyDaysFromNow // Expiring within 30 days
-      )
-      .map(transaction => ({
-        ...transaction,
-        daysUntilExpiry: Math.ceil((new Date(transaction.expire_on) - now) / (1000 * 60 * 60 * 24))
-      }))
-      .sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
-    
-    console.log('Available balance:', availableBalance);
-    console.log('Relevant transactions (sum up to balance):', relevantTransactions);
-    console.log('Expiring points calculated:', expiring);
-    setExpiringPoints(expiring);
   };
 
   useEffect(() => {
@@ -114,12 +113,15 @@ function WalletMember() {
     fetchRedeem();
     fetchWallet();
     fetchBankInfo();
+    fetchExpiringPoints();
   },[]);
 
-  // Calculate expiring points when transactions or wallet changes
+  // Fetch expiring points when wallet changes (to refresh after transactions)
   useEffect(() => {
-    calculateExpiringPoints();
-  }, [transactions, wallet]);
+    if (wallet?.available_point?.user_balance) {
+      fetchExpiringPoints();
+    }
+  }, [wallet?.available_point?.user_balance]);
 
   // Filter data when search term changes
   useEffect(() => {
@@ -189,7 +191,9 @@ function WalletMember() {
           setTransactions(response.result.data);
           setFilteredTransactions(response.result.data);
           setSelectedTransaction(response.result.data[0])
-
+          // Refresh expiring points after fetching transactions
+          // This ensures the expiring points list is up-to-date with latest transaction data
+          fetchExpiringPoints();
       } else {
           console.warn("No Transaction found or status != 1");
       }
@@ -212,6 +216,9 @@ function WalletMember() {
           if (data?.result?.status === 1) {
                 setShowRedeemPopup(false)
                 fetchRedeem();
+                // Refresh expiring points after successful redeem
+                // This ensures the expiring points list is updated after point redemption
+                fetchExpiringPoints();
           }
       } catch (err) {
           console.error("Something went wrong fetching vendors", err);
@@ -266,7 +273,9 @@ function WalletMember() {
           console.warn("Get Transaction successfully");
           setWallet(response.result);
           setLoadingWallet(false)
-
+          // Refresh expiring points after fetching wallet
+          // This ensures the expiring points list reflects current wallet balance
+          fetchExpiringPoints();
       } else {
           console.warn("No Transaction found or status != 1");
       }
@@ -700,7 +709,7 @@ function WalletMember() {
         </div>
 
         {/* Point Expiry Awareness Section */}
-        {expiringPoints.length > 0 && wallet?.available_point?.user_balance > 0 && (
+        {wallet?.available_point?.user_balance > 0 ? (
           <DashboardBox style={{ padding: '0', overflow: 'hidden' }}>
             <div style={{
               padding: '20px',
@@ -712,96 +721,204 @@ function WalletMember() {
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                justifyContent: 'space-between',
                 marginBottom: '15px'
               }}>
                 <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  backgroundColor: '#ffc107',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
+                  gap: '5px'
                 }}>
-                  <FontAwesomeIcon icon={faExclamationTriangle} style={{ fontSize: '18px', color: '#856404' }} />
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    backgroundColor: '#ffc107',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <FontAwesomeIcon icon={faExclamationTriangle} style={{ fontSize: '18px', color: '#856404' }} />
+                  </div>
+                  <div style={{width: '100%',padding: '0px'}}>
+                    <TextView type="darkBold" text="Points Expiring Soon!" style={{ fontSize: '16px', color: '#856404' }} />
+                    <TextView type="subDark" text="Some of your points will expire soon. Use them before they're gone!" style={{ fontSize: '13px', color: '#856404', opacity: 0.8 }} />
+                  </div>
                 </div>
-                <div>
-                  <TextView type="darkBold" text="Points Expiring Soon!" style={{ fontSize: '16px', color: '#856404' }} />
-                  <TextView type="subDark" text="Some of your points will expire soon. Use them before they're gone!" style={{ fontSize: '13px', color: '#856404', opacity: 0.8 }} />
+                
+              </div>
+
+              {/* Summary Section */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '12px',
+                backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                borderRadius: '8px',
+                marginBottom: '12px',
+                border: '1px solid rgba(255, 193, 7, 0.4)'
+              }}>
+                <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#856404' }}>
+                  Total Expiring Points:
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#856404' }}>
+                  {expiringPointsData?.total_expiring_points || expiringPoints.reduce((total, point) => total + (point.transaction_cr || 0), 0)} pts
                 </div>
               </div>
 
               <div style={{
                 // maxHeight: '120px',
-                height: 'calc(100vh - 350px)',
+                height: 'calc(100vh - 400px)',
                 overflow: 'auto',
                 scrollbarWidth: 'thin',
                 scrollbarColor: '#ffc107 #fff3cd'
               }}>
-                {expiringPoints.map((point, index) => (
-                  <div key={index} style={{
+                {loadingExpiringPoints ? (
+                  <div style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
+                    justifyContent: 'center',
                     alignItems: 'center',
-                    padding: '10px',
-                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                    borderRadius: '8px',
-                    marginBottom: '8px',
-                    border: '1px solid rgba(255, 193, 7, 0.3)'
+                    height: '100px'
                   }}>
-                    <div style={{ flex: 1 }}>
+                    <div className="spinner" style={{borderColor: '#ffc107', borderTopColor: 'transparent'}}></div>
+                  </div>
+                ) : expiringPointsError ? (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100px',
+                    color: '#dc3545',
+                    textAlign: 'center',
+                    padding: '20px'
+                  }}>
+                    <FontAwesomeIcon icon={faExclamationTriangle} style={{ fontSize: '24px', marginBottom: '8px' }} />
+                    <div style={{ fontSize: '12px', marginBottom: '8px'}}>Error loading expiring points</div>
+                    <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '12px' }}>
+                      {expiringPointsError}
+                    </div>
+                    <button
+                      onClick={fetchExpiringPoints}
+                      style={{
+                        background: '#dc3545',
+                        border: 'none',
+                        color: 'white',
+                        cursor: 'pointer',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: 'bold'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#c82333'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#dc3545'}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : expiringPoints.length > 0 ? (
+                  expiringPoints.map((point, index) => (
+                    <div key={index} style={{
+                      // display: 'flex',
+                      // justifyContent: 'space-between',
+                      // alignItems: 'center',
+                      padding: '10px',
+                      backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                      borderRadius: '8px',
+                      marginBottom: '8px',
+                      border: '1px solid rgba(255, 193, 7, 0.3)'
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          marginBottom: '4px'
+                        }}>
+                          <FontAwesomeIcon icon={faClock} style={{ fontSize: '12px', color: '#856404' }} />
+                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#856404' }}>
+                            {point.transaction_title}
+                          </span>
+                        </div>
+                        
+                      </div>
+
                       <div style={{
                         display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
                         alignItems: 'center',
-                        gap: '8px',
-                        marginBottom: '4px'
+                        gap: '5px'
                       }}>
-                        <FontAwesomeIcon icon={faClock} style={{ fontSize: '12px', color: '#856404' }} />
-                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#856404' }}>
-                          {point.transaction_title}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#856404', opacity: 0.8 }}>
-                        Expires: {/* {new Date(point.expire_on).toLocaleDateString()} */}
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0px'
+                        }}>
+                          <div style={{ fontSize: '11px', color: '#856404', opacity: 0.8 }}>
+                            Expires:
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#856404', opacity: 0.8 }}>
+                            {formatDateTime(point?.expire_on)}
+                          </div>
+                        </div>
+
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'end',
+                          gap: '5px',
+                          flexDirection: 'column'
+                        }}>
+                          <div style={{
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            color: '#856404'
+                          }}>
+                            {point.transaction_cr}0000 pts
+                          </div>
+                          <div style={{
+                            padding: '4px 8px',
+                            backgroundColor: point.daysUntilExpiry <= 7 ? '#dc3545' : 
+                                            point.daysUntilExpiry <= 14 ? '#fd7e14' : '#ffc107',
+                            color: 'white',
+                            borderRadius: '12px',
+                            fontSize: '10px',
+                            fontWeight: 'bold',
+                            minWidth: '40px',
+                            textAlign: 'center'
+                          }}>
+                            {point.daysUntilExpiry === 1 ? '1 day' : 
+                              point.daysUntilExpiry === 0 ? 'Today' : 
+                              `${point.daysUntilExpiry} days`}
+                          </div>
+                        </div>
+
                         
                       </div>
-                      <div style={{ fontSize: '11px', color: '#856404', opacity: 0.8 }}>
-                        
-                        {formatDateTime(point?.expire_on)}
-                      </div>
+
+                      
                     </div>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <div style={{
-                        fontSize: '16px',
-                        fontWeight: 'bold',
-                        color: '#856404'
-                      }}>
-                        {point.transaction_cr} pts
-                      </div>
-                      <div style={{
-                        padding: '4px 8px',
-                        backgroundColor: point.daysUntilExpiry <= 7 ? '#dc3545' : 
-                                        point.daysUntilExpiry <= 14 ? '#fd7e14' : '#ffc107',
-                        color: 'white',
-                        borderRadius: '12px',
-                        fontSize: '10px',
-                        fontWeight: 'bold',
-                        minWidth: '40px',
-                        textAlign: 'center'
-                      }}>
-                        {point.daysUntilExpiry === 1 ? '1 day' : 
-                          point.daysUntilExpiry === 0 ? 'Today' : 
-                          `${point.daysUntilExpiry} days`}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                                 ) : (
+                   <div style={{
+                     display: 'flex',
+                     flexDirection: 'column',
+                     alignItems: 'center',
+                     justifyContent: 'center',
+                     height: '100px',
+                     color: '#856404',
+                     textAlign: 'center',
+                     opacity: 0.7
+                   }}>
+                     <FontAwesomeIcon icon={faClock} style={{ fontSize: '24px', marginBottom: '8px' }} />
+                     <div style={{ fontSize: '12px' }}>No Points Expiring Soon</div>
+                     <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '4px' }}>
+                       Your points are safe for now!
+                     </div>
+                   </div>
+                 )}
               </div>
 
               <div style={{
@@ -826,6 +943,32 @@ function WalletMember() {
               </div>
             </div>
           </DashboardBox>
+        ) : (
+          // Show message when user has no balance
+          wallet?.available_point?.user_balance === 0 && (
+            <DashboardBox style={{ padding: '0', overflow: 'hidden' }}>
+              <div style={{
+                padding: '20px',
+                backgroundColor: '#e9ecef',
+                borderRadius: '12px',
+                border: '1px solid #dee2e6',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center'
+              }}>
+                <FontAwesomeIcon icon={faCoins} style={{ fontSize: '32px', color: '#6c757d', marginBottom: '12px' }} />
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#6c757d', marginBottom: '8px' }}>
+                  No Points Available
+                </div>
+                <div style={{ fontSize: '13px', color: '#6c757d', opacity: 0.8 }}>
+                  You don't have any points in your wallet at the moment.
+                </div>
+              </div>
+            </DashboardBox>
+          )
         )}
 
         {/* Second Column - Merged List & Details */}
