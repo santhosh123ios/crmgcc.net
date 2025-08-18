@@ -55,16 +55,45 @@ function WalletMember() {
 
   // Calculate expiring points
   const calculateExpiringPoints = () => {
-    if (!transactions || transactions.length === 0) return [];
+    if (!transactions || transactions.length === 0 || !wallet?.available_point?.user_balance) return [];
     
     const now = new Date();
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(now.getDate() + 30);
+    const availableBalance = wallet.available_point.user_balance;
     
-    const expiring = transactions
+    // Get all credit transactions (not just expiring ones) and sort by creation date (newest first)
+    const creditTransactions = transactions
+      .filter(transaction => 
+        transaction.transaction_type === 1 // Only credit transactions
+      )
+      .sort((a, b) => new Date(b.transaction_created_at) - new Date(a.transaction_created_at));
+    
+    // Find the last transactions that sum up to the available balance
+    let remainingBalance = availableBalance;
+    const relevantTransactions = [];
+    
+    for (const transaction of creditTransactions) {
+      if (remainingBalance <= 0) break;
+      
+      const transactionPoints = transaction.transaction_cr || 0;
+      const pointsToUse = Math.min(transactionPoints, remainingBalance);
+      
+      if (pointsToUse > 0) {
+        relevantTransactions.push({
+          ...transaction,
+          transaction_cr: pointsToUse, // Show only the points that are part of current balance
+          original_transaction_cr: transaction.transaction_cr // Keep original for reference
+        });
+        
+        remainingBalance -= pointsToUse;
+      }
+    }
+    
+    // Now check which of these relevant transactions are expiring within 30 days
+    const expiring = relevantTransactions
       .filter(transaction => 
         transaction.expire_on && 
-        transaction.transaction_type === 1 && // Only credit transactions
         new Date(transaction.expire_on) > now && // Not expired yet
         new Date(transaction.expire_on) <= thirtyDaysFromNow // Expiring within 30 days
       )
@@ -74,6 +103,9 @@ function WalletMember() {
       }))
       .sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
     
+    console.log('Available balance:', availableBalance);
+    console.log('Relevant transactions (sum up to balance):', relevantTransactions);
+    console.log('Expiring points calculated:', expiring);
     setExpiringPoints(expiring);
   };
 
@@ -84,10 +116,10 @@ function WalletMember() {
     fetchBankInfo();
   },[]);
 
-  // Calculate expiring points when transactions change
+  // Calculate expiring points when transactions or wallet changes
   useEffect(() => {
     calculateExpiringPoints();
-  }, [transactions]);
+  }, [transactions, wallet]);
 
   // Filter data when search term changes
   useEffect(() => {
@@ -668,7 +700,7 @@ function WalletMember() {
         </div>
 
         {/* Point Expiry Awareness Section */}
-        {expiringPoints.length > 0 && (
+        {expiringPoints.length > 0 && wallet?.available_point?.user_balance > 0 && (
           <DashboardBox style={{ padding: '0', overflow: 'hidden' }}>
             <div style={{
               padding: '20px',
