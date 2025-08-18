@@ -129,11 +129,14 @@ function Notification() {
                 backgroundColor: '#e74c3c',
                 color: 'white',
                 borderRadius: '50%',
-                padding: '4px 8px',
                 fontSize: '12px',
                 fontWeight: 'bold',
-                minWidth: '20px',
-                textAlign: 'center'
+                width: '30px',
+                height: '30px',
+                textAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}>
                 {unreadCount}
               </span>

@@ -527,7 +527,6 @@ function DashboardAdmin() {
               height: '50%',
               display: 'flex',
               flexDirection: 'column',
-              padding: '2px',
               transition: 'width 0.3s ease',
               backgroundColor:'white',
               boxSizing:'border-box'

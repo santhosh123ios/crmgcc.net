@@ -34,6 +34,12 @@ function VendorPage() {
     const [loadingOffers, setLoadingOffers] = useState(false);
     const [loadingProducts, setLoadingProducts] = useState(false);
 
+
+    // New states for offer code generation
+    const [generatedOfferCode, setGeneratedOfferCode] = useState(null);
+    const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+    const [offerCodeError, setOfferCodeError] = useState(null);
+
     useEffect(() => {
         loadVendors();
         loadOffers();
@@ -85,6 +91,30 @@ function VendorPage() {
         }
     };
 
+    // Generate offer code API call
+    const generateOfferCode = async (offerId) => {
+        setIsGeneratingCode(true);
+        setOfferCodeError(null);
+        setGeneratedOfferCode(null);
+
+        try {
+            const data = await apiClient.post("/member/generate_offer_code", {
+                offer_id: offerId
+            });
+
+            if (data && data.result?.status === 1) {
+                setGeneratedOfferCode(data.result.data);
+            } else {
+                setOfferCodeError(data?.message || "Failed to generate offer code");
+            }
+        } catch (err) {
+            console.error("Error generating offer code:", err);
+            setOfferCodeError(err?.response?.data?.message || "Something went wrong while generating offer code");
+        } finally {
+            setIsGeneratingCode(false);
+        }
+    };
+
 
     ///CLICKS FUNCTION
     const handleChange = (e) => {
@@ -114,6 +144,7 @@ function VendorPage() {
     };
 
     const handleRedeemClick = () => {
+        generateOfferCode(selectedItem.id);
         setShowRedeemPopup(true);
     };
 
@@ -127,6 +158,24 @@ function VendorPage() {
                 }, 2000);
             } catch (err) {
                 console.error('Failed to copy discount code:', err);
+                setCopyStatus('Failed');
+                setTimeout(() => {
+                    setCopyStatus('Copy');
+                }, 2000);
+            }
+        }
+    };
+
+    const copyEncryptedCode = async () => {
+        if (generatedOfferCode?.encrypted_code) {
+            try {
+                await navigator.clipboard.writeText(generatedOfferCode.encrypted_code);
+                setCopyStatus('Copied!');
+                setTimeout(() => {
+                    setCopyStatus('Copy');
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy encrypted code:', err);
                 setCopyStatus('Failed');
                 setTimeout(() => {
                     setCopyStatus('Copy');
@@ -481,83 +530,204 @@ function VendorPage() {
                                 <TextView type='darkBold' text="Redeem Offer" style={{ fontSize: '24px' }} />
                             </div>
 
-                            {/* QR Code */}
-                            <div style={{ marginBottom: '20px' }}>
-                                <div style={{
-                                    display: 'inline-block',
-                                    padding: '20px',
-                                    backgroundColor: '#f8f9fa',
-                                    borderRadius: '12px',
-                                    border: '2px solid #e9ecef'
-                                }}>
-                                    <QRCodeCanvas
-                                        value={selectedItem?.discount_code || 'offer'}
-                                        size={150}
-                                        bgColor="transparent"
-                                        fgColor="#000000"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Discount Code */}
-                            {selectedItem?.discount_code && (
+                            {/* Loading State */}
+                            {isGeneratingCode && (
                                 <div style={{ marginBottom: '20px' }}>
-                                    <TextView type='darkBold' text="Discount Code" style={{ marginBottom: '5px' }} />
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '10px',
-                                    }}>
-                                        <div style={{
-                                            padding: '8px 12px',
-                                            backgroundColor: '#f8f9fa',
-                                            borderRadius: '6px',
-                                            border: '1px solid #dee2e6',
-                                            fontFamily: 'monospace',
-                                            fontSize: '16px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            height: '20px'
-                                        }}>
-                                            <TextView type='dark' text={selectedItem.discount_code} />
-                                        </div>
-                                        <button
-                                            onClick={copyDiscountCode}
-                                            style={{
-                                                backgroundColor: copyStatus === 'Copied!' ? '#28a745' : copyStatus === 'Failed' ? '#dc3545' : '#28a745',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '6px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '5px',
-                                                height: '40px',
-                                                margin: '10px',
-                                                textAlign: 'center',
-                                                justifyContent: 'center',
-                                            }}
-                                        >
-                                            <FontAwesomeIcon icon={faCopy} />
-                                            {copyStatus}
-                                        </button>
-                                    </div>
+                                    <div className="spinner" style={{ margin: '0 auto' }}></div>
+                                    <TextView type='dark' text="Generating offer code..." style={{ marginTop: '10px' }} />
                                 </div>
                             )}
 
-                            {/* Instructions */}
-                            <div style={{ marginBottom: '20px' }}>
-                                <TextView type='dark' text="Show this QR code to the vendor or use the discount code above to redeem your offer." style={{
-                                    fontSize: '14px',
-                                    lineHeight: '1.5',
-                                    color: '#666'
-                                }} />
-                            </div>
+                            {/* Error State */}
+                            {offerCodeError && (
+                                <div style={{
+                                    marginBottom: '20px',
+                                    padding: '15px',
+                                    backgroundColor: '#f8d7da',
+                                    border: '1px solid #f5c6cb',
+                                    borderRadius: '8px',
+                                    color: '#721c24'
+                                }}>
+                                    <TextView type='darkBold' text="Error" style={{ marginBottom: '5px' }} />
+                                    <TextView type='dark' text={offerCodeError} />
+                                </div>
+                            )}
+
+                            {/* Success State - QR Code and Encrypted Code */}
+                            {generatedOfferCode && !offerCodeError && (
+                                <>
+                                    {/* QR Code */}
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <div style={{
+                                            display: 'inline-block',
+                                            padding: '20px',
+                                            backgroundColor: '#f8f9fa',
+                                            borderRadius: '12px',
+                                            border: '2px solid #e9ecef'
+                                        }}>
+                                            <QRCodeCanvas
+                                                value={generatedOfferCode.encrypted_code}
+                                                size={150}
+                                                bgColor="transparent"
+                                                fgColor="#000000"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Encrypted Code */}
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <TextView type='darkBold' text="Offer Code" style={{ marginBottom: '10px' }} />
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '10px',
+                                        }}>
+                                            <div style={{
+                                                padding: '8px 12px',
+                                                backgroundColor: '#f8f9fa',
+                                                borderRadius: '6px',
+                                                border: '1px solid #dee2e6',
+                                                fontFamily: 'monospace',
+                                                fontSize: '16px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                height: '20px'
+                                            }}>
+                                                <TextView type='dark' text={generatedOfferCode.encrypted_code} />
+                                            </div>
+                                            <button
+                                                onClick={copyEncryptedCode}
+                                                style={{
+                                                    backgroundColor: copyStatus === 'Copied!' ? '#28a745' : copyStatus === 'Failed' ? '#dc3545' : '#28a745',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '6px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '5px',
+                                                    height: '40px',
+                                                    margin: '10px',
+                                                    textAlign: 'center',
+                                                    justifyContent: 'center',
+                                                }}
+                                            >
+                                                <FontAwesomeIcon icon={faCopy} />
+                                                {copyStatus}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Valid Until */}
+                                    {generatedOfferCode.offer_details && (
+                                        <div style={{
+                                            marginBottom: '20px',
+                                            padding: '10px',
+                                            backgroundColor: '#f8f9fa',
+                                            borderRadius: '6px',
+                                            textAlign: 'center'
+                                        }}>
+                                            <TextView type='dark' text={`Valid until: ${new Date(generatedOfferCode.offer_details.end_date).toLocaleDateString()}`} />
+                                        </div>
+                                    )}
+
+                                    {/* Instructions */}
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <TextView type='dark' text="Show this QR code to the vendor or use the offer code above to redeem your offer." style={{
+                                            fontSize: '14px',
+                                            lineHeight: '1.5',
+                                            color: '#666'
+                                        }} />
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Fallback - Show original discount code if no generated code */}
+                            {!generatedOfferCode && !isGeneratingCode && !offerCodeError && selectedItem?.discount_code && (
+                                <>
+                                    {/* QR Code */}
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <div style={{
+                                            display: 'inline-block',
+                                            padding: '20px',
+                                            backgroundColor: '#f8f9fa',
+                                            borderRadius: '12px',
+                                            border: '2px solid #e9ecef'
+                                        }}>
+                                            <QRCodeCanvas
+                                                value={selectedItem.discount_code}
+                                                size={150}
+                                                bgColor="transparent"
+                                                fgColor="#000000"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Discount Code */}
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <TextView type='darkBold' text="Discount Code" style={{ marginBottom: '10px' }} />
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '10px',
+                                        }}>
+                                            <div style={{
+                                                padding: '8px 12px',
+                                                backgroundColor: '#f8f9fa',
+                                                borderRadius: '6px',
+                                                border: '1px solid #dee2e6',
+                                                fontFamily: 'monospace',
+                                                fontSize: '16px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                height: '20px'
+                                            }}>
+                                                <TextView type='dark' text={selectedItem.discount_code} />
+                                            </div>
+                                            <button
+                                                onClick={copyDiscountCode}
+                                                style={{
+                                                    backgroundColor: copyStatus === 'Copied!' ? '#28a745' : copyStatus === 'Failed' ? '#dc3545' : '#28a745',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '6px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '5px',
+                                                    height: '40px',
+                                                    margin: '10px',
+                                                    textAlign: 'center',
+                                                    justifyContent: 'center',
+                                                }}
+                                            >
+                                                <FontAwesomeIcon icon={faCopy} />
+                                                {copyStatus}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Instructions */}
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <TextView type='dark' text="Show this QR code to the vendor or use the discount code above to redeem your offer." style={{
+                                            fontSize: '14px',
+                                            lineHeight: '1.5',
+                                            color: '#666'
+                                        }} />
+                                    </div>
+                                </>
+                            )}
 
                             {/* Close Button */}
                             <button
-                                onClick={() => setShowRedeemPopup(false)}
+                                onClick={() => {
+                                    setShowRedeemPopup(false);
+                                    setGeneratedOfferCode(null);
+                                    setOfferCodeError(null);
+                                    setIsGeneratingCode(false);
+                                }}
                                 style={{
                                     width: '100%',
                                     padding: '12px',

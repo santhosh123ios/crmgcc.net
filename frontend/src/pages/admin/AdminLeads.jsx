@@ -1,4 +1,4 @@
-import React,{useState,useEffect,useRef} from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import DashboardBox from '../../componants/Main/DashboardBox'
 import InputText from '../../componants/Main/InputText'
 import RoundButton from '../../componants/Main/RoundButton';
@@ -30,12 +30,12 @@ const formatMessageDate = (dateString) => {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     // Reset time to compare only dates
     const messageDateOnly = new Date(messageDate.getFullYear(), messageDate.getMonth(), messageDate.getDate());
     const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const yesterdayOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
-    
+
     if (messageDateOnly.getTime() === todayOnly.getTime()) {
         return 'Today';
     } else if (messageDateOnly.getTime() === yesterdayOnly.getTime()) {
@@ -58,14 +58,14 @@ const groupMessagesByDate = (messages) => {
     messages.forEach((message) => {
         // Try different possible date field names
         const dateField = message.create_at || message.created_at || message.date || message.timestamp;
-        
+
         if (!dateField) {
             return;
         }
-        
+
         const messageDate = new Date(dateField);
         const dateKey = messageDate.toDateString();
-        
+
         if (dateKey !== currentDate) {
             if (currentGroup.length > 0) {
                 groups.push({
@@ -109,21 +109,21 @@ function AdminLeads() {
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const [selectedStatus, setSelectedStatus] = useState(1);
     const [formData, setFormData] = useState({
-            search: "",
-            message: "",
+        search: "",
+        message: "",
 
-            leadId: "",
-            leadName: "",
-            leadDescription: "",
-            memberId: 0,
-            leadFile: ""
+        leadId: "",
+        leadName: "",
+        leadDescription: "",
+        memberId: 0,
+        leadFile: ""
     });
     const [messages, setMessages] = useState([]);
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [sendingMessage, setSendingMessage] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
 
-    const statusArray =[
+    const statusArray = [
         {
             id: 0,
             name: "Pending",
@@ -152,9 +152,9 @@ function AdminLeads() {
         fetchLeads();
 
         setFormData((prev) => ({
-        ...prev,
-        memberId:selectedMember,
-        leadFile:fileName
+            ...prev,
+            memberId: selectedMember,
+            leadFile: fileName
         }));
 
         const loadMembers = async () => {
@@ -162,17 +162,17 @@ function AdminLeads() {
             try {
 
                 const data = await apiClient.get("/admin/memberlist");
-            
-            if (data && data.result?.data) {
-                setMembers(data.result.data);
-            }
+
+                if (data && data.result?.data) {
+                    setMembers(data.result.data);
+                }
             } catch (err) {
-            console.error("Something went wrong fetching members", err);
+                console.error("Something went wrong fetching members", err);
             }
         };
 
         loadMembers();
-    },[selectedMember,fileName]);
+    }, [selectedMember, fileName]);
 
     useEffect(() => {
         // Simulate loading time (e.g., API call)
@@ -212,32 +212,32 @@ function AdminLeads() {
     const fetchLeads = async () => {
         setLoading(true);
         try {
-        const response = await apiClient.get("/admin/get_leads");
+            const response = await apiClient.get("/admin/get_leads");
 
-        if (response?.result?.status === 1) {
-            setLeads(response.result.data);
-            setFilteredLeads(response.result.data);
-            setSelectedLead(response.result.data[0])
-            setSelectedStatus(response.result.data[selectedPos].lead_status);
-        } else {
-            console.warn("No leads found or status != 1");
-        }
+            if (response?.result?.status === 1) {
+                setLeads(response.result.data);
+                setFilteredLeads(response.result.data);
+                setSelectedLead(response.result.data[0])
+                setSelectedStatus(response.result.data[selectedPos].lead_status);
+            } else {
+                console.warn("No leads found or status != 1");
+            }
         } catch (error) {
-        console.error("Failed to fetch leads:", error);
+            console.error("Failed to fetch leads:", error);
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
     };
 
     const fetchMessages = async (leadId) => {
         if (!leadId) return;
-        
+
         setLoadingMessages(true);
         try {
             const payload = {
                 lead_id: leadId
             };
-            const response = await apiClient.post(`/admin/get_lead_message`,payload);
+            const response = await apiClient.post(`/admin/get_lead_message`, payload);
             if (response?.result?.status === 1) {
                 setMessages(response.result.data || []);
             } else {
@@ -254,14 +254,14 @@ function AdminLeads() {
 
     const sendMessage = async (text, leadId) => {
         if (!text.trim() || !leadId || !currentUserId) return;
-        
+
         setSendingMessage(true);
         try {
             const payload = {
                 text: text,
                 lead_id: leadId
             };
-            
+
             const response = await apiClient.post("/admin/create_lead_message", payload);
             if (response?.result?.status === 1) {
                 // Add the new message to the messages list
@@ -276,7 +276,7 @@ function AdminLeads() {
                 setMessages(prev => [...prev, newMessage]);
                 // Clear the input
                 setFormData(prev => ({ ...prev, message: "" }));
-                
+
                 // Scroll to bottom after a short delay to ensure the new message is rendered
                 setTimeout(() => {
                     const messagesContainer = document.querySelector('.messages-container');
@@ -294,15 +294,15 @@ function AdminLeads() {
         }
     };
 
-    const updateLeadStatus = async (id,status) => {
+    const updateLeadStatus = async (id, status) => {
         //setLoading(true);
         try {
-        const payload = {
-        id: id,
-        lead_status: status,
-        };
+            const payload = {
+                id: id,
+                lead_status: status,
+            };
 
-        const response = await apiClient.post("/admin/lead-status-update",payload);
+            const response = await apiClient.post("/admin/lead-status-update", payload);
 
             if (response?.result?.status === 1) {
                 setSelectedStatus(id);
@@ -311,11 +311,11 @@ function AdminLeads() {
             } else {
                 console.warn("No leads found or status != 1");
             }
-        } 
+        }
         catch (error) {
-        console.error("Failed to fetch leads:", error);
+            console.error("Failed to fetch leads:", error);
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
     };
 
@@ -353,9 +353,9 @@ function AdminLeads() {
                 // setVendors(data result.data);
                 // setShowPopup(false)
                 // fetchLeads();
-                updateLeadStatus(selectedLead.id,3)
+                updateLeadStatus(selectedLead.id, 3)
             }
-            
+
             console.log('AdminLeads: Returning data:', data);
             return data; // Return the API response
         } catch (err) {
@@ -412,10 +412,10 @@ function AdminLeads() {
         try {
 
             const payload = {
-            member_id: formData.memberId,
-            lead_name: formData.leadName,
-            lead_description: formData.leadDescription,
-            lead_file: formData.leadFile // optional: just a filename string
+                member_id: formData.memberId,
+                lead_name: formData.leadName,
+                lead_description: formData.leadDescription,
+                lead_file: formData.leadFile // optional: just a filename string
             };
             console.log("SANTHOSH Member ID:", payload);
             const data = await apiClient.post("/admin/create-leads", payload);
@@ -453,11 +453,11 @@ function AdminLeads() {
             setisLoading(true); // Show loader
             await sleep(1000); // Delay for 1 second (1000 ms)
             const response = await apiClient.post("/admin/upload", formDataFile);
-            setfileName(response.file); 
+            setfileName(response.file);
             setfileUploadStatus("Uploaded ✅");
             console.log("Upload successful", response);
         } catch (err) {
-            setfileName(""); 
+            setfileName("");
             setfileUploadStatus("failed ❌");
             console.error("Upload failed", err);
         } finally {
@@ -465,55 +465,53 @@ function AdminLeads() {
         }
     };
 
-    
+
     //const [selectedMemberId, setSelectedMemberId] = useState(0);
     const handleMemberChange = (e) => {
         setSelectedMember(e.target.value);
-        
+
         console.log("Selected Member ID:", e.target.value);
     };
 
     const handleStatusChange = (e) => {
-       // setSelectedStatus(e.target.value);
+        // setSelectedStatus(e.target.value);
         console.log("Selected Status ID:", e.target.value);
         console.log("Selected LEAD ID:", selectedLead.id);
-        if (e.target.value == 3)
-        {
-             console.log("Selected Status okaaaay:", e.target.value);
+        if (e.target.value == 3) {
+            console.log("Selected Status okaaaay:", e.target.value);
             setShowPointsPopup(true);
         }
-        else
-        {
-             console.log("Selected Status Noooooo:", e.target.value);
+        else {
+            console.log("Selected Status Noooooo:", e.target.value);
             //updateLeadStatus(selectedLead.id,e.target.value)
-            updateLeadStatus(selectedLead.id,e.target.value)
+            updateLeadStatus(selectedLead.id, e.target.value)
         }
-        
+
     };
 
     const handlePopupSubmit = async (points) => {
-       console.log('AdminLeads: handlePopupSubmit called with points:', points);
-       const result = await addTransaction(points);
-       console.log('AdminLeads: addTransaction returned:', result);
-       return result;
+        console.log('AdminLeads: handlePopupSubmit called with points:', points);
+        const result = await addTransaction(points);
+        console.log('AdminLeads: addTransaction returned:', result);
+        return result;
     };
 
-  return (
-    <div  className='content-view'>
+    return (
+        <div className='content-view'>
 
-        <div style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'row'
+            <div style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'row'
             }}>
 
                 <div style={{
-                  width: '30%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '2px'
+                    width: '30%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '2px'
                 }}>
                     <DashboardBox>
                         {/* Search bar and add button */}
@@ -523,29 +521,31 @@ function AdminLeads() {
                             display: 'flex',
                             flexDirection: 'row',
                             padding: '2px',
-                            borderBlock:'boxSizing'}}>
+                            borderBlock: 'boxSizing'
+                        }}>
 
-                                <div style={{width: '100%',
+                            <div style={{
+                                width: '100%',
                                 height: '60px',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                justifyContent:'center',
+                                justifyContent: 'center',
                                 justifyItems: 'center',
-                                paddingLeft:'10px',
-                                paddingRight:'5px'
-                                }}> 
+                                paddingLeft: '10px',
+                                paddingRight: '10px'
+                            }}>
 
-                                   <InputText 
-                                        type="name"
-                                        placeholder="Search"
-                                        name="search"
-                                        value={formData.search}
-                                        onChange={handleChange}
-                                    />
+                                <InputText
+                                    type="name"
+                                    placeholder="Search"
+                                    name="search"
+                                    value={formData.search}
+                                    onChange={handleChange}
+                                />
 
-                                </div>
+                            </div>
 
-                                <div style={{
+                            {/* <div style={{
                                 width: '55px',
                                 height: '60px',
                                 display: 'flex',
@@ -554,10 +554,10 @@ function AdminLeads() {
                                 paddingRight:'10px',
                                 paddingLeft:'0px'}}> 
                                     <RoundButton icon={faPlus} onClick={() => setShowPopup(true)}/>
-                                </div>  
+                                </div>   */}
 
 
-                                
+
                         </div>
 
 
@@ -581,9 +581,9 @@ function AdminLeads() {
 
                         <div className="user-list-scroll-container">
                             {loading ? (
-                            <div className="loader-container">
-                                <div className="spinner" />
-                            </div>
+                                <div className="loader-container">
+                                    <div className="spinner" />
+                                </div>
                             ) : filteredLeads.length === 0 ? (
                                 <div style={{
                                     display: 'flex',
@@ -617,87 +617,87 @@ function AdminLeads() {
                                     </div>
                                 </div>
                             ) : (
-                            filteredLeads.map((leadsItems, index) => (
-                                <div className="user-list-item-leads" key={index}>
-                                    <div className={`${selectedPos === index ? "user-list-item-leads-inside-select" : "user-list-item-leads-inside"}`} onClick={() => handleLeadListClick(index)}>
-                                        {/* Member Avatar */}
-                                        <div style={{
-                                            position: 'relative',
-                                            flexShrink: 0
-                                        }}>
-                                            <img 
-                                                className="user-avatar" 
-                                                src={leadsItems.member_image ? baseUrl+leadsItems.member_image : "/public/dummy.jpg"} 
-                                                alt={leadsItems.lead_name}
-                                                style={{
-                                                    width: '50px',
-                                                    height: '50px',
-                                                    borderRadius: '12px',
-                                                    objectFit: 'cover',
-                                                    border: '2px solid #f0f0f0'
-                                                }}
-                                            />
-                                            {/* Status indicator dot */}
-                                            <div className={`lead-status-indicator lead-status-${leadsItems.lead_status === 0 ? 'pending' : 
-                                                                                           leadsItems.lead_status === 1 ? 'review' : 
-                                                                                           leadsItems.lead_status === 2 ? 'processing' : 
-                                                                                           leadsItems.lead_status === 3 ? 'completed' : 'rejected'}`} />
-                                        </div>
-                                        
-                                        {/* Lead Information */}
-                                        <div className="user-info-leads">
-                                            {/* Header with title and status */}
-                                            <div style={{ 
-                                                display: 'flex', 
-                                                justifyContent: 'space-between', 
-                                                alignItems: 'flex-start', 
-                                                gap: '12px'
+                                filteredLeads.map((leadsItems, index) => (
+                                    <div className="user-list-item-leads" key={index}>
+                                        <div className={`${selectedPos === index ? "user-list-item-leads-inside-select" : "user-list-item-leads-inside"}`} onClick={() => handleLeadListClick(index)}>
+                                            {/* Member Avatar */}
+                                            <div style={{
+                                                position: 'relative',
+                                                flexShrink: 0
                                             }}>
-                                                <div style={{ flex: 1, minWidth: 0,boxSizing:'border-box' }}>
-                                                    <div className="lead-item-title" style={{width:'100%',maxWidth:'170px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                                                        {leadsItems.lead_name}
+                                                <img
+                                                    className="user-avatar"
+                                                    src={leadsItems.member_image ? baseUrl + leadsItems.member_image : "/public/dummy.jpg"}
+                                                    alt={leadsItems.lead_name}
+                                                    style={{
+                                                        width: '50px',
+                                                        height: '50px',
+                                                        borderRadius: '12px',
+                                                        objectFit: 'cover',
+                                                        border: '2px solid #f0f0f0'
+                                                    }}
+                                                />
+                                                {/* Status indicator dot */}
+                                                <div className={`lead-status-indicator lead-status-${leadsItems.lead_status === 0 ? 'pending' :
+                                                    leadsItems.lead_status === 1 ? 'review' :
+                                                        leadsItems.lead_status === 2 ? 'processing' :
+                                                            leadsItems.lead_status === 3 ? 'completed' : 'rejected'}`} />
+                                            </div>
+
+                                            {/* Lead Information */}
+                                            <div className="user-info-leads">
+                                                {/* Header with title and status */}
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'flex-start',
+                                                    gap: '12px'
+                                                }}>
+                                                    <div style={{ flex: 1, minWidth: 0, boxSizing: 'border-box' }}>
+                                                        <div className="lead-item-title" style={{ width: '100%', maxWidth: '170px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {leadsItems.lead_name}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ flexShrink: 0 }}>
+                                                        <StatusBadge status={leadsItems.lead_status} />
                                                     </div>
                                                 </div>
-                                                <div style={{ flexShrink: 0 }}>
-                                                    <StatusBadge status={leadsItems.lead_status} />
+
+                                                {/* Description */}
+                                                <div className="lead-item-description-box">
+                                                    <p className="lead-item-description">
+                                                        {leadsItems.lead_description || "No description available"}
+                                                    </p>
                                                 </div>
-                                            </div>
-                                            
-                                            {/* Description */}
-                                            <div className="lead-item-description-box">
-                                                <p className="lead-item-description">
-                                                    {leadsItems.lead_description || "No description available"}
-                                                </p>
-                                            </div>
-                                            
-                                            {/* Footer with date and member info */}
-                                            <div className="lead-item-meta">
-                                                <div className="lead-item-date">
-                                                    <FontAwesomeIcon 
-                                                        icon={faCalendar} 
-                                                        style={{ fontSize: '11px', color: '#999' }}
-                                                    />
-                                                    <span>
-                                                        {new Date(leadsItems.created_at).toLocaleDateString("en-US", {
-                                                            month: "short",
-                                                            day: "numeric",
-                                                            year: "numeric"
-                                                        })}
-                                                    </span>
-                                                </div>
-                                                
-                                                <div className="lead-item-vendor">
-                                                    <FontAwesomeIcon 
-                                                        icon={faExchangeAlt} 
-                                                        style={{ fontSize: '10px' }}
-                                                    />
-                                                    <span>{leadsItems.member_name || 'Member'}</span>
+
+                                                {/* Footer with date and member info */}
+                                                <div className="lead-item-meta">
+                                                    <div className="lead-item-date">
+                                                        <FontAwesomeIcon
+                                                            icon={faCalendar}
+                                                            style={{ fontSize: '11px', color: '#999' }}
+                                                        />
+                                                        <span>
+                                                            {new Date(leadsItems.created_at).toLocaleDateString("en-US", {
+                                                                month: "short",
+                                                                day: "numeric",
+                                                                year: "numeric"
+                                                            })}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="lead-item-vendor">
+                                                        <FontAwesomeIcon
+                                                            icon={faExchangeAlt}
+                                                            style={{ fontSize: '10px' }}
+                                                        />
+                                                        <span>{leadsItems.member_name || 'Member'}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))
+                                ))
                             )}
                         </div>
 
@@ -706,26 +706,26 @@ function AdminLeads() {
                 </div>
 
                 <div style={{
-                  width: '35%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '2px'
+                    width: '35%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '2px'
                 }}>
 
                     {/* Lead Status */}
                     <div style={{
-                    width: '100%',
-                    height: '30%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    padding: '2px'
+                        width: '100%',
+                        height: '30%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        padding: '2px'
                     }}>
-                         <DashboardBox>
-                            <div style={{display: 'flex',flexDirection:'column', justifyContent: 'start', padding: '10px',height:'100%',width:'100%',boxSizing:'border-box'}}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', padding: '0px', margin: '0px',height:'50px'}}>
-                                <p className="title-text-dark" style={{fontSize: '16px', fontWeight: '600', color: '#333'}}>{"Lead Status"}</p>
-                                    <div style={{height:'50px',width:'130px'}}>
+                        <DashboardBox>
+                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'start', padding: '10px', height: '100%', width: '100%', boxSizing: 'border-box' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', padding: '0px', margin: '0px', height: '50px' }}>
+                                    <p className="title-text-dark" style={{ fontSize: '16px', fontWeight: '600', color: '#333' }}>{"Lead Status"}</p>
+                                    <div style={{ height: '50px', width: '130px' }}>
                                         {selectedLead && !(selectedStatus === 3 || selectedStatus === 4) && (
                                             <Dropdown
                                                 data={statusArray}
@@ -736,7 +736,7 @@ function AdminLeads() {
                                         )}
                                     </div>
                                 </div>
-                                
+
                                 {!selectedLead ? (
                                     // Empty state when no lead is selected
                                     <div style={{
@@ -748,7 +748,7 @@ function AdminLeads() {
                                         color: '#666',
                                         textAlign: 'center'
                                     }}>
-                                        
+
                                         <div style={{
                                             fontSize: '16px',
                                             fontWeight: '500',
@@ -766,18 +766,18 @@ function AdminLeads() {
                                     </div>
                                 ) : (
                                     <>
-                                        <div style={{justifyContent: 'center',boxSizing:'border-box'}}>
-                                            <div style={{display:'flex',flexDirection:'row',alignItems: 'center',marginTop:'20px'}}>
+                                        <div style={{ justifyContent: 'center', boxSizing: 'border-box' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '20px' }}>
                                                 {/* <DotBadge status={3} /> */}
                                                 {/* Step 1: Pending */}
-                                                <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
-                                                    <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
-                                                        
+                                                <div style={{ width: '150px', display: 'flex', flexDirection: 'row' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'flex-start' }}>
+
                                                         <div style={{
                                                             display: 'flex',
                                                             position: 'relative',
                                                             alignItems: 'center',
-                                                            width:'100%'
+                                                            width: '100%'
                                                         }}>
                                                             <div style={{
                                                                 position: 'absolute',
@@ -801,35 +801,35 @@ function AdminLeads() {
                                                                     }} />
                                                                 )}
                                                             </div>
-                                                            <hr style={{background: selectedStatus === 1 || selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',width:'100%',padding:'0px',margin:'0px'}}/>
+                                                            <hr style={{ background: selectedStatus === 1 || selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0', width: '100%', padding: '0px', margin: '0px' }} />
                                                         </div>
 
                                                         <div style={{
-                                                                marginTop: '15px',
-                                                                fontSize: '12px',
-                                                                fontWeight: '500',
-                                                                color: selectedStatus >= 0 ? '#4CAF50' : '#999',
-                                                                textAlign: 'center',
-                                                                transition: 'color 0.3s ease'
-                                                            }}>
-                                                                Pending
-                                                            </div>
-                                                    
+                                                            marginTop: '15px',
+                                                            fontSize: '12px',
+                                                            fontWeight: '500',
+                                                            color: selectedStatus >= 0 ? '#4CAF50' : '#999',
+                                                            textAlign: 'center',
+                                                            transition: 'color 0.3s ease'
+                                                        }}>
+                                                            Pending
+                                                        </div>
+
                                                     </div>
-                                                    
+
                                                 </div>
 
 
                                                 {/* <DotBadge status={3} /> */}
                                                 {/* Step 2: Review */}
-                                                <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
-                                                    <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
-                                                        
+                                                <div style={{ width: '150px', display: 'flex', flexDirection: 'row' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'flex-start' }}>
+
                                                         <div style={{
                                                             display: 'flex',
                                                             position: 'relative',
                                                             alignItems: 'center',
-                                                            width:'100%'
+                                                            width: '100%'
                                                         }}>
                                                             <div style={{
                                                                 position: 'absolute',
@@ -853,35 +853,35 @@ function AdminLeads() {
                                                                     }} />
                                                                 )}
                                                             </div>
-                                                            <hr style={{background: selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',width:'100%',padding:'0px',margin:'0px'}}/>
+                                                            <hr style={{ background: selectedStatus === 2 || selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0', width: '100%', padding: '0px', margin: '0px' }} />
                                                         </div>
 
                                                         <div style={{
-                                                                marginTop: '15px',
-                                                                fontSize: '12px',
-                                                                fontWeight: '500',
-                                                                color: selectedStatus >= 1 ? '#4CAF50' : '#999',
-                                                                textAlign: 'center',
-                                                                transition: 'color 0.3s ease'
+                                                            marginTop: '15px',
+                                                            fontSize: '12px',
+                                                            fontWeight: '500',
+                                                            color: selectedStatus >= 1 ? '#4CAF50' : '#999',
+                                                            textAlign: 'center',
+                                                            transition: 'color 0.3s ease'
                                                         }}>
                                                             Review
                                                         </div>
-                                                    
+
                                                     </div>
-                                                    
+
                                                 </div>
 
-                                                
+
                                                 {/* <DotBadge status={3} /> */}
                                                 {/* Step 2: Processing */}
-                                                <div style={{width:'150px',display:'flex',flexDirection:'row'}}>
-                                                    <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
-                                                        
+                                                <div style={{ width: '150px', display: 'flex', flexDirection: 'row' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'flex-start' }}>
+
                                                         <div style={{
                                                             display: 'flex',
                                                             position: 'relative',
                                                             alignItems: 'center',
-                                                            width:'100%'
+                                                            width: '100%'
                                                         }}>
                                                             <div style={{
                                                                 position: 'absolute',
@@ -908,35 +908,36 @@ function AdminLeads() {
                                                             <hr style={{
                                                                 backgroundColor: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#e0e0e0',
                                                                 //background: selectedStatus === 3 || selectedStatus === 4 ? '#4CAF50' : '#e0e0e0',
-                                                                width:'100%',padding:'0px',margin:'0px'}}/>
+                                                                width: '100%', padding: '0px', margin: '0px'
+                                                            }} />
                                                         </div>
 
                                                         <div style={{
-                                                                marginTop: '15px',
-                                                                fontSize: '12px',
-                                                                fontWeight: '500',
-                                                                color: selectedStatus >= 2 ? '#4CAF50' : '#999',
-                                                                textAlign: 'center',
-                                                                transition: 'color 0.3s ease'
-                                                            }}>
-                                                                Processing
-                                                            </div>
-                                                    
+                                                            marginTop: '15px',
+                                                            fontSize: '12px',
+                                                            fontWeight: '500',
+                                                            color: selectedStatus >= 2 ? '#4CAF50' : '#999',
+                                                            textAlign: 'center',
+                                                            transition: 'color 0.3s ease'
+                                                        }}>
+                                                            Processing
+                                                        </div>
+
                                                     </div>
-                                                    
+
                                                 </div>
 
 
                                                 {/* <DotBadge status={3} /> */}
                                                 {/* Step 2: Final */}
-                                                <div style={{width:'60px',display:'flex',flexDirection:'row'}}>
-                                                    <div style={{display:'flex',flexDirection:'column',width:'100%',alignItems: 'flex-start'}}>
-                                                        
+                                                <div style={{ width: '60px', display: 'flex', flexDirection: 'row' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'flex-start' }}>
+
                                                         <div style={{
                                                             display: 'flex',
                                                             position: 'relative',
                                                             alignItems: 'center',
-                                                            width:'100%'
+                                                            width: '100%'
                                                         }}>
                                                             <div style={{
                                                                 position: 'absolute',
@@ -964,21 +965,21 @@ function AdminLeads() {
                                                         </div>
 
                                                         <div style={{
-                                                                marginTop: '15px',
-                                                                fontSize: '12px',
-                                                                fontWeight: '500',
-                                                                color: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#999',
-                                                                textAlign: 'center',
-                                                                transition: 'color 0.3s ease'
-                                                            }}>
+                                                            marginTop: '15px',
+                                                            fontSize: '12px',
+                                                            fontWeight: '500',
+                                                            color: selectedStatus >= 3 ? (selectedStatus === 3 ? '#4CAF50' : '#f44336') : '#999',
+                                                            textAlign: 'center',
+                                                            transition: 'color 0.3s ease'
+                                                        }}>
                                                             {selectedStatus === 4 ? "Rejected" : "Done"}
                                                         </div>
-                                                    
+
                                                     </div>
-                                                    
+
                                                 </div>
 
-                                                
+
 
                                                 {/* <div style={{width:'80px',display:'flex',flexDirection:'column'}}>
                                                     <TextView type="subDark" text={selectedStatus === 4 ? "Rejected" : "Done"}/>
@@ -1015,11 +1016,11 @@ function AdminLeads() {
                                         </div>
                                     </>
                                 )}
-                                    
-                                </div>
-                            </DashboardBox>
+
+                            </div>
+                        </DashboardBox>
                     </div>
-                    
+
                     {/* Leads detalil view */}
                     <div style={{
                         width: '100%',
@@ -1027,7 +1028,7 @@ function AdminLeads() {
                         display: 'flex',
                         flexDirection: 'column',
                         padding: '2px'
-                        }}>
+                    }}>
                         <DashboardBox>
                             {!selectedLead ? (
                                 // Empty state when no lead is selected
@@ -1080,15 +1081,15 @@ function AdminLeads() {
                                         paddingBottom: '5px'
                                     }}>
                                         <div style={{ flex: 1 }}>
-                                                                                        <div style={{
+                                            <div style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '12px',
                                                 marginBottom: '8px'
                                             }}>
-                                                <img 
-                                                    className="user-avatar" 
-                                                    src={selectedLead?.vendor_image ? baseUrl + selectedLead.vendor_image : "/public/dummy.jpg"} 
+                                                <img
+                                                    className="user-avatar"
+                                                    src={selectedLead?.vendor_image ? baseUrl + selectedLead.vendor_image : "/public/dummy.jpg"}
                                                     alt={selectedLead?.vendor_name || 'Vendor'}
                                                     style={{
                                                         width: '40px',
@@ -1099,10 +1100,10 @@ function AdminLeads() {
                                                     }}
                                                 />
                                                 <div>
-                                                    <TextView 
-                                                        type="darkBold" 
-                                                        text={selectedLead?.lead_name ?? "Lead Title"} 
-                                                        style={{ fontSize: '18px', marginBottom: '4px',width:'100%' }}
+                                                    <TextView
+                                                        type="darkBold"
+                                                        text={selectedLead?.lead_name ?? "Lead Title"}
+                                                        style={{ fontSize: '18px', marginBottom: '4px', width: '100%' }}
                                                     />
 
                                                     <div style={{
@@ -1113,8 +1114,8 @@ function AdminLeads() {
                                                         color: '#666',
                                                         fontWeight: '500'
                                                     }}>
-                                                        <FontAwesomeIcon 
-                                                            icon={faCalendar} 
+                                                        <FontAwesomeIcon
+                                                            icon={faCalendar}
                                                             style={{ color: '#999', fontSize: '12px' }}
                                                         />
                                                         <span>
@@ -1129,7 +1130,7 @@ function AdminLeads() {
                                                             })}
                                                         </span>
                                                     </div>
-                                                    
+
                                                 </div>
                                             </div>
                                         </div>
@@ -1149,7 +1150,7 @@ function AdminLeads() {
                                             }}>
                                                 Lead ID: #{selectedLead?.id ?? 'N/A'}
                                             </div>
-                                            
+
                                             <div style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -1159,8 +1160,8 @@ function AdminLeads() {
                                                     width: '8px',
                                                     height: '8px',
                                                     borderRadius: '50%',
-                                                    backgroundColor: selectedLead?.lead_status === 3 ? '#4caf50' : 
-                                                                    selectedLead?.lead_status === 4 ? '#f44336' : '#ff9800'
+                                                    backgroundColor: selectedLead?.lead_status === 3 ? '#4caf50' :
+                                                        selectedLead?.lead_status === 4 ? '#f44336' : '#ff9800'
                                                 }} />
                                                 <span style={{
                                                     fontSize: '12px',
@@ -1169,8 +1170,8 @@ function AdminLeads() {
                                                 }}>
                                                     {selectedLead?.lead_status === 0 ? 'Pending' :
                                                         selectedLead?.lead_status === 1 ? 'Under Review' :
-                                                        selectedLead?.lead_status === 2 ? 'Processing' :
-                                                        selectedLead?.lead_status === 3 ? 'Completed' : 'Rejected'}
+                                                            selectedLead?.lead_status === 2 ? 'Processing' :
+                                                                selectedLead?.lead_status === 3 ? 'Completed' : 'Rejected'}
                                                 </span>
                                             </div>
                                         </div>
@@ -1193,8 +1194,8 @@ function AdminLeads() {
                                             gap: '8px',
                                             marginBottom: '5px'
                                         }}>
-                                            <FontAwesomeIcon 
-                                                icon={faLocationDot} 
+                                            <FontAwesomeIcon
+                                                icon={faLocationDot}
                                                 style={{ color: '#666', fontSize: '14px' }}
                                             />
                                             <span style={{
@@ -1245,8 +1246,8 @@ function AdminLeads() {
                                                     alignItems: 'center',
                                                     justifyContent: 'center'
                                                 }}>
-                                                    <FontAwesomeIcon 
-                                                        icon={faExchangeAlt} 
+                                                    <FontAwesomeIcon
+                                                        icon={faExchangeAlt}
                                                         style={{ color: '#4caf50', fontSize: '12px' }}
                                                     />
                                                 </div>
@@ -1294,8 +1295,8 @@ function AdminLeads() {
                                                     alignItems: 'center',
                                                     justifyContent: 'center'
                                                 }}>
-                                                    <FontAwesomeIcon 
-                                                        icon={faPaperPlane} 
+                                                    <FontAwesomeIcon
+                                                        icon={faPaperPlane}
                                                         style={{ color: '#ff9800', fontSize: '12px' }}
                                                     />
                                                 </div>
@@ -1312,7 +1313,7 @@ function AdminLeads() {
                                                     <strong>Category:</strong> Business Lead
                                                 </div>
                                                 <div style={{ marginBottom: '6px' }}>
-                                                    <strong>Priority:</strong> 
+                                                    <strong>Priority:</strong>
                                                     <span style={{
                                                         padding: '2px 8px',
                                                         borderRadius: '10px',
@@ -1356,8 +1357,8 @@ function AdminLeads() {
                                             gap: '8px',
                                             transition: 'all 0.3s ease'
                                         }}
-                                        onMouseEnter={(e) => e.target.style.backgroundColor = '#e6c200'}
-                                        onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--highlight-color)'}
+                                            onMouseEnter={(e) => e.target.style.backgroundColor = '#e6c200'}
+                                            onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--highlight-color)'}
                                         >
                                             <FontAwesomeIcon icon={faPhone} style={{ fontSize: '14px' }} />
                                             Contact Vendor
@@ -1378,14 +1379,14 @@ function AdminLeads() {
                                             gap: '8px',
                                             transition: 'all 0.3s ease'
                                         }}
-                                        onMouseEnter={(e) => {
-                                            e.target.style.backgroundColor = '#f5f5f5';
-                                            e.target.style.borderColor = '#ccc';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.target.style.backgroundColor = '#fff';
-                                            e.target.style.borderColor = '#ddd';
-                                        }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.backgroundColor = '#f5f5f5';
+                                                e.target.style.borderColor = '#ccc';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.backgroundColor = '#fff';
+                                                e.target.style.borderColor = '#ddd';
+                                            }}
                                         >
                                             <FontAwesomeIcon icon={faLocationDot} style={{ fontSize: '14px' }} />
                                             Location
@@ -1398,20 +1399,20 @@ function AdminLeads() {
                 </div>
 
                 <div style={{
-                  width: '35%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '2px'
-                }}>
-
-                    {/* Messages Container */}
-                    <div style={{
-                    width: '100%',
+                    width: '35%',
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '2px'
+                }}>
+
+                    {/* Messages Container */}
+                    <div style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        padding: '2px'
                     }}>
                         <DashboardBox>
                             {!selectedLead ? (
@@ -1514,7 +1515,7 @@ function AdminLeads() {
                                     </div>
 
                                     {/* Messages Container */}
-                                    <div 
+                                    <div
                                         className="messages-container"
                                         style={{
                                             flex: 1,
@@ -1545,16 +1546,16 @@ function AdminLeads() {
                                                 </div>
                                             </div>
                                         ) : messages.length === 0 ? (
-                                            <div style={{ 
-                                                display: 'flex', 
-                                                justifyContent: 'center', 
-                                                alignItems: 'center', 
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
                                                 height: '100%',
                                                 flexDirection: 'column',
                                                 gap: '16px',
                                                 color: '#666'
                                             }}>
-                                                
+
                                                 <div style={{
                                                     textAlign: 'center'
                                                 }}>
@@ -1600,13 +1601,13 @@ function AdminLeads() {
                                                                 {formatMessageDate(group.messages[0].create_at || group.messages[0].created_at || group.messages[0].date || group.messages[0].timestamp)}
                                                             </div>
                                                         </div>
-                                                        
+
                                                         {/* Messages for this date */}
                                                         {group.messages.map((message, index) => {
                                                             const isSentByMe = message.sender === currentUserId;
                                                             const isLastMessage = index === group.messages.length - 1;
                                                             const isFirstMessage = index === 0;
-                                                            
+
                                                             return (
                                                                 <div key={message.id || index} style={{
                                                                     display: 'flex',
@@ -1615,52 +1616,52 @@ function AdminLeads() {
                                                                     alignItems: 'flex-end',
                                                                     gap: '8px'
                                                                 }}>
-                                                                    
-                                                                    
-                                                                                                                                     {/* Message Bubble */}
-                                                                     <div style={{
-                                                                         maxWidth: '70%',
-                                                                         position: 'relative'
-                                                                     }}>
-                                                                         <div 
-                                                                             className="message-bubble"
-                                                                             style={{
-                                                                                 padding: '12px 16px',
-                                                                                 borderRadius: '20px',
-                                                                                 backgroundColor: isSentByMe ? '#0084ff' : '#fff',
-                                                                                 color: isSentByMe ? 'white' : '#333',
-                                                                                 wordWrap: 'break-word',
-                                                                                 wordBreak: 'break-word',
-                                                                                 fontSize: '14px',
-                                                                                 lineHeight: '1.5',
-                                                                                 overflowWrap: 'break-word',
-                                                                                 boxShadow: isSentByMe ? '0 2px 8px rgba(0,132,255,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
-                                                                                 border: isSentByMe ? 'none' : '1px solid #e0e0e0',
-                                                                                 position: 'relative'
-                                                                             }}
-                                                                         >
-                                                                             {message.text}
-                                                                             
-                                                                             {/* Message Time */}
-                                                                             <div style={{
-                                                                                 fontSize: '11px',
-                                                                                 opacity: isSentByMe ? 0.8 : 0.6,
-                                                                                 marginTop: '6px',
-                                                                                 textAlign: isSentByMe ? 'right' : 'left',
-                                                                                 fontWeight: '500'
-                                                                             }}>
-                                                                                 {new Date(message.create_at || message.created_at || message.date || message.timestamp).toLocaleTimeString([], {
-                                                                                     hour: '2-digit',
-                                                                                     minute: '2-digit',
-                                                                                     hour12: true
-                                                                                 })}
-                                                                             </div>
-                                                                         </div>
-                                                                        
-                                                                        
+
+
+                                                                    {/* Message Bubble */}
+                                                                    <div style={{
+                                                                        maxWidth: '70%',
+                                                                        position: 'relative'
+                                                                    }}>
+                                                                        <div
+                                                                            className="message-bubble"
+                                                                            style={{
+                                                                                padding: '12px 16px',
+                                                                                borderRadius: '20px',
+                                                                                backgroundColor: isSentByMe ? '#0084ff' : '#fff',
+                                                                                color: isSentByMe ? 'white' : '#333',
+                                                                                wordWrap: 'break-word',
+                                                                                wordBreak: 'break-word',
+                                                                                fontSize: '14px',
+                                                                                lineHeight: '1.5',
+                                                                                overflowWrap: 'break-word',
+                                                                                boxShadow: isSentByMe ? '0 2px 8px rgba(0,132,255,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
+                                                                                border: isSentByMe ? 'none' : '1px solid #e0e0e0',
+                                                                                position: 'relative'
+                                                                            }}
+                                                                        >
+                                                                            {message.text}
+
+                                                                            {/* Message Time */}
+                                                                            <div style={{
+                                                                                fontSize: '11px',
+                                                                                opacity: isSentByMe ? 0.8 : 0.6,
+                                                                                marginTop: '6px',
+                                                                                textAlign: isSentByMe ? 'right' : 'left',
+                                                                                fontWeight: '500'
+                                                                            }}>
+                                                                                {new Date(message.create_at || message.created_at || message.date || message.timestamp).toLocaleTimeString([], {
+                                                                                    hour: '2-digit',
+                                                                                    minute: '2-digit',
+                                                                                    hour12: true
+                                                                                })}
+                                                                            </div>
+                                                                        </div>
+
+
                                                                     </div>
-                                                                    
-                                                                    
+
+
                                                                 </div>
                                                             );
                                                         })}
@@ -1688,11 +1689,11 @@ function AdminLeads() {
                                             height: '40px',
                                             display: 'flex',
                                             flexDirection: 'column',
-                                            justifyContent:'center',
+                                            justifyContent: 'center',
                                             justifyItems: 'center',
-                                        }}> 
+                                        }}>
 
-                                        <InputText 
+                                            <InputText
                                                 type="name"
                                                 placeholder="Type a message..."
                                                 name="message"
@@ -1708,18 +1709,19 @@ function AdminLeads() {
                                         </div>
 
                                         <div style={{
-                                        width: '55px',
-                                        height: '40px',
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center'}}> 
-                                            <RoundButton 
-                                                icon={faPaperPlane} 
+                                            width: '55px',
+                                            height: '40px',
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }}>
+                                            <RoundButton
+                                                icon={faPaperPlane}
                                                 onClick={handlePhoneClick}
                                                 disabled={!formData.message.trim() || sendingMessage}
                                             />
-                                        </div>      
-                                        
+                                        </div>
+
                                     </div>
                                 </div>
                             )}
@@ -1728,39 +1730,39 @@ function AdminLeads() {
                 </div>
 
 
-        </div>
+            </div>
 
-        
-        <RightSidePopup isloading={false} isOpen={showPopup} onClose={() => setShowPopup(false)} 
-            onSubmit={() => {
-            //setShowPopup(false);
-            createLeads();
-            } }
+
+            <RightSidePopup isloading={false} isOpen={showPopup} onClose={() => setShowPopup(false)}
+                onSubmit={() => {
+                    //setShowPopup(false);
+                    createLeads();
+                }}
             >
-            <TextView type="darkBold" text={"Create your Lead"}/>
-            <div style={{marginTop:'20px'}}></div>
+                <TextView type="darkBold" text={"Create your Lead"} />
+                <div style={{ marginTop: '20px' }}></div>
 
-            <Dropdown
-                data={members}
-                selectedItem={selectedMember}
-                onChange={handleMemberChange}
-            />
-            <InputText placeholder={"Lead Name"} name={"leadName"} onChange={handleChange}></InputText>
-            <InputText placeholder={"Description"} name={"leadDescription"} onChange={handleChange}></InputText>
+                <Dropdown
+                    data={members}
+                    selectedItem={selectedMember}
+                    onChange={handleMemberChange}
+                />
+                <InputText placeholder={"Lead Name"} name={"leadName"} onChange={handleChange}></InputText>
+                <InputText placeholder={"Description"} name={"leadDescription"} onChange={handleChange}></InputText>
 
-            <FileAttachButton onChange={handleFileChange} text={` Document ${fileUploadStatus}`} accept=".pdf,.jpg,.PNG" />
-        </RightSidePopup>
+                <FileAttachButton onChange={handleFileChange} text={` Document ${fileUploadStatus}`} accept=".pdf,.jpg,.PNG" />
+            </RightSidePopup>
 
-        {showPointsPopup && (
-            <PointPopup
-            onClose={() => setShowPointsPopup(false)}
-            onSubmit={handlePopupSubmit}
-            userType="admin"
-            />
-        )}
+            {showPointsPopup && (
+                <PointPopup
+                    onClose={() => setShowPointsPopup(false)}
+                    onSubmit={handlePopupSubmit}
+                    userType="admin"
+                />
+            )}
 
-    </div>
-  )
+        </div>
+    )
 }
 
 export default AdminLeads
