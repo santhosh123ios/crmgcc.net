@@ -35,6 +35,7 @@ export const getAllOffers = (req, res) => {
 export const generateOfferCode = (req, res) => {
     try {
         const { offer_id } = req.body;
+        //const offer_id = 3 //req.params.offer_id;
         const user_id = req.user?.id;
         
         // Validate required parameters

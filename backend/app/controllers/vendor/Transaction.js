@@ -164,7 +164,7 @@ export const getTransaction = (req, res) => {
 
     try {
         const user_id = req.user?.id;
-        const query =  "SELECT t.transaction_id, t.transaction_type, t.transaction_cr, t.transaction_dr, t.transaction_title, t.transaction_created_at, t.user_id, t.from_id, t.to_id, t.card_id, t.card_no,  from_user.name AS from_name, from_user.profile_img AS from_image, from_user.user_type AS from_type,  to_user.name AS to_name, to_user.email AS to_email, to_user.profile_img AS to_image, to_user.user_type AS to_type FROM `transaction` t  LEFT JOIN `users` AS from_user ON t.from_id = from_user.id LEFT JOIN `users` AS to_user ON t.to_id = to_user.id  WHERE t.user_id = ?";
+        const query =  "SELECT t.transaction_id, t.transaction_type, t.transaction_cr, t.transaction_dr, t.transaction_title, t.transaction_created_at, t.user_id, t.from_id, t.to_id, t.card_id, t.card_no,  from_user.name AS from_name, from_user.profile_img AS from_image, from_user.user_type AS from_type,  to_user.name AS to_name, to_user.email AS to_email, to_user.profile_img AS to_image, to_user.user_type AS to_type FROM `transaction` t  LEFT JOIN `users` AS from_user ON t.from_id = from_user.id LEFT JOIN `users` AS to_user ON t.to_id = to_user.id  WHERE t.user_id = ? ORDER BY t.transaction_created_at DESC";
         executeQuery({
             query,
             data: [user_id],
@@ -515,3 +515,112 @@ export const check_member_points = (req, res) => {
         res.status(500).json({ status: 0, message: "Server error", error: err.message });
     }
 }
+
+export const redeem_member_points = (req, res) => {
+
+    try {
+       const { transaction_title, transaction_point, member_id } = req.body;
+       const user_id = req.user?.id;
+        
+        if (!transaction_point || !transaction_title || !user_id || !to_id)
+        return res
+          .status(404)
+          .json({ error: [{ message: "Input data missing" }], result: {} });
+
+        // First get transaction settings to calculate expiry date
+        const settingsQuery = "SELECT transaction_expiry_time FROM transaction_settings ORDER BY id DESC LIMIT 1";
+        executeQuery({
+            query: settingsQuery,
+            data: [],
+            callback: (err, settingsData) => {
+                if (err) {
+                    return res
+                    .status(500)
+                    .json({ error: [{ message: err }], result: {} });
+                }
+
+                const expiryDays = settingsData[0]?.transaction_expiry_time || 30; // Default to 30 days if not set
+                const currentDate = new Date();
+                const expiryDate = new Date(currentDate.getTime() + (expiryDays * 24 * 60 * 60 * 1000));
+                const formattedExpiryDate = expiryDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+                // Check balance and proceed with transaction
+                const balanceQuery = "SELECT COALESCE(SUM(transaction_cr), 0) - COALESCE(SUM(transaction_dr), 0) AS user_balance FROM transaction WHERE user_id = ?";
+                executeQuery({
+                    query: balanceQuery,
+                    data: [member_id],
+                    callback: (err, balanceData) => {
+                        if (err)
+                            return res
+                            .status(500)
+                            .json({ error: [{ message: err }], result: {} });
+
+                        const currentBalance = parseFloat(balanceData[0]?.user_balance || 0);
+                        const requiredPoints = parseFloat(transaction_point);
+                        
+                        console.log("Balance check - Available:", currentBalance, "Required:", requiredPoints, "Type - Available:", typeof currentBalance, "Required:", typeof requiredPoints);
+                        
+                        if (currentBalance < requiredPoints) {
+                            console.log("Insufficient points. Available: ", currentBalance, "Required: ", requiredPoints)
+                            return res
+                            .status(400)
+                            .json({ 
+                                error: [{ 
+                                    message: `Insufficient points. Available: ${currentBalance}, Required: ${requiredPoints}` 
+                                }], 
+                                result: {} 
+                            });
+                        }
+                        // Proceed with transaction if enough points
+                        transactionDR(formattedExpiryDate);
+                    }
+                });
+            }
+        });
+
+        function transactionDR(expiryDate) {
+           
+            const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
+                            card_id,card_no ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+            executeQuery({
+                        query,
+                        data: [ 2, 0, transaction_point, transaction_title,member_id,member_id,user_id, member_id],
+                        callback: (err, trData) => {
+                        if (err)
+                            return res
+                            .status(500)
+                            .json({ error: [{ message: err }], result: {} });
+
+                            transactionCR(expiryDate)
+                        
+                        }
+            });
+        }
+
+        function transactionCR(expiryDate) {
+            
+            const query = `INSERT INTO transaction (transaction_type,transaction_cr,transaction_dr,transaction_title,user_id,from_id,to_id,
+                            card_id,card_no,expire_on ) SELECT ?, ?, ?, ?, ?, ?, ?, c.card_id, c.card_no, ? FROM cards c WHERE c.user_id = ? LIMIT 1;`;
+            executeQuery({
+                        query,
+                        data: [ 1, transaction_point, 0, transaction_title,user_id,member_id,user_id, expiryDate, user_id],
+                        callback: (err, trData) => {
+                        if (err)
+                            return res
+                            .status(500)
+                            .json({ error: [{ message: err }], result: {} });
+
+                            const result = {
+                                message: "add transaction successful",
+                                status: 1
+                            };
+                            return res.status(200).json({ error: [], result });
+                        }
+            });
+        }
+    } 
+    catch (err) {
+        console.error("Upload error:", err);
+        res.status(500).json({ status: 0, message: "Server error", error: err.message });
+    }
+}  
