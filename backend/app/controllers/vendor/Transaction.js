@@ -522,7 +522,7 @@ export const redeem_member_points = (req, res) => {
        const { transaction_title, transaction_point, member_id } = req.body;
        const user_id = req.user?.id;
         
-        if (!transaction_point || !transaction_title || !user_id || !to_id)
+        if (!transaction_point || !transaction_title || !user_id || !member_id)
         return res
           .status(404)
           .json({ error: [{ message: "Input data missing" }], result: {} });
